@@ -1,5 +1,6 @@
 import cli
 
+from redis import Redis
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler
@@ -34,15 +35,60 @@ class DSNType(object):
         return self
 
 class APIHandler(RequestHandler):
-    pass
+
+    def __init__(self, application, request, **kwargs):
+        super(APIHandler, self).__init__(self, application, request, **kwargs)
+
+        self.redis = Redis(
+            host=application.settings["redis.host"],
+            port=application.settings["redis.port"],
+            db=application.settings["redis.db"])
+
+    def get_argument(self, name, type=str, **kwargs):
+        arg = super(APIHandler, self).get_argument(name, **kwargs)
+        try:
+            arg = type(arg)
+        except:
+            raise HTTPError(404, "bad argument %s" % name)
+
+        return arg
+
+class Observations(APIHandler):
+
+    def post(self):
+        """Create a new observation."""
+        time = self.get_argument("time", type=int)
+        value = self.get_argument("value", type=int)
+        subject = self.get_argument("subject")
+        attribute = self.get_argument("attribute")
+
+        # In Redis, we save each observation as in a sorted set with the
+        # time of the observation as its score. This allows us to easily
+        # pull observations in a range from history.
+
+        # Since value is not likely to be unique across the observation
+        # period, we make a unique member by prepending the time of
+        # observation to the value. Consumers must reverse this process
+        # to get at the actual data (ie, value.split(':')).
+
+        key = "observations!%s!%s" % (subject, attribute)
+        uniqueval = "%d:%d" % (time, value)
+        self.redis.zadd(key, uniqueval, time)
 
 routes = [
+    (r"/observations", Observations),
 ]
-
 application = WSGIApplication(routes)
 
 @cli.DaemonizingApp(name="tsar-server")
 def tsar_server(app):
+    settings = {
+        "redis.port": app.params.redis.port,
+        "redis.host": app.params.redis.host,
+        "redis.db": app.params.redis.db,
+    }
+    application = WSGIApplication(routes, **settings)
+
     server = HTTPServer(application)
     server.listen(app.params.port)
     IOLoop.instance().start()
