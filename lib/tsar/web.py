@@ -62,6 +62,11 @@ class Observations(APIHandler):
         subject = self.get_argument("subject")
         attribute = self.get_argument("attribute")
 
+        self.record(time, subject, attribute, value)
+
+    def record(self, time, subject, attribute, value):
+        """Record an observation."""
+
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
         # pull observations in a range from history.
