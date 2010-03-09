@@ -1,3 +1,5 @@
+import logging
+
 import cli
 
 from redis import Redis
@@ -37,6 +39,7 @@ class DSNType(object):
 class APIHandler(RequestHandler):
 
     def __init__(self, application, request, **kwargs):
+        self.log = logging.getLogger(self.__class__.__name__)
         super(APIHandler, self).__init__(self, application, request, **kwargs)
 
         self.redis = Redis(
