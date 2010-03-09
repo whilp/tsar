@@ -65,6 +65,8 @@ class ObservationsHandler(APIHandler):
         subject = self.get_argument("subject")
         attribute = self.get_argument("attribute")
 
+        self.log.debug("Recording %s's %s (%d) at %d",
+            subject, attribute, value, time)
         self.record(time, subject, attribute, value)
 
     def record(self, time, subject, attribute, value):
@@ -96,6 +98,8 @@ def tsar_server(app):
         "redis.db": app.params.redis.db,
     }
     application = WSGIApplication(routes, **settings)
+
+    app.log.debug("Listening on port %d" % app.params.port)
 
     server = HTTPServer(application)
     server.listen(app.params.port)
