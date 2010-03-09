@@ -5,7 +5,7 @@ import cli
 from redis import Redis
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from tornado.web import RequestHandler
+from tornado.web import Application, RequestHandler
 from tornado.wsgi import WSGIApplication
 
 class DSNType(object):
@@ -97,7 +97,7 @@ def tsar_server(app):
         "redis.host": app.params.redis.host,
         "redis.db": app.params.redis.db,
     }
-    application = WSGIApplication(routes, **settings)
+    application = Application(routes, **settings)
 
     app.log.debug("Listening on port %d" % app.params.port)
 
