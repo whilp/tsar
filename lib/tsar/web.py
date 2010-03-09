@@ -53,7 +53,7 @@ class APIHandler(RequestHandler):
 
         return arg
 
-class Observations(APIHandler):
+class ObservationsHandler(APIHandler):
 
     def post(self):
         """Create a new observation."""
@@ -81,7 +81,7 @@ class Observations(APIHandler):
         self.redis.zadd(key, uniqueval, time)
 
 routes = [
-    (r"/observations", Observations),
+    (r"/observations", ObservationsHandler),
 ]
 application = WSGIApplication(routes)
 
