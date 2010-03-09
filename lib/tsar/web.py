@@ -103,7 +103,7 @@ httpport = 8000
 tsar_server.add_param("-P", "--port", default=httpport, type=int,
     help="server port (default: %s)" % httpport)
 tsar_server.add_param("-r", "--redis", default=dsn, type=dsn,
-	help="Redis connection host:port/database (default: %s)" % dsn)
+    help="Redis connection host:port/database (default: %s)" % dsn)
 
 if __name__ == "__main__":
     tsar_server.run()
