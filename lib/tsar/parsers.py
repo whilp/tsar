@@ -1,5 +1,7 @@
 from csv import DictReader
 
+__all__ = ["TypedCSVReader"]
+
 class TypedCSVReader(DictReader):
 
     def __init__(self, f, fieldtypes={}, keytype=str, **kwargs):
