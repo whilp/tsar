@@ -65,13 +65,10 @@ class ObservationsHandler(APIHandler):
         content_type = self.request.headers.get("Content-Type")
         if content_type == u"text/csv":
             # Bulk update.
-            self.log.debug("content type is %s", content_type)
             body = (line for line in self.request.body.splitlines())
             fieldtypes = {"value": int, "time": int}
-            fields = ("time", "value", "subject", "attribute")
             try:
-                observations = TypedCSVReader(body, fieldnames=fields,
-                    fieldtypes=fieldtypes)
+                observations = TypedCSVReader(body, fieldtypes=fieldtypes)
             except:
                 raise HTTPError(400, "malformed bulk post")
         else:
@@ -91,7 +88,6 @@ class ObservationsHandler(APIHandler):
             self.record(**observation)
 
         self.set_status(201)
-        self.set_header("Location", "/%s/%s" % (subject, attribute))
 
     def record(self, time=None, subject=None, attribute=None, value=None):
         """Record an observation."""
