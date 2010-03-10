@@ -1,0 +1,11 @@
+[
+	{"time": 1268238119, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238129, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238139, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238149, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238159, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238169, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238179, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238189, "value": 10, "subject": "foo", "attribute": "bar"},
+	{"time": 1268238199, "value": 10, "subject": "foo", "attribute": "bar"},
+]
