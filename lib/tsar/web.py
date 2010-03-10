@@ -1,5 +1,7 @@
 import logging
 
+from csv import DictReader
+
 import cli
 
 from redis import Redis
@@ -9,12 +11,9 @@ from tornado.web import Application, HTTPError, RequestHandler
 from tornado.wsgi import WSGIApplication
 
 try:
-    import json
+    from io import StringIO
 except ImportError:
-    import simplejson as json
-
-def mgetter(*keys, default=None):
-	return lambda d: tuple(d.get(k, default) for k in keys)
+    from cStringIO import StringIO
 
 class DSNType(object):
     
@@ -69,29 +68,34 @@ class ObservationsHandler(APIHandler):
     def post(self):
         """Create a new observation."""
         content_type = self.request.headers.get("content-type", None)
-        if content_type is "application/json":
+        if content_type is "text/csv":
             # Bulk update.
-            mget = mgetter("time", "subject", "attribute", "value")
+            body = StringIO(self.request.body)
+            fields = ("time", "value", "subject", "attribute")
             try:
-                observations = [mget(d) for d in json.loads(self.request.body)]
+                observations = DictReader(body, fieldnames=fields)
             except:
-                raise HTTPError(400)
+                raise HTTPError(400, "malformed bulk post")
         else:
             # Single update.
             time = self.get_argument("time", type=int)
             value = self.get_argument("value", type=int)
             subject = self.get_argument("subject")
             attribute = self.get_argument("attribute")
-            observations = [(time, subject, attribute, value)]
+            observations = [{
+                "time": time, "subject": subject,
+                "attribute": attribute, "value": value}]
 
-        for time, subject, attribute, value in observations:
-            self.log.debug("Recording %s's %s (%d) at %d",
-                subject, attribute, value, time)
-            self.record(time, subject, attribute, value)
+        for observation in observations:
+            self.log.debug("Recording %(subject)s's %(attribute)s "
+                "(%(value)d) at %(time)d",
+                observation)
+            self.record(**observation)
 
-        # 201
+        self.set_status(201)
+        self.set_header("Location", "/%s/%s" % (subject, attribute))
 
-    def record(self, time, subject, attribute, value):
+    def record(self, time=None, subject=None, attribute=None, value=None):
         """Record an observation."""
 
         # In Redis, we save each observation as in a sorted set with the
