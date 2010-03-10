@@ -5,7 +5,7 @@ import cli
 from redis import Redis
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from tornado.web import Application, RequestHandler
+from tornado.web import Application, HTTPError, RequestHandler
 from tornado.wsgi import WSGIApplication
 
 class DSNType(object):
@@ -52,7 +52,7 @@ class APIHandler(RequestHandler):
         try:
             arg = type(arg)
         except:
-            raise HTTPError(404, "bad argument %s" % name)
+            raise HTTPError(400, "bad argument %s" % name)
 
         return arg
 
