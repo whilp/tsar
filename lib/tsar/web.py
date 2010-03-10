@@ -10,10 +10,21 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler
 from tornado.wsgi import WSGIApplication
 
-try:
-    from io import StringIO
-except ImportError:
-    from cStringIO import StringIO
+class TypedCSVReader(DictReader):
+
+    def __init__(self, f, fieldtypes={}, keytype=str, **kwargs):
+        DictReader.__init__(self, f, **kwargs)
+        self.keytype = str
+        self.fieldtypes = fieldtypes
+    
+    def next(self):
+        d = DictReader.next(self)
+        newd = {}
+        for k in d:
+            coerce = self.fieldtypes.get(k, str)
+            newd[self.keytype(k)] = coerce(d[k])
+
+        return newd
 
 class DSNType(object):
     
@@ -67,13 +78,16 @@ class ObservationsHandler(APIHandler):
 
     def post(self):
         """Create a new observation."""
-        content_type = self.request.headers.get("content-type", None)
-        if content_type is "text/csv":
+        content_type = self.request.headers.get("Content-Type")
+        if content_type == u"text/csv":
             # Bulk update.
-            body = StringIO(self.request.body)
+            self.log.debug("content type is %s", content_type)
+            body = (line for line in self.request.body.splitlines())
+            fieldtypes = {"value": int, "time": int}
             fields = ("time", "value", "subject", "attribute")
             try:
-                observations = DictReader(body, fieldnames=fields)
+                observations = TypedCSVReader(body, fieldnames=fields,
+                    fieldtypes=fieldtypes)
             except:
                 raise HTTPError(400, "malformed bulk post")
         else:
