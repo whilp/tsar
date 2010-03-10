@@ -8,6 +8,14 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler
 from tornado.wsgi import WSGIApplication
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+def mgetter(*keys, default=None):
+	return lambda d: tuple(d.get(k, default) for k in keys)
+
 class DSNType(object):
     
     def __init__(self, host="localhost", port=0, db=0, sep=':'):
@@ -60,14 +68,28 @@ class ObservationsHandler(APIHandler):
 
     def post(self):
         """Create a new observation."""
-        time = self.get_argument("time", type=int)
-        value = self.get_argument("value", type=int)
-        subject = self.get_argument("subject")
-        attribute = self.get_argument("attribute")
+        content_type = self.request.headers.get("content-type", None)
+        if content_type is "application/json":
+            # Bulk update.
+            mget = mgetter("time", "subject", "attribute", "value")
+            try:
+                observations = [mget(d) for d in json.loads(self.request.body)]
+            except:
+                raise HTTPError(400)
+        else:
+            # Single update.
+            time = self.get_argument("time", type=int)
+            value = self.get_argument("value", type=int)
+            subject = self.get_argument("subject")
+            attribute = self.get_argument("attribute")
+            observations = [(time, subject, attribute, value)]
 
-        self.log.debug("Recording %s's %s (%d) at %d",
-            subject, attribute, value, time)
-        self.record(time, subject, attribute, value)
+        for time, subject, attribute, value in observations:
+            self.log.debug("Recording %s's %s (%d) at %d",
+                subject, attribute, value, time)
+            self.record(time, subject, attribute, value)
+
+        # 201
 
     def record(self, time, subject, attribute, value):
         """Record an observation."""
