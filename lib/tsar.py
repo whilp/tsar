@@ -137,7 +137,7 @@ class ObservationsHandler(APIHandler):
             self.log.debug("body: %s", body)
             fieldtypes = {"value": int, "time": int}
             observations = list(TypedCSVReader(body, fieldtypes=fieldtypes))
-        else:
+        elif content_type == u"application/x-www-form-urlencoded":
             # Single update.
             time = self.get_argument("time", type=int)
             value = self.get_argument("value", type=int)
