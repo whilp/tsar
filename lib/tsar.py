@@ -119,7 +119,7 @@ class APIHandler(RequestHandler):
             port=application.settings["redis.port"],
             db=application.settings["redis.db"])
 
-    @staticmethod
+    @classmethod
     def db_string(handler, field):
         if len(field) > handler.fieldlen:
             raise TypeError("field too long")
@@ -130,7 +130,7 @@ class APIHandler(RequestHandler):
 
         return field
 
-    @staticmethod
+    @classmethod
     def db_int(handler, field):
         return int(field)
 
@@ -179,7 +179,7 @@ class ObservationsHandler(APIHandler):
 
         for k in kwargs:
             try:
-                kwargs[k] = self.fields[k](self, kwargs[k])
+                kwargs[k] = self.fields[k](kwargs[k])
             except TypeError, e:
                 raise HTTPError(400, "%s: %s" % (e.args[0], k))
 
