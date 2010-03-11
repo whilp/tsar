@@ -150,10 +150,13 @@ class ObservationsHandler(APIHandler):
                 "time": time, "subject": subject,
                 "attribute": attribute, "value": value}]
 
+        created = False
         for observation in observations:
             self.record(**observation)
+            created = True
 
-        self.set_status(201)
+        if created:
+            self.set_status(201)
 
     def record(self, time=None, subject=None, attribute=None, value=None):
         """Record an observation."""
