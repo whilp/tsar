@@ -130,14 +130,17 @@ class ObservationsHandler(APIHandler):
 
     def post(self):
         """Create a new observation."""
-        content_type = self.request.headers.get("Content-Type")
-        if content_type == u"text/csv":
+        contenttype = self.request.headers.get("Content-Type", None)
+        observations = []
+        if contenttype.startswith(u"multipart/form-data"):
             # Bulk update.
-            body = (line for line in self.request.body.splitlines())
-            self.log.debug("body: %s", body)
-            fieldtypes = {"value": int, "time": int}
-            observations = list(TypedCSVReader(body, fieldtypes=fieldtypes))
-        elif content_type == u"application/x-www-form-urlencoded":
+            _file = self.request.files.get("observations", [{}])[0]
+            body = (l for l in _file.get("body", "").splitlines())
+            filetype = _file.get("content_type", None)
+            if filetype == u"text/csv":
+                fieldtypes = {"value": int, "time": int}
+                observations = list(TypedCSVReader(body, fieldtypes=fieldtypes))
+        elif contenttype.startswith(u"application/x-www-form-urlencoded"):
             # Single update.
             time = self.get_argument("time", type=int)
             value = self.get_argument("value", type=int)
