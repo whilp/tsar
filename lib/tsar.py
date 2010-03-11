@@ -135,16 +135,16 @@ class APIHandler(RequestHandler):
         return int(field)
 
 class ObservationsHandler(APIHandler):
-        
-    fields = {
-        "time": APIHandler.db_int,
-        "value": APIHandler.db_int,
-        "subject": APIHandler.db_string,
-        "attribute": APIHandler.db_string,
-    }
 
     def post(self):
         """Create a new observation."""
+        fields = {
+            "time": APIHandler.db_int,
+            "value": APIHandler.db_int,
+            "subject": APIHandler.db_string,
+            "attribute": APIHandler.db_string,
+        }
+
         contenttype = self.request.headers.get("Content-Type", None)
         observations = []
         if contenttype.startswith(u"multipart/form-data"):
@@ -156,30 +156,30 @@ class ObservationsHandler(APIHandler):
                 observations = DictReader(body)
         elif contenttype.startswith(u"application/x-www-form-urlencoded"):
             # Single update.
-            observations = [dict((k, self.get_argument(k)) for k in self.fields)]
+            observations = [dict((k, self.get_argument(k)) for k in fields)]
 
         created = False
         for observation in observations:
-            self.record(**observation)
+            self.record(fields, **observation)
 
             created = True
 
         if created:
             self.set_status(201)
 
-    def record(self, **kwargs):
+    def record(self, fields, **kwargs):
         """Record an observation."""
-        missing_fields = [k for k in self.fields if k not in kwargs]
+        missing_fields = [k for k in fields if k not in kwargs]
         if missing_fields:
             raise HTTPError(400, "missing fields: %s" % ", ".join(missing_fields))
 
-        extra_fields = [k for k in kwargs if k not in self.fields]
+        extra_fields = [k for k in kwargs if k not in fields]
         if extra_fields:
             raise HTTPError(400, "extra fields: %s" % ", ".join(extra_fields))
 
         for k in kwargs:
             try:
-                kwargs[k] = self.fields[k](kwargs[k])
+                kwargs[k] = fields[k](kwargs[k])
             except TypeError, e:
                 raise HTTPError(400, "%s: %s" % (e.args[0], k))
 
