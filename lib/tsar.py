@@ -12,22 +12,22 @@ __url__ = "http://code.hep.wisc.edu/tsar"
 
 # See http://pypi.python.org/pypi?%3Aaction=list_classifiers.
 __classifiers__ = [
-	"Development Status :: 3 - Alpha",
-	"Intended Audience :: Science/Research",
-	"Intended Audience :: System Administrators",
-	"License :: OSI Approved :: BSD License",
-	"Natural Language :: English",
-	"Programming Language :: Python :: 2.5",
-	"Programming Language :: Python :: 2.6",
-	"Topic :: Database :: Front-Ends",
-	"Topic :: Internet :: WWW/HTTP :: HTTP Servers",
-	"Topic :: System :: Monitoring",
-	] 
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 2.5",
+    "Programming Language :: Python :: 2.6",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: System :: Monitoring",
+    ] 
 __keywords__ = "time series monitor"
 
 __requires__ = [
-	"pyCLI>=1.0",
-	"tornado>=0.2",
+    "pyCLI>=1.0",
+    "tornado>=0.2",
 ]
 
 # The following is modeled after the ISC license.
