@@ -50,9 +50,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 __todo__ = """\
 """
 
+import csv
 import logging
-
-from csv import DictReader
 
 import cli
 
@@ -62,19 +61,19 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler
 from tornado.wsgi import WSGIApplication
 
-class TypedCSVReader(DictReader):
+class DictReader(csv.DictReader):
+    """Produce keys that are strings even if input is unicode.
 
-    def __init__(self, f, fieldtypes={}, keytype=str, **kwargs):
-        DictReader.__init__(self, f, **kwargs)
-        self.keytype = str
-        self.fieldtypes = fieldtypes
+    This hack makes it possible to pass the resulting dictionaries as
+    kwargs to functions.
+    """
+    keytype = str
     
     def next(self):
-        d = DictReader.next(self)
+        d = csv.DictReader.next(self)
         newd = {}
         for k in d:
-            coerce = self.fieldtypes.get(k, str)
-            newd[self.keytype(k)] = coerce(d[k])
+            newd[self.keytype(k)] = d[k]
 
         return newd
 
@@ -138,8 +137,7 @@ class ObservationsHandler(APIHandler):
             body = (l for l in _file.get("body", "").splitlines())
             filetype = _file.get("content_type", None)
             if filetype == u"text/csv":
-                fieldtypes = {"value": int, "time": int}
-                observations = list(TypedCSVReader(body, fieldtypes=fieldtypes))
+                observations = DictReader(body)
         elif contenttype.startswith(u"application/x-www-form-urlencoded"):
             # Single update.
             time = self.get_argument("time", type=int)
