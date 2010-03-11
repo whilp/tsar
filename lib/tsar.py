@@ -142,8 +142,8 @@ routes = [
 ]
 application = WSGIApplication(routes)
 
-@cli.DaemonizingApp(name="tsar-server")
-def tsar_server(app):
+@cli.DaemonizingApp
+def tsar(app):
     settings = {
         "redis.port": app.params.redis.port,
         "redis.host": app.params.redis.host,
@@ -159,10 +159,10 @@ def tsar_server(app):
 
 dsn = DSNType(port=6379)
 httpport = 8000
-tsar_server.add_param("-P", "--port", default=httpport, type=int,
+tsar.add_param("-P", "--port", default=httpport, type=int,
     help="server port (default: %s)" % httpport)
-tsar_server.add_param("-r", "--redis", default=dsn, type=dsn,
+tsar.add_param("-r", "--redis", default=dsn, type=dsn,
     help="Redis connection host:port/database (default: %s)" % dsn)
 
 if __name__ == "__main__":
-    tsar_server.run()
+    tsar.run()
