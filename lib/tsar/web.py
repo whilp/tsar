@@ -66,11 +66,9 @@ class ObservationsHandler(APIHandler):
         if content_type == u"text/csv":
             # Bulk update.
             body = (line for line in self.request.body.splitlines())
+            self.log.debug("body: %s", body)
             fieldtypes = {"value": int, "time": int}
-            try:
-                observations = TypedCSVReader(body, fieldtypes=fieldtypes)
-            except:
-                raise HTTPError(400, "malformed bulk post")
+            observations = list(TypedCSVReader(body, fieldtypes=fieldtypes))
         else:
             # Single update.
             time = self.get_argument("time", type=int)
@@ -82,9 +80,6 @@ class ObservationsHandler(APIHandler):
                 "attribute": attribute, "value": value}]
 
         for observation in observations:
-            self.log.debug("Recording %(subject)s's %(attribute)s "
-                "(%(value)d) at %(time)d",
-                observation)
             self.record(**observation)
 
         self.set_status(201)
@@ -104,6 +99,8 @@ class ObservationsHandler(APIHandler):
         key = "observations!%s!%s" % (subject, attribute)
         uniqueval = "%d:%d" % (time, value)
         self.redis.zadd(key, uniqueval, time)
+        self.log.debug("Recording %s's %s (%d) at %d",
+            subject, attribute, time, value)
 
 routes = [
     (r"/observations", ObservationsHandler),
