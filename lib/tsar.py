@@ -52,6 +52,7 @@ __todo__ = """\
 
 import csv
 import logging
+import string
 
 import cli
 
@@ -106,6 +107,8 @@ class DSNType(object):
         return self
 
 class APIHandler(RequestHandler):
+    fieldchars = [x for x in string.letters if x not in "!/"]
+    fieldlen = 32
 
     def __init__(self, application, request, **kwargs):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -116,16 +119,29 @@ class APIHandler(RequestHandler):
             port=application.settings["redis.port"],
             db=application.settings["redis.db"])
 
-    def get_argument(self, name, type=str, **kwargs):
-        arg = super(APIHandler, self).get_argument(name, **kwargs)
-        try:
-            arg = type(arg)
-        except:
-            raise HTTPError(400, "bad argument %s" % name)
+    @staticmethod
+    def db_string(handler, field):
+        if len(field) > handler.fieldlen:
+            raise TypeError("field too long")
 
-        return arg
+        badchars = [x for x in field if x not in handler.fieldchars]
+        if badchars:
+            raise TypeError("field contains reserved characters")
+
+        return field
+
+    @staticmethod
+    def db_int(handler, field):
+        return int(field)
 
 class ObservationsHandler(APIHandler):
+        
+    fields = {
+        "time": APIHandler.db_int,
+        "value": APIHandler.db_int,
+        "subject": APIHandler.db_string,
+        "attribute": APIHandler.db_string,
+    }
 
     def post(self):
         """Create a new observation."""
@@ -140,24 +156,32 @@ class ObservationsHandler(APIHandler):
                 observations = DictReader(body)
         elif contenttype.startswith(u"application/x-www-form-urlencoded"):
             # Single update.
-            time = self.get_argument("time", type=int)
-            value = self.get_argument("value", type=int)
-            subject = self.get_argument("subject")
-            attribute = self.get_argument("attribute")
-            observations = [{
-                "time": time, "subject": subject,
-                "attribute": attribute, "value": value}]
+            observations = [dict((k, self.get_argument(k)) for k in self.fields)]
 
         created = False
         for observation in observations:
             self.record(**observation)
+
             created = True
 
         if created:
             self.set_status(201)
 
-    def record(self, time=None, subject=None, attribute=None, value=None):
+    def record(self, **kwargs):
         """Record an observation."""
+        missing_fields = [k for k in self.fields if k not in kwargs]
+        if missing_fields:
+            raise HTTPError(400, "missing fields: %s" % ", ".join(missing_fields))
+
+        extra_fields = [k for k in kwargs if k not in self.fields]
+        if extra_fields:
+            raise HTTPError(400, "extra fields: %s" % ", ".join(extra_fields))
+
+        for k in kwargs:
+            try:
+                kwargs[k] = self.fields[k](self, kwargs[k])
+            except TypeError, e:
+                raise HTTPError(400, "%s: %s" % (e.args[0], k))
 
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
@@ -168,11 +192,11 @@ class ObservationsHandler(APIHandler):
         # observation to the value. Consumers must reverse this process
         # to get at the actual data (ie, value.split(':')).
 
-        key = "observations!%s!%s" % (subject, attribute)
-        uniqueval = "%d:%d" % (time, value)
-        self.redis.zadd(key, uniqueval, time)
-        self.log.debug("Recording %s's %s (%d) at %d",
-            subject, attribute, time, value)
+        key = "observations!%(subject)s!%(attribute)s" % kwargs
+        uniqueval = "%(time)d:%(value)d" % kwargs
+        self.redis.zadd(key, uniqueval, kwargs["time"])
+        self.log.debug("Recording %(subject)s's %(attribute)s "
+            "(%(value)d) at %(time)d", kwargs)
 
 routes = [
     (r"/observations", ObservationsHandler),
