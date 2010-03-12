@@ -1,2 +1,2 @@
 \.egg-info$
-^(bin|etc|var)$
+^(bin|build|dist|etc|var)$
