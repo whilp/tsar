@@ -54,6 +54,10 @@ import csv
 import logging
 import string
 
+from calendar import timegm
+from datetime import datetime, timedelta
+from time import gmtime
+
 import cli
 
 from redis import Redis
@@ -134,6 +138,18 @@ class APIHandler(RequestHandler):
     def db_int(handler, field):
         return int(field)
 
+    @classmethod
+    def db_reltime(handler, field, now=None):
+        field = int(field)
+        if field < 0:
+            if now is None:
+                now = datetime.now()
+            field = now - timedelta(seconds=field)
+        else:
+            field = datetime(*gmtime(field)[:6])
+
+        return timegm(field.timetuple())
+
     def validate(self, fields, **kwargs):
         for k in kwargs:
             try:
@@ -151,6 +167,32 @@ class APIHandler(RequestHandler):
         return int(time), int(value)
 
 class ObservationsHandler(APIHandler):
+
+    def get(self):
+        fields = {
+            "start": self.db_reltime,
+            "stop": self.db_reltime,
+            "subject": self.db_string,
+            "attribute": self.db_string,
+        }
+        kwargs = dict((k, self.get_argument(k)) for k in fields)
+        kwargs = self.validate(fields, **kwargs)
+
+        if kwargs["start"] > kwargs["stop"]:
+            raise HTTPError(400, "start must be less than stop")
+
+        key = "observations!%(subject)s!%(attribute)s" % kwargs
+        results = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
+
+        # Since the members of the sorted timeseries set have the
+        # timestamp prepended, we don't need to request scores as well.
+        # Instead, we simply decode the members themselves.
+        results = [self.decodeval(x) for x in results]
+
+        # JavaScript expects millisecond precision.
+        jsresults = [(t * 1000, v) for t, v in results]
+
+        self.write({"results": jsresults})
 
     def post(self):
         """Create a new observation."""
