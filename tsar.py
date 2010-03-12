@@ -297,8 +297,11 @@ def tsar(app):
     }
     application = Application(routes, **settings)
 
-    app.log.debug("Listening on port %d" % app.params.port)
+    if app.params.daemonize:
+        self.log.debug("Daemonizing")
+        app.daemonize()
 
+    app.log.debug("Listening on port %d" % app.params.port)
     server = HTTPServer(application)
     server.listen(app.params.port)
     try:
