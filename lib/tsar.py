@@ -270,7 +270,10 @@ def tsar(app):
 
     server = HTTPServer(application)
     server.listen(app.params.port)
-    IOLoop.instance().start()
+    try:
+        IOLoop.instance().start()
+    except KeyboardInterrupt:
+        return 0
 
 dsn = DSNType(port=6379)
 httpport = 8000
