@@ -298,7 +298,7 @@ def tsar(app):
     application = Application(routes, **settings)
 
     if app.params.daemonize:
-        self.log.debug("Daemonizing")
+        app.log.debug("Daemonizing")
         app.daemonize()
 
     app.log.debug("Listening on port %d" % app.params.port)
