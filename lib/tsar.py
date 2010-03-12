@@ -63,7 +63,7 @@ import cli
 from redis import Redis
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from tornado.web import Application, HTTPError, RequestHandler
+from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
 from tornado.wsgi import WSGIApplication
 
 class DictReader(csv.DictReader):
@@ -254,8 +254,24 @@ class ObservationsHandler(APIHandler):
         logging.debug("Recording %(subject)s's %(attribute)s "
             "(%(value)d) at %(time)d", kwargs)
 
+class InterfaceHandler(StaticFileHandler):
+
+    def __init__(self, application, request):
+        root = application.settings["interface.root"]
+        super(InterfaceHandler, self).__init__(application, request, root)
+
+    def get(self, path, include_body=True):
+        try:
+            return super(InterfaceHandler, self).get(path, include_body)
+        except HTTPError, e:
+            # Append the html suffix if we can't find the file.
+            if e.status_code != 404:
+                raise
+            return super(InterfaceHandler, self).get(path + ".html", include_body)
+
 routes = [
     (r"/observations", ObservationsHandler),
+    (r"/(.*)", InterfaceHandler),
 ]
 application = WSGIApplication(routes)
 
@@ -267,6 +283,7 @@ def tsar(app):
         "redis.port": app.params.redis.port,
         "redis.host": app.params.redis.host,
         "redis.db": app.params.redis.db,
+        "interface.root": app.params.interface,
     }
     application = Application(routes, **settings)
 
@@ -281,10 +298,14 @@ def tsar(app):
 
 dsn = DSNType(port=6379)
 httpport = 8000
+interface = "/var/www/htdocs/"
 tsar.add_param("-P", "--port", default=httpport, type=int,
     help="server port (default: %s)" % httpport)
 tsar.add_param("-r", "--redis", default=dsn, type=dsn,
     help="Redis connection host:port/database (default: %s)" % dsn)
+tsar.add_param("-i", "--interface", default=interface,
+    help="directory from which to serve the web interface files "
+        "(default: %s)" % interface)
 
 if __name__ == "__main__":
     tsar.run()
