@@ -134,6 +134,15 @@ class APIHandler(RequestHandler):
     def db_int(handler, field):
         return int(field)
 
+    def validate(self, fields, **kwargs):
+        for k in kwargs:
+            try:
+                kwargs[k] = fields[k](kwargs[k])
+            except TypeError, e:
+                raise HTTPError(400, "%s: %s" % (e.args[0], k))
+
+        return kwargs
+
 class ObservationsHandler(APIHandler):
 
     def post(self):
@@ -177,11 +186,7 @@ class ObservationsHandler(APIHandler):
         if extra_fields:
             raise HTTPError(400, "extra fields: %s" % ", ".join(extra_fields))
 
-        for k in kwargs:
-            try:
-                kwargs[k] = fields[k](kwargs[k])
-            except TypeError, e:
-                raise HTTPError(400, "%s: %s" % (e.args[0], k))
+        kwargs = self.validate(fields, **kwargs)
 
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
