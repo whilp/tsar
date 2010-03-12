@@ -143,6 +143,13 @@ class APIHandler(RequestHandler):
 
         return kwargs
 
+    def encodeval(self, time, value, sep=':'):
+        return "%s%s%s" % (time, sep, value)
+
+    def decodeval(self, value, sep=':'):
+        time, junk, value = value.partition(sep)
+        return int(time), int(value)
+
 class ObservationsHandler(APIHandler):
 
     def post(self):
@@ -198,7 +205,7 @@ class ObservationsHandler(APIHandler):
         # to get at the actual data (ie, value.split(':')).
 
         key = "observations!%(subject)s!%(attribute)s" % kwargs
-        uniqueval = "%(time)d:%(value)d" % kwargs
+        uniqueval = self.encodeval(kwargs["time"], kwargs["value"])
         self.redis.zadd(key, uniqueval, kwargs["time"])
         self.log.debug("Recording %(subject)s's %(attribute)s "
             "(%(value)d) at %(time)d", kwargs)
