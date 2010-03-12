@@ -1,5 +1,14 @@
 """\
-%PROJECT%
+tsar is a simple HTTP service built on the `Tornado`_ web framework
+that performs efficient archival and retrieval of time-series
+data. It uses the `Redis`_ key-value store to provide fast access
+to stored records. New records can be sent via HTTP POST singly
+(application/x-www-form-urlencoded) or in bulk (text/csv via
+multipart/form-data). Query results requested via HTTP GET are returned
+as application/json.
+
+.. _Tornado:    http://www.tornadoweb.org/
+.. _Redis:      http://www.redis-db.com/
 """
 
 __project__ = "tsar"
@@ -28,6 +37,7 @@ __keywords__ = "time series monitor"
 __requires__ = [
     "pyCLI>=1.0",
     "tornado>=0.2",
+    "redis",
 ]
 
 # The following is modeled after the ISC license.
