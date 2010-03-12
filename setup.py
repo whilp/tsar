@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 import sys, os
 
-libdir = "lib"
+libdir = "."
 
 sys.path.insert(0, libdir)
 
@@ -23,14 +23,14 @@ setup_options = {
     "author": pkg.__author__,
     "author_email": pkg.__author_email__,
     "url": pkg.__url__,
-    "packages": find_packages(libdir),
-    "package_dir": {"": libdir},
-    "include_package_data": True,
     "zip_safe": False,
     "install_requires": pkg.__requires__,
-    "entry_points": """
-        # -*- Entry points: -*-
-    """,
+    "py_modules": ["tsar"],
+    "entry_points": {
+        "console_scripts": [
+            "tsar = tsar:tsar.run",
+        ],
+    },
     "test_suite": "tests",
 }
 
