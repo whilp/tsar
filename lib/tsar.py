@@ -191,6 +191,9 @@ class ObservationsHandler(APIHandler):
 
         # JavaScript expects millisecond precision.
         jsresults = [(t * 1000, v) for t, v in results]
+        kwargs["len"] = len(results)
+        self.log.debug("Serving %(len)d results for %(subject)s's "
+            "%(attribute)s from %(start)d to %(stop)d", kwargs)
 
         self.write({"results": jsresults})
 
