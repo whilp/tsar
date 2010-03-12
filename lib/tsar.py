@@ -115,7 +115,6 @@ class APIHandler(RequestHandler):
     fieldlen = 32
 
     def __init__(self, application, request, **kwargs):
-        self.log = logging.getLogger(self.__class__.__name__)
         super(APIHandler, self).__init__(application, request, **kwargs)
 
         self.redis = Redis(
@@ -192,7 +191,7 @@ class ObservationsHandler(APIHandler):
         # JavaScript expects millisecond precision.
         jsresults = [(t * 1000, v) for t, v in results]
         kwargs["len"] = len(results)
-        self.log.debug("Serving %(len)d results for %(subject)s's "
+        logging.debug("Serving %(len)d results for %(subject)s's "
             "%(attribute)s from %(start)d to %(stop)d", kwargs)
 
         self.write({"results": jsresults})
@@ -252,7 +251,7 @@ class ObservationsHandler(APIHandler):
         key = "observations!%(subject)s!%(attribute)s" % kwargs
         uniqueval = self.encodeval(kwargs["time"], kwargs["value"])
         self.redis.zadd(key, uniqueval, kwargs["time"])
-        self.log.debug("Recording %(subject)s's %(attribute)s "
+        logging.debug("Recording %(subject)s's %(attribute)s "
             "(%(value)d) at %(time)d", kwargs)
 
 routes = [
@@ -260,7 +259,9 @@ routes = [
 ]
 application = WSGIApplication(routes)
 
-@cli.DaemonizingApp
+msgfmt = "%(asctime)s\t%(message)s"
+datefmt = "%Y.%m.%dT%H:%M:%S-%Z"
+@cli.DaemonizingApp(message_format=msgfmt, date_format=datefmt)
 def tsar(app):
     settings = {
         "redis.port": app.params.redis.port,
