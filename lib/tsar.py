@@ -4,7 +4,7 @@
 
 __project__ = "tsar"
 __version__ = "0.1"
-__package__ = "tsar"
+__pkg__ = "tsar"
 __description__ = "time series archival and retrieval"
 __author__ = "Will Maier"
 __author_email__ = "wcmaier@hep.wisc.edu"
