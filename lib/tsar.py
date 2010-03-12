@@ -139,10 +139,10 @@ class ObservationsHandler(APIHandler):
     def post(self):
         """Create a new observation."""
         fields = {
-            "time": APIHandler.db_int,
-            "value": APIHandler.db_int,
-            "subject": APIHandler.db_string,
-            "attribute": APIHandler.db_string,
+            "time": self.db_int,
+            "value": self.db_int,
+            "subject": self.db_string,
+            "attribute": self.db_string,
         }
 
         contenttype = self.request.headers.get("Content-Type", None)
