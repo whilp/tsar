@@ -121,8 +121,8 @@ class DSNType(object):
         return self
 
 class APIHandler(RequestHandler):
-    fieldchars = [x for x in string.letters if x not in "!/"]
-    fieldlen = 32
+    fieldchars = [x for x in string.letters + string.punctuation if x not in "!/"]
+    fieldlen = 128
 
     def __init__(self, application, request, **kwargs):
         super(APIHandler, self).__init__(application, request, **kwargs)
