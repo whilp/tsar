@@ -42,15 +42,13 @@ tsar_record () {
 #     [...]
 #     
 # Bulk submissions may include records for more than one (subject,
-# attribute) pair. A path to a file formatted as above may be supplied 
-# as the first argument. If no argument is supplied, the formatted text
-# will be read on standard input. For example:
+# attribute) pair. The CSV text should be sent on standard input.
+# For example:
 # 
-#    tsar_bulk /path/to/observations.csv
+#    tsar_bulk < /path/to/observations.csv
 #
 tsar_bulk () {
-	CSVFILE=$1
-    cat "${CSVFILE}" | ${CURL} -F \
+    ${CURL} -F \
         "${OBSERVATION_ENDPOINT}=@-;type=${BULK_CONTENT_TYPE}" \
         "${SERVER}/${OBSERVATION_ENDPOINT}"
 }
