@@ -203,7 +203,7 @@ class ObservationsHandler(APIHandler):
         try:
             sample = int(self.get_argument("sample", 0))
         except TypeError:
-            raise HTTPError(400, "bad value for 'sample')
+            raise HTTPError(400, "bad value for 'sample'")
 
         if kwargs["start"] > kwargs["stop"]:
             raise HTTPError(400, "start must be less than stop")
