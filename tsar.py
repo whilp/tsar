@@ -159,7 +159,7 @@ class APIHandler(RequestHandler):
         if field < 0:
             if now is None:
                 now = datetime.now()
-            field = now - timedelta(seconds=field)
+            field = now + timedelta(seconds=field)
         else:
             field = datetime(*gmtime(field)[:6])
 
