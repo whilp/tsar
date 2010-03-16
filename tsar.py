@@ -74,7 +74,7 @@ from time import gmtime
 import cli
 
 from redis import Redis
-from tornado.escap import json_encode
+from tornado.escape import json_encode
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
@@ -251,7 +251,7 @@ class ObservationsHandler(APIHandler):
         callback = self.get_argument("callback", None)
         out = json_encode({"results": results})
         if callback is not None:
-            out = "%s(%s)" % (callback, out))
+            out = "%s(%s)" % (callback, out)
 
         self.write(out)
 
