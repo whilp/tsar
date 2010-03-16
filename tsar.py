@@ -68,6 +68,7 @@ import string
 
 from calendar import timegm
 from datetime import datetime, timedelta
+from functools import update_wrapper
 from time import gmtime
 
 import cli
@@ -78,7 +79,7 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
 from tornado.wsgi import WSGIApplication
 
-compose = lambda f, g: functools.update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
+compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 class DictReader(csv.DictReader):
     """Produce keys that are strings even if input is unicode.
@@ -186,7 +187,7 @@ class ObservationsHandler(APIHandler):
             f = lambda x: x
 
         samplesize = len(sample)
-        if samplesize < size:
+        if size <= 0 or samplesize < size:
             return [f(x) for x in sample]
 
         difference = samplesize - size
@@ -222,7 +223,7 @@ class ObservationsHandler(APIHandler):
         for key in keys:
             _, subject, attribute = key.split('!')
             sa.append((subject, attribute))
-            results[subject].setdefault({})
+            results.setdefault(subject, {})
             results[subject][attribute] = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
 
         for s, a in sa:
@@ -231,7 +232,7 @@ class ObservationsHandler(APIHandler):
             # need to request scores as well. Instead, we simply decode
             # the members themselves. Additionally, JavaScript expects
             # millisecond precision.
-            jsprecision = lambda v, t: (t * 1000, v)
+            jsprecision = lambda (t, v): (t * 1000, v)
             processor = compose(self.decodeval, jsprecision)
 
             # Downsample (if necessary) and apply the value processor
