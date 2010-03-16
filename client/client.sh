@@ -62,10 +62,13 @@ tsar_bulk () {
 #    tsar_query foo bar 0 -1
 #
 tsar_query () {
-    ${CURL} -G \
-        -d "subject=$1" \
-        -d "attribute=$2" \
-        -d "start=$3" \
-        -d "stop=$4" \
-        "${SERVER}/${OBSERVATION_ENDPOINT}"
+    CMD="${CURL} -G"
+    for ARG in subject attribute start stop; do
+        CMD="${CMD} -d ${ARG}=$1"; shift
+    done
+    for OPTION in $*; do
+        CMD="${CMD} -d ${OPTION}"
+    done
+    CMD="${CMD} ${SERVER}/${OBSERVATION_ENDPOINT}"
+    ${CMD}
 }
