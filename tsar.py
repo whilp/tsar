@@ -78,6 +78,8 @@ from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
 from tornado.wsgi import WSGIApplication
 
+compose = lambda f, g: functools.update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
+
 class DictReader(csv.DictReader):
     """Produce keys that are strings even if input is unicode.
 
@@ -179,15 +181,21 @@ class APIHandler(RequestHandler):
 
 class ObservationsHandler(APIHandler):
 
-    def sample(self, sample, size):
+    def sample(self, sample, size, f=None):
+        if f is None:
+            f = lambda x: x
+
         samplesize = len(sample)
+        if samplesize < size:
+            return [f(x) for x in sample]
+
         difference = samplesize - size
         if samplesize/size > 1:
             keep = lambda x: (x % samplesize)/difference
         else:
             keep = lambda x: x % (samplesize/difference)
 
-        return [sample[x] for x in xrange(samplesize) if keep(x)]
+        return [f(sample[x]) for x in xrange(samplesize) if keep(x)]
 
     def get(self):
         fields = {
@@ -208,24 +216,35 @@ class ObservationsHandler(APIHandler):
         if kwargs["start"] > kwargs["stop"]:
             raise HTTPError(400, "start must be less than stop")
 
-        key = "observations!%(subject)s!%(attribute)s" % kwargs
-        results = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
+        results = {}
+        sa = []
+        keys = self.redis.keys("observations!%(subject)s!%(attribute)s" % kwargs)
+        for key in keys:
+            _, subject, attribute = key.split('!')
+            sa.append((subject, attribute))
+            results[subject].setdefault({})
+            results[subject][attribute] = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
 
-        if sample:
-            results = self.sample(results, sample)
+        for s, a in sa:
+            # Build the value processor. Since the members of the sorted
+            # timeseries set have the timestamp prepended, we don't
+            # need to request scores as well. Instead, we simply decode
+            # the members themselves. Additionally, JavaScript expects
+            # millisecond precision.
+            jsprecision = lambda v, t: (t * 1000, v)
+            processor = compose(self.decodeval, jsprecision)
 
-        # Since the members of the sorted timeseries set have the
-        # timestamp prepended, we don't need to request scores as well.
-        # Instead, we simply decode the members themselves.
-        results = [self.decodeval(x) for x in results]
+            # Downsample (if necessary) and apply the value processor
+            # built above.
+            results[s][a] = self.sample(results[s][a], sample, processor)
 
-        # JavaScript expects millisecond precision.
-        jsresults = [(t * 1000, v) for t, v in results]
-        kwargs["len"] = len(results)
-        logging.debug("Serving %(len)d results for %(subject)s's "
-            "%(attribute)s from %(start)d to %(stop)d", kwargs)
+            kwargs["len"] = len(results[s][a])
+            kwargs["subject"] = s
+            kwargs["attribute"] = a
+            logging.debug("Serving %(len)d results for %(subject)s's "
+                "%(attribute)s from %(start)d to %(stop)d", kwargs)
 
-        self.write({"results": jsresults})
+        self.write({"results": results})
 
     def post(self):
         """Create a new observation."""
