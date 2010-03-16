@@ -225,7 +225,7 @@ class ObservationsHandler(APIHandler):
             _, subject, attribute = key.split('!')
             sa.append((subject, attribute))
             results.setdefault(subject, {})
-            results[subject][attribute] = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
+            results[subject][attribute] = self.redis.zrangebyscore(key, kwargs["start"], kwargs["stop"])
 
         for s, a in sa:
             # Build the value processor. Since the members of the sorted
