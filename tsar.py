@@ -179,6 +179,16 @@ class APIHandler(RequestHandler):
 
 class ObservationsHandler(APIHandler):
 
+    def sample(self, sample, size):
+        samplesize = len(sample)
+        difference = samplesize - size
+        if samplesize/size > 1:
+            keep = lambda x: (x % samplesize)/difference
+        else:
+            keep = lambda x: x % (samplesize/difference)
+
+        return [sample[x] for x in xrange(samplesize) if keep(x)]
+
     def get(self):
         fields = {
             "start": self.db_reltime,
@@ -189,11 +199,20 @@ class ObservationsHandler(APIHandler):
         kwargs = dict((k, self.get_argument(k)) for k in fields)
         kwargs = self.validate(fields, **kwargs)
 
+        # Options.
+        try:
+            sample = int(self.get_argument("sample", 0))
+        except TypeError:
+            raise HTTPError(400, "bad value for 'sample')
+
         if kwargs["start"] > kwargs["stop"]:
             raise HTTPError(400, "start must be less than stop")
 
         key = "observations!%(subject)s!%(attribute)s" % kwargs
         results = self.redis.zrange(key, kwargs["start"], kwargs["stop"])
+
+        if sample:
+            results = self.sample(results, sample)
 
         # Since the members of the sorted timeseries set have the
         # timestamp prepended, we don't need to request scores as well.
