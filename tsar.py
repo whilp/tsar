@@ -74,6 +74,7 @@ from time import gmtime
 import cli
 
 from redis import Redis
+from tornado.escap import json_encode
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
@@ -245,7 +246,14 @@ class ObservationsHandler(APIHandler):
             logging.debug("Serving %(len)d results for %(subject)s's "
                 "%(attribute)s from %(start)d to %(stop)d", kwargs)
 
-        self.write({"results": results})
+        # Output JSON or JSONP (if the callback argument is present).
+        self.set_header("Content-Type", "text/javascript; charset=UTF-8")
+        callback = self.get_argument("callback", None)
+        out = json_encode({"results": results})
+        if callback is not None:
+            out = "%s(%s)" % (callback, out))
+
+        self.write(out)
 
     def post(self):
         """Create a new observation."""
