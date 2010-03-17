@@ -127,7 +127,7 @@ class DSNType(object):
         return self
 
 class APIHandler(RequestHandler):
-    fieldchars = [x for x in string.letters + string.punctuation if x not in "!/"]
+    fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
     fieldlen = 128
 
     def __init__(self, application, request, **kwargs):
@@ -151,6 +151,8 @@ class APIHandler(RequestHandler):
 
     @classmethod
     def db_int(handler, field):
+        if '.' in field:
+            return float(field)
         return int(field)
 
     @classmethod
