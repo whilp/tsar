@@ -152,7 +152,7 @@ class APIHandler(RequestHandler):
     @classmethod
     def db_int(handler, field):
         if '.' in field:
-            return float(field)
+            return round(float(field), 2)
         return int(field)
 
     @classmethod
