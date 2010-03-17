@@ -181,7 +181,7 @@ class APIHandler(RequestHandler):
 
     def decodeval(self, value, sep=':'):
         time, junk, value = value.partition(sep)
-        return int(time), int(value)
+        return self.db_int(time), self.db_int(value)
 
 class ObservationsHandler(APIHandler):
 
