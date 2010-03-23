@@ -225,6 +225,18 @@ class Tsar(object):
         raise NotImplementedError
 
     def query(self, subject, attribute, start, stop, **kwargs):
+        """Query the tsar service.
+
+        *subject* and *attribute* are free-form string fields which may
+        include the wildcard operator '*'. *start* and *stop* are absolute
+        or relative times. See :func:`timetoint` for more information.
+        Other optional keyword arguments include:
+
+        *sample* may be an integer. If the query returns more than
+        *sample* records for a given (subject, attribute) pair, the
+        service will downsample the result set before returning it to
+        the client.
+        """
         istart, istop = timetoint(start), timetoint(stop)
         response = self.get(subject=subject, attribute=attribute,
             start=istart, stop=istop, **kwargs)
