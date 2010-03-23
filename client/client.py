@@ -186,8 +186,6 @@ class Tsar(object):
         If the server accepts the new record, :meth:`record` returns
         True. Otherwise, :class:`APIError` is raised.
         """
-        path = '/'.join((subject, attribute))
-
         time = timetoint(time)
 
         response = self.request(subject=subject, attribute=attribute, time=time, value=value)
