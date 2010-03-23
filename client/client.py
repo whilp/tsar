@@ -114,6 +114,7 @@ class Tsar(object):
     *service* should be a URL pointing to the server's API endpoint.
     """
 
+    debuglevel = 0
     headers = {
         "User-agent": "TSAR-client/0.1"
     }
@@ -139,6 +140,8 @@ class Tsar(object):
 
         for handler in self.httphandlers:
             self.opener.add_handler(handler())
+        for handler in self.opener.handlers:
+            handler._debuglevel = self.debuglevel
 
     def request(self, **params):
         """Send a request to the service, returning its response.
