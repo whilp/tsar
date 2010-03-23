@@ -49,13 +49,15 @@ def timetoint(time, now=None):
     """
     # Convert datetime instances and timetuples to seconds since the
     # Epoch UTC.
-    if isinstance(time, datetime.datetime):
-        time = time.timetuple()
-    elif isinstance(time, datetime.timedelta):
+    if isinstance(time, datetime.timedelta):
         if now is None:
             now = datetime.datetime.now()
         time = now - time
-    elif isinstance(time, struct_time):
+
+    if isinstance(time, datetime.datetime):
+        time = time.timetuple()
+
+    if isinstance(time, struct_time):
         time = timegm(time)
 
     return time
