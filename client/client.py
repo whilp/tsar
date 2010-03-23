@@ -11,7 +11,10 @@ a TSAR service.
     True
 """
 
+import datetime
+
 from calendar import timegm
+from time import struct_time
 from urllib import urlencode
 from urllib2 import HTTPError, HTTPRedirectHandler, Request, build_opener
 
@@ -35,6 +38,27 @@ class APIError(TsarError):
         message = message + " (HTTP status: %d)" % self.response.getcode()
 
         super(RecordError, self).__init__(message)
+
+def timetoint(time, now=None):
+    """Convert a time representation to an integer.
+
+    *time* may be a :class:`datetime.datetime` instance, a
+    :class:`datetime.timedelta` instance, a :mod:`time` timetuple or
+    an integer. The result represents seconds since the Unix Epoch,
+    UTC.
+    """
+    # Convert datetime instances and timetuples to seconds since the
+    # Epoch UTC.
+    if isinstance(time, datetime.datetime):
+        time = time.timetuple()
+    elif isinstance(time, datetime.timedelta):
+        if now is None:
+            now = datetime.datetime.now()
+        time = now - time
+    elif isinstance(time, struct_time):
+        time = timegm(time)
+
+    return time
 
 class TsarHandler(HTTPRedirectHandler):
     codes = (201, 301, 302, 303, 307)
@@ -164,16 +188,7 @@ class Tsar(object):
         """
         path = '/'.join((subject, attribute))
 
-        # Convert datetime instances and timetuples to seconds since the
-        # Epoch UTC.
-        try:
-            time = time.timetuple()
-        except AttributeError:
-            pass
-        try:
-            time = timegm(time)
-        except TypeError:
-            pass
+        time = timetoint(time)
 
         response = self.request(subject=subject, attribute=attribute, time=time, value=value)
 
