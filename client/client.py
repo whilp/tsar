@@ -135,6 +135,7 @@ class Tsar(object):
 
     if json:
         parsers["application/json"] = parse_json
+        parsers["text/javascript"] = parse_json
     
     def __init__(self, service):
         self.service = service
@@ -224,4 +225,20 @@ class Tsar(object):
         raise NotImplementedError
 
     def query(self, subject, attribute, start, stop, **kwargs):
-        raise NotImplementedError
+        istart, istop = timetoint(start), timetoint(stop)
+        response = self.get(subject=subject, attribute=attribute,
+            start=istart, stop=istop, **kwargs)
+
+        if response.getcode() != 200:
+            raise APIError("query failed", response,
+                (subject, attribute, start, stop))
+
+        results = self.parse(response)
+        return results["results"]
+
+if __name__ == "__main__":
+    Tsar.debuglevel = 100
+    tsar = Tsar("http://tsar.hep.wisc.edu/observations")
+    tsar.record("foo","bar", datetime.datetime.now(), 10)
+    r = tsar.query("production_*_stevia","router_Running",-3600,-1)
+    print r
