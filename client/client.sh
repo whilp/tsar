@@ -61,6 +61,10 @@ tsar_bulk () {
 # return all records for (foo, bar):
 #    tsar_query foo bar 0 -1
 #
+# Additional options:
+#    sample     (integer)   For each ('subject', 'attribute') pair
+#                           matched by the query, tsar will downsample
+#                           the result set if its length exceeds 'sample'
 tsar_query () {
     CMD="${CURL} -G"
     for ARG in subject attribute start stop; do
