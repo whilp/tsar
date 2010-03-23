@@ -145,17 +145,35 @@ class Tsar(object):
         for handler in self.opener.handlers:
             handler._debuglevel = self.debuglevel
 
-    def request(self, **params):
+    def request(self, url, method="GET", data=None):
         """Send a request to the service, returning its response.
+
+        The response is a httplib.HTTPResponse instance.
+        """
+        req = self.request_factory(url, data, self.headers)
+        req.get_method = lambda : method
+        response = self.opener.open(req)
+
+        return response
+
+    def get(self, **params):
+        """Send a GET request to the service, returning its response.
+
+        *params* will be urlencoded and added to the service URL. The
+        response is a httplib.HTTPResponse instance.
+        """
+        data = params and urlencode(params)
+        url = '?'.join((self.service, data))
+        return self.request(url, method="GET")
+
+    def post(self, **params):
+        """Send a POST request to the service, returning its response.
 
         *params* will be passed as POST parameters to the server. The
         response is a httplib.HTTPResponse instance.
         """
-        data = params and urlencode(params) or None
-        req = self.request_factory(self.service, data, self.headers)
-        response = self.opener.open(req)
-
-        return response
+        data = params and urlencode(params)
+        return self.request(self.service, method="POST", data=data)
 
     def parse(self, response):
         """Parse and return the service's response as a string.
@@ -193,7 +211,8 @@ class Tsar(object):
         """
         time = timetoint(time)
 
-        response = self.request(subject=subject, attribute=attribute, time=time, value=value)
+        response = self.post(subject=subject, attribute=attribute,
+            time=time, value=value)
 
         if response.getcode() != 201:
             raise APIError("failed to create record", response,
