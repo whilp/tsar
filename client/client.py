@@ -39,7 +39,7 @@ class APIError(TsarError):
 
         super(RecordError, self).__init__(message)
 
-def timetoint(time, now=None):
+def timetostamp(time, now=None):
     """Convert a time representation to an integer.
 
     *time* may be a :class:`datetime.datetime` instance, a
@@ -210,7 +210,7 @@ class Tsar(object):
         If the server accepts the new record, :meth:`record` returns
         True. Otherwise, :class:`APIError` is raised.
         """
-        time = timetoint(time)
+        time = timetostamp(time)
 
         response = self.post(subject=subject, attribute=attribute,
             time=time, value=value)
@@ -229,7 +229,7 @@ class Tsar(object):
 
         *subject* and *attribute* are free-form string fields which may
         include the wildcard operator '*'. *start* and *stop* are absolute
-        or relative times. See :func:`timetoint` for more information.
+        or relative times. See :func:`timetostamp` for more information.
         Other optional keyword arguments include:
 
         *sample* may be an integer. If the query returns more than
@@ -237,7 +237,7 @@ class Tsar(object):
         service will downsample the result set before returning it to
         the client.
         """
-        istart, istop = timetoint(start), timetoint(stop)
+        istart, istop = timetostamp(start), timetostamp(stop)
         response = self.get(subject=subject, attribute=attribute,
             start=istart, stop=istop, **kwargs)
 
