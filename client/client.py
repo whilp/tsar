@@ -62,6 +62,14 @@ def timetostamp(time, now=None):
 
     return time
 
+def stamptotime(stamp):
+    """Convert a Unix timestamp to a datetime object.
+
+    *stamp* should be an integer representing seconds since the Unix
+    Epoch, UTC.
+    """
+    return datetime.datetime.fromtimestamp(stamp)
+
 class TsarHandler(HTTPRedirectHandler):
     codes = (201, 301, 302, 303, 307)
 
