@@ -254,7 +254,14 @@ class Tsar(object):
                 (subject, attribute, start, stop))
 
         results = self.parse(response)
-        return results["results"]
+        r = results["results"]
+
+        convert = lambda x, y: [stamptotime(x/1000), y]
+        for s in r:
+            for a in r[s]:
+                r[s][a] = [convert(*i) for i in r[s][a]]
+            
+        return r
 
 if __name__ == "__main__":
     Tsar.debuglevel = 100
