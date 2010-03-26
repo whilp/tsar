@@ -67,8 +67,6 @@ from datetime import datetime, timedelta
 from functools import update_wrapper
 from time import gmtime
 
-import cli
-
 from redis import Redis
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
@@ -329,7 +327,6 @@ application = WSGIApplication(routes)
 
 msgfmt = "%(asctime)s\t%(message)s"
 datefmt = "%Y.%m.%dT%H:%M:%S-%Z"
-@cli.DaemonizingApp(message_format=msgfmt, date_format=datefmt)
 def tsar(app):
     settings = {
         "redis.port": app.params.redis.port,
@@ -350,17 +347,3 @@ def tsar(app):
         IOLoop.instance().start()
     except KeyboardInterrupt:
         return 0
-
-dsn = DSNType(port=6379)
-httpport = 8000
-interface = "/var/www/htdocs/"
-tsar.add_param("-P", "--port", default=httpport, type=int,
-    help="server port (default: %s)" % httpport)
-tsar.add_param("-r", "--redis", default=dsn, type=dsn,
-    help="Redis connection host:port/database (default: %s)" % dsn)
-tsar.add_param("-i", "--interface", default=interface,
-    help="directory from which to serve the web interface files "
-        "(default: %s)" % interface)
-
-if __name__ == "__main__":
-    tsar.run()
