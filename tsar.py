@@ -324,26 +324,3 @@ routes = [
     (r"/(.*)", InterfaceHandler),
 ]
 application = WSGIApplication(routes)
-
-msgfmt = "%(asctime)s\t%(message)s"
-datefmt = "%Y.%m.%dT%H:%M:%S-%Z"
-def tsar(app):
-    settings = {
-        "redis.port": app.params.redis.port,
-        "redis.host": app.params.redis.host,
-        "redis.db": app.params.redis.db,
-        "interface.root": app.params.interface,
-    }
-    application = Application(routes, **settings)
-
-    if app.params.daemonize:
-        app.log.debug("Daemonizing")
-        app.daemonize()
-
-    app.log.debug("Listening on port %d" % app.params.port)
-    server = HTTPServer(application)
-    server.listen(app.params.port)
-    try:
-        IOLoop.instance().start()
-    except KeyboardInterrupt:
-        return 0
