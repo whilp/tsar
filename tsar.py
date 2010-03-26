@@ -87,34 +87,6 @@ class DictReader(csv.DictReader):
 
         return newd
 
-class DSNType(object):
-    
-    def __init__(self, host="localhost", port=0, db=0, sep=':'):
-        self.host = host
-        self.port = port
-        self.db = db
-        self.sep = sep
-
-    def __str__(self):
-        return "%s:%d/%d" % (self.host, self.port, self.db)
-
-    def __call__(self, dsn):
-        """Parse a DSN string.
-
-        Return an object with host, port and db attributes.
-        """
-        host, junk, rest = dsn.partition(self.sep)
-        port, junk, db = dsn.partition(self.sep)
-
-        if host:
-            self.host = host
-        if port:
-            self.port = int(port)
-        if db:
-            self.db = int(db)
-
-        return self
-
 class APIHandler(RequestHandler):
     fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
     fieldlen = 128
