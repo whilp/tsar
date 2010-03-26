@@ -1,13 +1,11 @@
 """\
-tsar is a simple HTTP service built on the `Tornado`_ web framework
-that performs efficient archival and retrieval of time-series
-data. It uses the `Redis`_ key-value store to provide fast access
-to stored records. New records can be sent via HTTP POST singly
-(application/x-www-form-urlencoded) or in bulk (text/csv via
-multipart/form-data). Query results requested via HTTP GET are returned
-as application/json.
+tsar provides a simple HTTP API for archiving and retrieving time-series
+data. It uses the `Redis`_ key-value store to provide fast access to
+stored records. New records can be sent via HTTP POST singly or in bulk.
+Clients may request ranges of data limited by timestamps; the server can
+perform a number of common tasks (ie downsampling) on the resulting data
+before returning it to the client.
 
-.. _Tornado:    http://www.tornadoweb.org/
 .. _Redis:      http://www.redis-db.com/
 """
 
@@ -35,8 +33,6 @@ __classifiers__ = [
 __keywords__ = "time series monitor"
 
 __requires__ = [
-    "pyCLI>=1.0",
-    "tornado>=0.2",
     "redis",
 ]
 
@@ -74,11 +70,6 @@ from time import gmtime
 import cli
 
 from redis import Redis
-from tornado.escape import json_encode
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
-from tornado.web import Application, HTTPError, RequestHandler, StaticFileHandler
-from tornado.wsgi import WSGIApplication
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
