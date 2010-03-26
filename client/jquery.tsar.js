@@ -24,3 +24,25 @@ jQuery.tsar.prototype.get = function (resource, data, callback) {
 jQuery.tsar.prototype.post = function (resource, data, callback) {
 	this.request(resource, "POST", data, callback);
 };
+
+jQuery.tsar.prototype.record = function (subject, attribute, time, value) {
+	if (time.getTime != undefined) {
+		time = time.getTime() / 1000;
+	}
+	var data = {
+		subject: subject,
+		attribute: attribute,
+		time: time.UTC(),
+		value: value,
+	};
+	this.post("records", data);
+};
+
+jQuery.tsar.prototype.records = function (subject, attribute, callback, options) {
+	var data = {
+		subject: subject,
+		attribute: attribute,
+	};
+	$.extend(true, data, options);
+	this.get("records", data, callback);
+};

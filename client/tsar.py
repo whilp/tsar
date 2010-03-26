@@ -70,7 +70,7 @@ def stamptotime(stamp):
     """
     return datetime.datetime.fromtimestamp(stamp)
 
-class TsarHandler(HTTPRedirectHandler):
+class RESTHandler(HTTPRedirectHandler):
     codes = (201, 301, 302, 303, 307)
 
     # This is a success, actually, that returns a 'location' header.
@@ -102,6 +102,122 @@ class TsarHandler(HTTPRedirectHandler):
         else:
             raise HTTPError(req.get_full_url(), code, msg, headers, fp)
 
+class RESTError(Exception):
+    pass
+
+class RESTClient(object):
+    """A REST client.
+
+    The client implements a REST-style protocol, similar to that
+    described in the "Protocol Operations" section of the ATOM
+    Publishing Protocol (RFC 5023):
+
+        http://bitworking.org/projects/atom/rfc5023.html#operation
+
+    The client supports methods for deserializing and serializing
+    representations to and from native objects, respectively. The client
+    raises RESTError when anything unexpected happens.
+    """
+    debuglevel = 0
+    handlers = [RESTHandler]
+    headers = {}
+    requestfactory = Request
+
+    def __init__(self, service, agent):
+        self.service = service
+        self.headers["User-agent"] = agent
+        self.opener = build_opener()
+
+        for handler in self.handlers:
+            self.opener.add_handler(handler())
+        for handler in self.opener.handlers:
+            handler._debuglevel = self.debuglevel
+
+    def serialize(self, representation, contenttype):
+        return representation
+
+    def deserialize(self, representation, contenttype):
+        return representation.read()
+
+    def request(self, resource, method="GET", data=None, headers={}):
+        """Send a request to the service, returning its response.
+
+        The response is a httplib.HTTPResponse instance.
+        """
+        url = '/'.join((self.service, resource))
+
+        _headers = self.headers.copy()
+        _headers.update(headers)
+
+        req = self.requestfactory(url, data, _headers)
+        req.get_method = lambda : method
+        response = self.opener.open(req)
+
+        return response
+
+    def list(self, collection, accept="*/*"):
+        headers = {}
+        if accept is not None:
+            headers["Accept"] = accept
+
+        response = self.request(collection, method="GET", headers=headers)
+        contenttype = response.headers.get("Content-Type", None)
+
+        return self.deserialize(response, contenttype)
+
+    def create(self, collection, representation, contenttype=None):
+        headers = {}
+        if contenttype is not None:
+            headers["Content-Type"] = contenttype
+        data = self.serialize(representation, contenttype)
+
+        response = self.request(collection, method="POST", data=data, headers=headers)
+
+        status = response.getcode()
+        if status != 201:
+            raise RESTError("expected status 200, got %d" % status)
+
+        location = resposnse.headers.get("Location", None)
+        if location is None:
+            raise RESTError("server did not return location of new member")
+
+        return location
+
+    def retrieve(self, member, accept=None):
+        headers = {}
+        if accept is not None:
+            headers["Accept"] = accept
+
+        response = self.request(member, method="GET")
+        contenttype = response.headers.get("Content-Type", None)
+        return self.deserialize(response, contenttype)
+
+    def edit(self, member, representation, contenttype=None):
+        headers = {}
+        if contenttype is not None:
+            headers["Content-Type"] = contenttype
+
+        data = self.serialize(representation, contenttype)
+
+        response = self.request(member, method="PUT", data=data, headers=headers)
+
+        status = response.getcode()
+        if status != 200:
+            raise RESTError("server refused to edit member %s (status: %d)" % 
+                (member, status))
+
+        return True
+
+    def delete(self, member):
+        response = self.request(member, method="DELETE")
+
+        status = response.getcode()
+        if status != 200:
+            raise RESTError("server refused to delete member %s (status: %d)" %
+                (member, status))
+
+        return True
+
 json = False
 try:
     import json
@@ -115,7 +231,7 @@ except ImportError:
 def parse_json(response):
     return json.load(response)
 
-class Tsar(object):
+class Tsar(RESTClient):
     """A Tsar client.
 
     The client can submit new records to the service or query the
@@ -123,67 +239,13 @@ class Tsar(object):
 
     *service* should be a URL pointing to the server's API endpoint.
     """
-
-    debuglevel = 0
-    headers = {
-        "User-agent": "TSAR-client/0.1"
-    }
-    httphandlers = [TsarHandler]
-    request_factory = Request
-    timeout = 5
-    parsers = {
-    }
-    """A dictionary of registered parsers.
-
-    Keys in this dictionary should correspond to supported values of the
-    Content-type header set by the server. Values should be callables
-    that accept a single :class:`httplib.HTTPResponse` instance as an
-    argument and return a string.
-    """
-
     if json:
         parsers["application/json"] = parse_json
         parsers["text/javascript"] = parse_json
+
+	def serialize(self, representation, contenttype):
+		pass
     
-    def __init__(self, service):
-        self.service = service
-        self.opener = build_opener()
-
-        for handler in self.httphandlers:
-            self.opener.add_handler(handler())
-        for handler in self.opener.handlers:
-            handler._debuglevel = self.debuglevel
-
-    def request(self, url, method="GET", data=None):
-        """Send a request to the service, returning its response.
-
-        The response is a httplib.HTTPResponse instance.
-        """
-        req = self.request_factory(url, data, self.headers)
-        req.get_method = lambda : method
-        response = self.opener.open(req)
-
-        return response
-
-    def get(self, **params):
-        """Send a GET request to the service, returning its response.
-
-        *params* will be urlencoded and added to the service URL. The
-        response is a httplib.HTTPResponse instance.
-        """
-        data = params and urlencode(params)
-        url = '?'.join((self.service, data))
-        return self.request(url, method="GET")
-
-    def post(self, **params):
-        """Send a POST request to the service, returning its response.
-
-        *params* will be passed as POST parameters to the server. The
-        response is a httplib.HTTPResponse instance.
-        """
-        data = params and urlencode(params)
-        return self.request(self.service, method="POST", data=data)
-
     def parse(self, response):
         """Parse and return the service's response as a string.
 
@@ -220,7 +282,7 @@ class Tsar(object):
         """
         time = timetostamp(time)
 
-        response = self.post(subject=subject, attribute=attribute,
+        response = self.post("records", subject=subject, attribute=attribute,
             time=time, value=value)
 
         if response.getcode() != 201:
@@ -232,7 +294,7 @@ class Tsar(object):
     def bulk(self, fileobj):
         raise NotImplementedError
 
-    def query(self, subject, attribute, start, stop, **kwargs):
+    def records(self, subject, attribute, start, stop, **kwargs):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may
@@ -246,7 +308,7 @@ class Tsar(object):
         the client.
         """
         istart, istop = timetostamp(start), timetostamp(stop)
-        response = self.get(subject=subject, attribute=attribute,
+        response = self.get("records", subject=subject, attribute=attribute,
             start=istart, stop=istop, **kwargs)
 
         if response.getcode() != 200:
