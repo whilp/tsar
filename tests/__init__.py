@@ -25,12 +25,6 @@ except ImportError:
 class BaseTest(unittest.TestCase):
     pass
 
-class log(object):
-    level = logging.DEBUG
-
-    def __init__(self, func=None, level=None):
-        self.func = func
-
 class Decorator(object):
 
     def __new__(cls, func=None, **kwargs):
