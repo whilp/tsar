@@ -42,8 +42,8 @@ A quick tour of :mod:`project`'s features
 
 Here's a feature::
 
-	>>> import project
-	>>> project.feature()
+    >>> import project
+    >>> project.feature()
 
 Basic usage
 -----------
@@ -62,6 +62,20 @@ Here's the API.
 Developing :mod:`project`
 ---------------------------
 
+Updating README
++++++++++++++++
+
+Both Github and bitbucket format README files written in restructured text.
+Unfortunately, they don't use the same algorithm to determine which format the
+README is written in (or which of several READMEs should be presented on the
+project overview page). The following procedure keeps everything in sync and
+should happen at least once per release::
+
+    $ cd docs
+    $ make text
+    $ cp _build/text/index.txt ../README ../README.rst
+    $ hg ci -m "Sync README."
+
 Syncing with github and bitbucket
 +++++++++++++++++++++++++++++++++
 
@@ -71,7 +85,7 @@ hosting service. This mirror (as well as the Mercurial mirror on bitbucket) is
 kept in sync using Mercurial `hooks`_ and `hg-git`_. First, a local mirror is
 created of the main Mercurial repository::
 
-	$ hg clone -U . .mirror
+    $ hg clone -U . .mirror
 
 The mirror clone does not need to have a working directory, so the :option:`-U`
 flag is passed to the clone subcommand. Then, the main repository's default path
