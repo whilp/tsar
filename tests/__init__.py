@@ -31,6 +31,7 @@ class Decorator(object):
         obj = super(Decorator, cls).__new__(cls)
 
         if func is not None:
+            obj.__init__(**kwargs)
             obj = obj.wrap(func)
 
         return obj
