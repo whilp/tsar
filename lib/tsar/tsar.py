@@ -83,6 +83,11 @@ class DBResource(Resource):
         return self.db_int(time), self.db_int(value)
 
 class Record(DBResource):
+    mimetypes = {
+        "application/json": "json",
+        "text/csv": "csv",
+        "application/x-www-form-urlencoded": "form",
+    }
     
     @staticmethod
     def sample(self, sample, size, f=None):
