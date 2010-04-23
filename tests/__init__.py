@@ -6,6 +6,8 @@ try:
 except ImportError:
     import unittest
 
+from webob import Request, Response
+
 try:
     from functools import wraps
 except ImportError:
@@ -19,11 +21,19 @@ except ImportError:
 
         return wrapper
 
-	def wraps(wrapped):
-		return partial(update_wrapper, wrapped=wrapped)
+    def wraps(wrapped):
+        return partial(update_wrapper, wrapped=wrapped)
 
 class BaseTest(unittest.TestCase):
     pass
+
+class AppTest(BaseTest):
+    application = None
+    
+    def app(self, *args, **kwargs):
+        req = Request.blank(*args, **kwargs)
+
+        return req.get_response(self.application)
 
 class Decorator(object):
 
