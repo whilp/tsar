@@ -16,6 +16,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  text      to make standalone text files"
 	@echo "  html      to make standalone HTML files"
 	@echo "  dirhtml   to make HTML files named index.html in directories"
 	@echo "  pickle    to make pickle files"
@@ -29,6 +30,11 @@ help:
 
 clean:
 	-rm -rf $(BUILDDIR)/*
+
+text:
+	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
+	@echo
+	@echo "Build finished. The text files are in $(BUILDDIR)/text."
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
