@@ -68,22 +68,23 @@ class DBResource(Resource):
         return timegm(field.timetuple())
 
     @staticmethod
-    def validate(params, required, optional={}):
+    def validate(params, **fields):
         _params = {}
-        for field, validator in required.items():
-            try:
-                _params[field] = validator(params[field])
-            except KeyError, e:
-                raise HTTPBadRequest("Missing parameter: %s" % field)
-            except TypeError, e:
-                raise HTTPBadRequest("%s: %s" % (e.args[0], field))
+        NoDefault = object()
+        for field, validator in fields.items():
+            default = NoDefault
 
-        for field in optional:
-            validator, default = optional[field]
+            # The validator must be a callable or a two-tuple.
+            if not callable(validator):
+                validator, default = validator
+
+            param = params.get(field, default)
+            if param is NoDefault:
+                raise HTTPBadRequest("Missing parameter: %s" % field)
             try:
-                _params[field] = validator(params.get(field, default))
+                param = validator(param)
             except TypeError, e:
-                raise HTTPBadRequest("%s: %s" % (e.args[0], field))
+                raise HTTPBadRequest("Bad parameter: %s" % field)
 
         return _params
 
