@@ -200,9 +200,11 @@ class Record(DBResource):
         if created:
             req.response.status_int = 201
 
-routes = [
-    (r"/observations", ObservationsHandler),
-    (r"/(.*)", InterfaceHandler),
-]
-application = WSGIApplication(routes)
+service = Service(
+    Record("records"),
+)
 
+if __name__ == "__main__":
+    from wsgiref.simple_server import make_server
+    server = make_server('', 8000, service)
+    server.serve_forever()
