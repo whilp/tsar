@@ -160,38 +160,7 @@ class Record(DBResource):
 
         return req.response
 
-    def post(self):
-        """Create a new observation."""
-        fields = {
-            "time": self.db_int,
-            "value": self.db_int,
-            "subject": self.db_string,
-            "attribute": self.db_string,
-        }
-
-        contenttype = self.request.headers.get("Content-Type", None)
-        observations = []
-        if contenttype.startswith(u"multipart/form-data"):
-            # Bulk update.
-            _file = self.request.files.get("observations", [{}])[0]
-            body = (l for l in _file.get("body", "").splitlines())
-            filetype = _file.get("content_type", None)
-            if filetype == u"text/csv":
-                observations = DictReader(body)
-        elif contenttype.startswith(u"application/x-www-form-urlencoded"):
-            # Single update.
-            observations = [dict((k, self.get_argument(k)) for k in fields)]
-
-        created = False
-        for observation in observations:
-            self.record(fields, **observation)
-
-            created = True
-
-        if created:
-            self.set_status(201)
-
-    def create(self, time, value, subject, attribute):
+    def create(self, time=None, value=None, subject=None, attribute=None, **kwargs):
         """Record an observation."""
         params = self.validate(
             dict(time=time, value=value, subject=subject, attribute=attribute),
@@ -215,6 +184,21 @@ class Record(DBResource):
         self.redis.zadd(key, uniqueval, params["time"])
         logging.debug("Recording %(subject)s's %(attribute)s "
             "(%(value)d) at %(time)d", params)
+
+    def create_form(self, req):
+        self.create(**req.params)
+        req.response.status_int = 201
+        
+    def create_csv(self, req):
+        records = DictReader(req.body_file)
+
+        created = False
+        for record in records:
+            created = True
+            self.create(**record)
+
+        if created:
+            req.response.status_int = 201
 
 class InterfaceHandler(StaticFileHandler):
 
