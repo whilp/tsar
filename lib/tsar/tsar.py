@@ -14,6 +14,8 @@ from webob.exc import HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
+__all__ = ["DBResource", "Record", "service"]
+
 class DBResource(Resource):
     fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
     fieldlen = 128
