@@ -202,17 +202,15 @@ class Record(DBResource):
         if created:
             self.set_status(201)
 
-    def record(self, fields, **kwargs):
+    def create(self, time, value, subject, attribute):
         """Record an observation."""
-        missing_fields = [k for k in fields if k not in kwargs]
-        if missing_fields:
-            raise HTTPError(400, "missing fields: %s" % ", ".join(missing_fields))
-
-        extra_fields = [k for k in kwargs if k not in fields]
-        if extra_fields:
-            raise HTTPError(400, "extra fields: %s" % ", ".join(extra_fields))
-
-        kwargs = self.validate(fields, **kwargs)
+        params = self.validate(
+            dict(time=time, value=value, subject=subject, attribute=attribute),
+            time=self.db_int,
+            value=self.db_int,
+            subject=self.db_string,
+            attribute=self.db_string,
+        }
 
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
@@ -223,11 +221,11 @@ class Record(DBResource):
         # observation to the value. Consumers must reverse this process
         # to get at the actual data (ie, value.split(':')).
 
-        key = "observations!%(subject)s!%(attribute)s" % kwargs
-        uniqueval = self.encodeval(kwargs["time"], kwargs["value"])
-        self.redis.zadd(key, uniqueval, kwargs["time"])
+        key = "observations!%(subject)s!%(attribute)s" % params
+        uniqueval = self.encodeval(params["time"], params["value"])
+        self.redis.zadd(key, uniqueval, params["time"])
         logging.debug("Recording %(subject)s's %(attribute)s "
-            "(%(value)d) at %(time)d", kwargs)
+            "(%(value)d) at %(time)d", params)
 
 class InterfaceHandler(StaticFileHandler):
 
