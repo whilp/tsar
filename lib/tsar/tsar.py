@@ -18,7 +18,7 @@ class DBResource(Resource):
     fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
     fieldlen = 128
 
-    def __init__(self, collection="", mimetypes={}):application, request, **kwargs):
+    def __init__(self, collection="", mimetypes={}):
         super(DBResource, self).__init__(collection, mimetypes)
 
         self.redis = Redis()
@@ -111,7 +111,7 @@ class Record(DBResource):
             subject=(self.db_string, "*"),
             attribute=(self.db_string, "*"),
             start=(self.db_reltime, 0),
-            stop=(self.db_reltime, time.time())
+            stop=(self.db_reltime, time.time()),
             sample=(self.db_int, 0)
         )
 
@@ -168,7 +168,7 @@ class Record(DBResource):
             value=self.db_int,
             subject=self.db_string,
             attribute=self.db_string,
-        }
+        )
 
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
