@@ -8,6 +8,8 @@ from functools import update_wrapper
 from time import gmtime
 
 from redis import Redis
+from neat import Resource, Service
+from webob.exc import HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
@@ -27,17 +29,14 @@ class DictReader(csv.DictReader):
 
         return newd
 
-class APIHandler(RequestHandler):
+class DBResource(Resource):
     fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
     fieldlen = 128
 
-    def __init__(self, application, request, **kwargs):
-        super(APIHandler, self).__init__(application, request, **kwargs)
+    def __init__(self, collection="", mimetypes={}):application, request, **kwargs):
+        super(DBResource, self).__init__(collection, mimetypes)
 
-        self.redis = Redis(
-            host=application.settings["redis.host"],
-            port=application.settings["redis.port"],
-            db=application.settings["redis.db"])
+        self.redis = Redis()
 
     @classmethod
     def db_string(handler, field):
@@ -73,7 +72,7 @@ class APIHandler(RequestHandler):
             try:
                 kwargs[k] = fields[k](kwargs[k])
             except TypeError, e:
-                raise HTTPError(400, "%s: %s" % (e.args[0], k))
+                raise HTTPBadRequest("%s: %s" % (e.args[0], k))
 
         return kwargs
 
