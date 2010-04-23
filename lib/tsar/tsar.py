@@ -1,6 +1,7 @@
 import csv
 import logging
 import string
+import time
 
 from calendar import timegm
 from datetime import datetime, timedelta
@@ -97,8 +98,9 @@ class DBResource(Resource):
         time, junk, value = value.partition(sep)
         return self.db_int(time), self.db_int(value)
 
-class ObservationsHandler(APIHandler):
-
+class Record(DBResource):
+    
+    @staticmethod
     def sample(self, sample, size, f=None):
         if f is None:
             f = lambda x: x
@@ -115,33 +117,27 @@ class ObservationsHandler(APIHandler):
 
         return [f(sample[x]) for x in xrange(samplesize) if keep(x)]
 
-    def get(self):
-        fields = {
-            "start": self.db_reltime,
-            "stop": self.db_reltime,
-            "subject": self.db_string,
-            "attribute": self.db_string,
-        }
-        kwargs = dict((k, self.get_argument(k)) for k in fields)
-        kwargs = self.validate(fields, **kwargs)
+    def list(self, req):
+        params = self.validate(req.params,
+            subject=(self.db_string, "*"),
+            attribute=(self.db_string, "*"),
+            start=(self.db_reltime, 0),
+            stop=(self.db_reltime, time.time())
+            sample=(self.db_int, 0)
+        )
 
-        # Options.
-        try:
-            sample = int(self.get_argument("sample", 0))
-        except TypeError:
-            raise HTTPError(400, "bad value for 'sample'")
-
-        if kwargs["start"] > kwargs["stop"]:
-            raise HTTPError(400, "start must be less than stop")
+        if params["start"] > params["stop"]:
+            raise HTTPBadRequest("Bad parameter: start must be less than stop")
 
         results = {}
         sa = []
-        keys = self.redis.keys("observations!%(subject)s!%(attribute)s" % kwargs)
+        keys = self.redis.keys("observations!%(subject)s!%(attribute)s" % params)
         for key in keys:
             _, subject, attribute = key.split('!')
             sa.append((subject, attribute))
             results.setdefault(subject, {})
-            results[subject][attribute] = self.redis.zrangebyscore(key, kwargs["start"], kwargs["stop"])
+            results[subject][attribute] = \
+                self.redis.zrangebyscore(key, params["start"], params["stop"])
 
         for s, a in sa:
             # Build the value processor. Since the members of the sorted
@@ -156,20 +152,24 @@ class ObservationsHandler(APIHandler):
             # built above.
             results[s][a] = self.sample(results[s][a], sample, processor)
 
-            kwargs["len"] = len(results[s][a])
-            kwargs["subject"] = s
-            kwargs["attribute"] = a
+            params["len"] = len(results[s][a])
+            params["subject"] = s
+            params["attribute"] = a
             logging.debug("Serving %(len)d results for %(subject)s's "
-                "%(attribute)s from %(start)d to %(stop)d", kwargs)
+                "%(attribute)s from %(start)d to %(stop)d", params)
 
-        # Output JSON or JSONP (if the callback argument is present).
-        self.set_header("Content-Type", "text/javascript; charset=UTF-8")
-        callback = self.get_argument("callback", None)
-        out = json_encode({"results": results})
-        if callback is not None:
-            out = "%s(%s)" % (callback, out)
+        return {"results": results}
 
-        self.write(out)
+    def list_json(self, req):
+        params = self.validate(req.params, callback=(self.db_string, None))
+        result = self.list(req)
+
+        req.response.content_type = "application/javascript"
+        req.response.body = json.dumps(result)
+        if params["callback"] is not None:
+            req.response.body = "%s(%s)" % (params["callback"], req.response.body)
+
+        return req.response
 
     def post(self):
         """Create a new observation."""
