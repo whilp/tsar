@@ -1,9 +1,9 @@
-import csv
 import logging
 import string
 import time
 
 from calendar import timegm
+from csv import DictReader
 from datetime import datetime, timedelta
 from functools import update_wrapper
 from time import gmtime
@@ -13,22 +13,6 @@ from neat import Resource, Service
 from webob.exc import HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
-
-class DictReader(csv.DictReader):
-    """Produce keys that are strings even if input is unicode.
-
-    This hack makes it possible to pass the resulting dictionaries as
-    kwargs to functions.
-    """
-    keytype = str
-    
-    def next(self):
-        d = csv.DictReader.next(self)
-        newd = {}
-        for k in d:
-            newd[self.keytype(k)] = d[k]
-
-        return newd
 
 class DBResource(Resource):
     fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
