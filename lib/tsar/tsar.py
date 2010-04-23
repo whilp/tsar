@@ -200,21 +200,6 @@ class Record(DBResource):
         if created:
             req.response.status_int = 201
 
-class InterfaceHandler(StaticFileHandler):
-
-    def __init__(self, application, request):
-        root = application.settings["interface.root"]
-        super(InterfaceHandler, self).__init__(application, request, root)
-
-    def get(self, path, include_body=True):
-        try:
-            return super(InterfaceHandler, self).get(path, include_body)
-        except HTTPError, e:
-            # Append the html suffix if we can't find the file.
-            if e.status_code != 404:
-                raise
-            return super(InterfaceHandler, self).get(path + ".html", include_body)
-
 routes = [
     (r"/observations", ObservationsHandler),
     (r"/(.*)", InterfaceHandler),
