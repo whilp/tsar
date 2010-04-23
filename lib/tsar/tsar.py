@@ -68,17 +68,24 @@ class DBResource(Resource):
         return timegm(field.timetuple())
 
     @staticmethod
-    def validate(fields, **kwargs):
-        params = {}
-        for field, validator in fields.items():
+    def validate(params, required, optional={}):
+        _params = {}
+        for field, validator in required.items():
             try:
-                params[field] = validator(kwargs[field])
+                _params[field] = validator(params[field])
             except KeyError, e:
                 raise HTTPBadRequest("Missing parameter: %s" % field)
             except TypeError, e:
                 raise HTTPBadRequest("%s: %s" % (e.args[0], field))
 
-        return params
+        for field in optional:
+            validator, default = optional[field]
+            try:
+                _params[field] = validator(params.get(field, default))
+            except TypeError, e:
+                raise HTTPBadRequest("%s: %s" % (e.args[0], field))
+
+        return _params
 
     @staticmethod
     def encodeval(time, value, sep=':'):
