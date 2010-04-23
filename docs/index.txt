@@ -42,8 +42,8 @@ A quick tour of :mod:`project`'s features
 
 Here's a feature::
 
-    >>> import project
-    >>> project.feature()
+    >>> 1+1
+    2
 
 Basic usage
 -----------
