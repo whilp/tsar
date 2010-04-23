@@ -70,7 +70,7 @@ class DBResource(Resource):
                 raise HTTPBadRequest("Missing parameter: %s" % field)
             try:
                 param = validator(param)
-            except TypeError, e:
+            except (TypeError, ValueError), e:
                 raise HTTPBadRequest("Bad parameter: %s" % field)
 
         return _params
