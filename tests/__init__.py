@@ -19,8 +19,8 @@ except ImportError:
 
         return wrapper
 
-	def wraps(wrapped):
-		return partial(update_wrapper, wrapped=wrapped)
+    def wraps(wrapped):
+        return partial(update_wrapper, wrapped=wrapped)
 
 class BaseTest(unittest.TestCase):
     pass
