@@ -67,7 +67,8 @@ class DBResource(Resource):
 
         return timegm(field.timetuple())
 
-    def validate(self, fields, **kwargs):
+    @staticmethod
+    def validate(fields, **kwargs):
         params = {}
         for field, validator in fields.items():
             try:
@@ -79,10 +80,12 @@ class DBResource(Resource):
 
         return params
 
-    def encodeval(self, time, value, sep=':'):
+    @staticmethod
+    def encodeval(time, value, sep=':'):
         return "%s%s%s" % (time, sep, value)
 
-    def decodeval(self, value, sep=':'):
+    @staticmethod
+    def decodeval(value, sep=':'):
         time, junk, value = value.partition(sep)
         return self.db_int(time), self.db_int(value)
 
