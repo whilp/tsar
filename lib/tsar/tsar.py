@@ -68,13 +68,16 @@ class DBResource(Resource):
         return timegm(field.timetuple())
 
     def validate(self, fields, **kwargs):
-        for k in kwargs:
+        params = {}
+        for field, validator in fields.items():
             try:
-                kwargs[k] = fields[k](kwargs[k])
+                params[field] = validator(kwargs[field])
+            except KeyError, e:
+                raise HTTPBadRequest("Missing parameter: %s" % field)
             except TypeError, e:
-                raise HTTPBadRequest("%s: %s" % (e.args[0], k))
+                raise HTTPBadRequest("%s: %s" % (e.args[0], field))
 
-        return kwargs
+        return params
 
     def encodeval(self, time, value, sep=':'):
         return "%s%s%s" % (time, sep, value)
