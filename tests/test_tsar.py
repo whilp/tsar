@@ -33,7 +33,12 @@ class TestDBResource(BaseTest):
 
     def test_db_reltime_simple(self):
         self.assertEqual(self.db_reltime("1"), 1)
+
+    def test_db_reltime_float(self):
         self.assertEqual(self.db_reltime("1272286116.421756"), 1272286116)
+
+    def test_db_reltime_relative(self):
+        self.assertEqual(self.db_reltime("-10", 1272286116.421756), 1272286106)
 
     def test_db_reltime_badinput(self):
         self.assertRaises(ValueError, self.db_reltime, "foo")

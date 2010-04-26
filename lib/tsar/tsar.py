@@ -2,11 +2,8 @@ import logging
 import string
 import time
 
-from calendar import timegm
 from csv import DictReader
-from datetime import datetime, timedelta
 from functools import update_wrapper
-from time import gmtime
 
 from redis import Redis
 from neat import Resource, Service
@@ -38,6 +35,8 @@ class DBResource(Resource):
 
     @classmethod
     def db_int(handler, field):
+        if isinstance(field, (int, float, long)):
+            return field
         if '.' in field:
             return round(float(field), 2)
         return int(field)
@@ -46,13 +45,12 @@ class DBResource(Resource):
     def db_reltime(handler, field, now=None):
         field = int(handler.db_int(field))
         if field < 0:
-            if now is None:
-                now = datetime.now()
-            field = now + timedelta(seconds=field)
-        else:
-            field = datetime(*gmtime(field)[:6])
+            if now is None: # pragma: nocover
+                now = time.time()
+            now = handler.db_reltime(now)
+            field = now + field
 
-        return timegm(field.timetuple())
+        return field
 
     @staticmethod
     def validate(params, **fields):
