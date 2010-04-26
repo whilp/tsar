@@ -1,5 +1,7 @@
 from functools import partial
 
+from webob import Request
+
 from tests import AppTest, BaseTest, log
 
 from tsar import *
@@ -55,6 +57,18 @@ class TestDBResource(BaseTest):
             "end": "-10",
         }
         result = self.validate(params,
+            foo=self.db_string,
+            start=self.db_reltime,
+            someint=self.db_int,
+            end=self.db_reltime)
+        self.assertEqual(result["foo"], "bar")
+        self.assertEqual(result["someint"], 10.1)
+        self.assertEqual(result["start"], 1272286116)
+        self.assertEqual(result["end"], 1272286106)
+
+    def test_validate_req_params(self):
+        req = Request.blank("/foo?foo=bar&someint=10.1&start=1272286116.421756&end=-10")
+        result = self.validate(req.params,
             foo=self.db_string,
             start=self.db_reltime,
             someint=self.db_int,
