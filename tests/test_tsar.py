@@ -31,6 +31,13 @@ class TestDBResource(BaseTest):
     def test_db_int_notanint(self):
         self.assertRaises(ValueError, self.db_int, "foo")
 
+    def test_db_reltime_simple(self):
+        self.assertEqual(self.db_reltime("1"), 1)
+        self.assertEqual(self.db_reltime("1272286116.421756"), 1272286116)
+
+    def test_db_reltime_badinput(self):
+        self.assertRaises(ValueError, self.db_reltime, "foo")
+
 class TestTsar(AppTest):
 
     def setUp(self):

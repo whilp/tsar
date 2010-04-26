@@ -44,7 +44,7 @@ class DBResource(Resource):
 
     @classmethod
     def db_reltime(handler, field, now=None):
-        field = int(field)
+        field = int(handler.db_int(field))
         if field < 0:
             if now is None:
                 now = datetime.now()
