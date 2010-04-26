@@ -74,14 +74,14 @@ class DBResource(Resource):
 
         return _params
 
-    @staticmethod
-    def encodeval(time, value, sep=':'):
+    @classmethod
+    def encodeval(handler, time, value, sep=':'):
         return "%s%s%s" % (time, sep, value)
 
-    @staticmethod
-    def decodeval(value, sep=':'):
+    @classmethod
+    def decodeval(handler, value, sep=':'):
         time, junk, value = value.partition(sep)
-        return self.db_int(time), self.db_int(value)
+        return handler.db_int(time), handler.db_int(value)
 
 class Record(DBResource):
     mimetypes = {

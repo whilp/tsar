@@ -16,6 +16,8 @@ class TestDBResource(BaseTest):
         self.db_reltime_plain = self.resource.db_reltime
         self.db_reltime = partial(self.resource.db_reltime, now="1272286116.421756")
         self.validate = self.resource.validate
+        self.encodeval = self.resource.encodeval
+        self.decodeval = self.resource.decodeval
     
     def test_db_string_simple(self):
         self.assertEqual(self.db_string("foo"), "foo")
@@ -86,6 +88,16 @@ class TestDBResource(BaseTest):
 
     def test_validate_missing(self):
         self.assertRaises(HTTPBadRequest, self.validate, {}, foo=self.db_string)
+
+    def test_validate_badinput(self):
+        self.assertRaises(HTTPBadRequest, self.validate, {"foo": "bar"}, foo=self.db_int)
+        self.assertRaises(HTTPBadRequest, self.validate, {"f!oo": "bar"}, foo=self.db_string)
+
+    def test_encodeval(self):
+        self.assertEqual(self.encodeval(1272286116, 10), "1272286116:10")
+
+    def test_decodeval(self):
+        self.assertEqual(self.decodeval("1272286116:10"), (1272286116, 10))
 
 class TestTsar(AppTest):
 
