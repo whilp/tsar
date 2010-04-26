@@ -1,3 +1,5 @@
+from functools import partial
+
 from tests import AppTest, BaseTest, log
 
 from tsar import *
@@ -8,7 +10,8 @@ class TestDBResource(BaseTest):
         self.resource = DBResource("foo")
         self.db_string = self.resource.db_string
         self.db_int = self.resource.db_int
-        self.db_reltime = self.resource.db_reltime
+        self.db_reltime_plain = self.resource.db_reltime
+        self.db_reltime = partial(self.resource.db_reltime, now="1272286116.421756")
     
     def test_db_string_simple(self):
         self.assertEqual(self.db_string("foo"), "foo")
@@ -38,7 +41,7 @@ class TestDBResource(BaseTest):
         self.assertEqual(self.db_reltime("1272286116.421756"), 1272286116)
 
     def test_db_reltime_relative(self):
-        self.assertEqual(self.db_reltime("-10", 1272286116.421756), 1272286106)
+        self.assertEqual(self.db_reltime_plain("-10", 1272286116.421756), 1272286106)
 
     def test_db_reltime_badinput(self):
         self.assertRaises(ValueError, self.db_reltime, "foo")
