@@ -7,7 +7,7 @@ from functools import update_wrapper
 
 from redis import Redis
 from neat import Resource, Service
-from webob.exc import HTTPNotFound
+from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 

@@ -1,6 +1,7 @@
 from functools import partial
 
 from webob import Request
+from webob.exc import *
 
 from tests import AppTest, BaseTest, log
 
@@ -77,6 +78,14 @@ class TestDBResource(BaseTest):
         self.assertEqual(result["someint"], 10.1)
         self.assertEqual(result["start"], 1272286116)
         self.assertEqual(result["end"], 1272286106)
+
+    def test_validate_default(self):
+        result = self.validate({},
+            foo=(self.db_string, "bar"))
+        self.assertEqual(result["foo"], "bar")
+
+    def test_validate_missing(self):
+        self.assertRaises(HTTPBadRequest, self.validate, {}, foo=self.db_string)
 
 class TestTsar(AppTest):
 
