@@ -12,6 +12,7 @@ class TestDBResource(BaseTest):
         self.db_int = self.resource.db_int
         self.db_reltime_plain = self.resource.db_reltime
         self.db_reltime = partial(self.resource.db_reltime, now="1272286116.421756")
+        self.validate = self.resource.validate
     
     def test_db_string_simple(self):
         self.assertEqual(self.db_string("foo"), "foo")
@@ -45,6 +46,23 @@ class TestDBResource(BaseTest):
 
     def test_db_reltime_badinput(self):
         self.assertRaises(ValueError, self.db_reltime, "foo")
+
+    def test_validate_plaindict(self):
+        params = {
+            "foo": "bar",
+            "someint": "10.1",
+            "start": "1272286116.421756",
+            "end": "-10",
+        }
+        result = self.validate(params,
+            foo=self.db_string,
+            start=self.db_reltime,
+            someint=self.db_int,
+            end=self.db_reltime)
+        self.assertEqual(result["foo"], "bar")
+        self.assertEqual(result["someint"], 10.1)
+        self.assertEqual(result["start"], 1272286116)
+        self.assertEqual(result["end"], 1272286106)
 
 class TestTsar(AppTest):
 
