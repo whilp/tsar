@@ -60,29 +60,29 @@ class TestDBResource(BaseTest):
             "foo": "bar",
             "someint": "10.1",
             "start": "1272286116.421756",
-            "end": "-10",
+            "stop": "-10",
         }
         result = self.validate(params,
             foo=self.db_key,
             start=self.db_reltime,
             someint=self.db_int,
-            end=self.db_reltime)
+            stop=self.db_reltime)
         self.assertEqual(result["foo"], "bar")
         self.assertEqual(result["someint"], 10.1)
         self.assertEqual(result["start"], 1272286116)
-        self.assertEqual(result["end"], 1272286106)
+        self.assertEqual(result["stop"], 1272286106)
 
     def test_validate_req_params(self):
-        req = Request.blank("/foo?foo=bar&someint=10.1&start=1272286116.421756&end=-10")
+        req = Request.blank("/foo?foo=bar&someint=10.1&start=1272286116.421756&stop=-10")
         result = self.validate(req.params,
             foo=self.db_key,
             start=self.db_reltime,
             someint=self.db_int,
-            end=self.db_reltime)
+            stop=self.db_reltime)
         self.assertEqual(result["foo"], "bar")
         self.assertEqual(result["someint"], 10.1)
         self.assertEqual(result["start"], 1272286116)
-        self.assertEqual(result["end"], 1272286106)
+        self.assertEqual(result["stop"], 1272286106)
 
     def test_validate_default(self):
         result = self.validate({},
