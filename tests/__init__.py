@@ -31,9 +31,12 @@ class AppTest(BaseTest):
     application = None
     
     def app(self, *args, **kwargs):
-        req = Request.blank(*args, **kwargs)
+        req = self.req(*args, **kwargs)
 
         return req.get_response(self.application)
+    
+    def req(self, *args, **kwargs):
+		return Request.blank(*args, **kwargs)
 
 class Decorator(object):
 
