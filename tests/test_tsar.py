@@ -151,10 +151,12 @@ class TestTsarRecordPopulated(DBTest):
     
     def setUp(self):
         super(TestTsarRecordPopulated, self).setUp()
-        self.redis.zadd("records!foo!bar", 10, 1272286106)
-        self.redis.zadd("records!foo!bar", 11, 1272286116)
-        self.redis.zadd("records!foo!bar", 12, 1272286126)
+        zadd = lambda k, t, v: self.redis.zadd(k, self.resource.encodeval(t, v), t)
+        zadd("records!foo!bar", 10, 1272286106)
+        zadd("records!foo!bar", 11, 1272286116)
+        zadd("records!foo!bar", 12, 1272286126)
 
+    @log
     def test_list_simple(self):
         response = self.resource.list(self.req(""))
-        self.assertEqual(response, [])
+        self.assertEqual(response["results"]["foo"]["bar"][0], (10000, 1272286106))

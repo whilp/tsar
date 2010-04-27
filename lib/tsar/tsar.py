@@ -134,7 +134,7 @@ class Record(DBResource):
 
             # Downsample (if necessary) and apply the value processor
             # built above.
-            results[s][a] = self.sample(results[s][a], sample, processor)
+            results[s][a] = self.sample(results[s][a], params["sample"], processor)
 
             params["len"] = len(results[s][a])
             params["subject"] = s
