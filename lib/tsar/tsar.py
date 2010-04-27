@@ -17,11 +17,12 @@ __all__ = ["DBResource", "Record", "dispatch"]
 class DBResource(Resource):
     fieldchars = [x for x in digits + letters + punctuation if x not in "!/"]
     fieldlen = 128
+    dsn = {}
 
     def __init__(self, collection="", mimetypes={}):
         super(DBResource, self).__init__(collection, mimetypes)
 
-        self.redis = Redis()
+        self.redis = Redis(**self.dsn)
 
     def db_key(self, field):
         if len(field) > self.fieldlen:
