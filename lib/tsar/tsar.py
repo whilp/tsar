@@ -4,6 +4,7 @@ import time
 
 from csv import DictReader
 from functools import update_wrapper
+from string import digits, letters, punctuation
 
 from redis import Redis
 from neat import Resource, Service
@@ -14,7 +15,7 @@ compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 __all__ = ["DBResource", "Record", "service"]
 
 class DBResource(Resource):
-    fieldchars = [x for x in string.digits + string.letters + string.punctuation if x not in "!/"]
+    fieldchars = [x for x in digits + letters + punctuation if x not in "!/"]
     fieldlen = 128
 
     def __init__(self, collection="", mimetypes={}):
