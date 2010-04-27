@@ -22,7 +22,7 @@ class DBResource(Resource):
 
         self.redis = Redis()
 
-    def db_string(self, field):
+    def db_key(self, field):
         if len(field) > self.fieldlen:
             raise TypeError("field too long")
 
@@ -101,8 +101,8 @@ class Record(DBResource):
 
     def list(self, req):
         params = self.validate(req.params,
-            subject=(self.db_string, "*"),
-            attribute=(self.db_string, "*"),
+            subject=(self.db_key, "*"),
+            attribute=(self.db_key, "*"),
             start=(self.db_reltime, 0),
             stop=(self.db_reltime, time.time()),
             sample=(self.db_int, 0)
@@ -143,7 +143,7 @@ class Record(DBResource):
         return {"results": results}
 
     def list_json(self, req):
-        params = self.validate(req.params, callback=(self.db_string, None))
+        params = self.validate(req.params, callback=(self.db_key, None))
         result = self.list(req)
 
         req.response.content_type = "application/javascript"
@@ -159,8 +159,8 @@ class Record(DBResource):
             dict(time=time, value=value, subject=subject, attribute=attribute),
             time=self.db_int,
             value=self.db_int,
-            subject=self.db_string,
-            attribute=self.db_string,
+            subject=self.db_key,
+            attribute=self.db_key,
         )
 
         # In Redis, we save each observation as in a sorted set with the
