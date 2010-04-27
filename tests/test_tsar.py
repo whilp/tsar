@@ -3,9 +3,12 @@ from functools import partial
 from webob import Request
 from webob.exc import *
 
-from tests import AppTest, BaseTest, log
+from tests import AppTest, BaseTest, DBTest, log
 
 from tsar import *
+
+class Record(Record):
+	dsn = {"db": 15}
 
 class TestDBResource(BaseTest):
 
@@ -128,8 +131,30 @@ class TestResource(BaseTest):
         self.assertEqual(self.sample(range(20), 17),
             [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19])
 
-class TestTsar(AppTest):
+class TestTsarRecordEmpty(DBTest):
+    resource = Record("records")
 
+    def test_list_simple(self):
+        response = self.resource.list(self.req(""))
+        self.assertEqual(response, {"results": {}})
+
+    def test_list_params(self):
+        response = self.resource.list(self.req("/records?start=0&stop=-1&subject=foo"))
+        self.assertEqual(response, {"results": {}})
+
+    def test_list_impossible_times(self):
+        req = self.req("/records?start=10&stop=8")
+        self.assertRaises(HTTPBadRequest, self.resource.list, req)
+
+class TestTsarRecordPopulated(DBTest):
+    resource = Record("records")
+    
     def setUp(self):
-        self.tsar = service
-        self.application = service
+        super(TestTsarRecordPopulated, self).setUp()
+        self.redis.zadd("records!foo!bar", 10, 1272286106)
+        self.redis.zadd("records!foo!bar", 11, 1272286116)
+        self.redis.zadd("records!foo!bar", 12, 1272286126)
+
+    def test_list_simple(self):
+        response = self.resource.list(self.req(""))
+        self.assertEqual(response, [])

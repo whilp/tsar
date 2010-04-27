@@ -6,6 +6,7 @@ try:
 except ImportError:
     import unittest
 
+from redis import Redis
 from webob import Request, Response
 
 try:
@@ -36,7 +37,15 @@ class AppTest(BaseTest):
         return req.get_response(self.application)
     
     def req(self, *args, **kwargs):
-		return Request.blank(*args, **kwargs)
+        return Request.blank(*args, **kwargs)
+
+class DBTest(AppTest):
+    
+    def setUp(self):
+        self.redis = Redis(db=15)
+
+    def tearDown(self):
+        self.redis.flushdb()
 
 class Decorator(object):
 
