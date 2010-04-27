@@ -22,32 +22,29 @@ class DBResource(Resource):
 
         self.redis = Redis()
 
-    @classmethod
-    def db_string(handler, field):
-        if len(field) > handler.fieldlen:
+    def db_string(self, field):
+        if len(field) > self.fieldlen:
             raise TypeError("field too long")
 
-        badchars = [x for x in field if x not in handler.fieldchars]
+        badchars = [x for x in field if x not in self.fieldchars]
         if badchars:
             raise TypeError("field contains reserved characters")
 
         return field
 
-    @classmethod
-    def db_int(handler, field):
+    def db_int(self, field):
         if isinstance(field, (int, float, long)):
             return field
         if '.' in field:
             return round(float(field), 2)
         return int(field)
 
-    @classmethod
-    def db_reltime(handler, field, now=None):
-        field = int(handler.db_int(field))
+    def db_reltime(self, field, now=None):
+        field = int(self.db_int(field))
         if field < 0:
             if now is None: # pragma: nocover
                 now = time.time()
-            now = handler.db_reltime(now)
+            now = self.db_reltime(now)
             field = now + field
 
         return field
@@ -74,14 +71,12 @@ class DBResource(Resource):
 
         return _params
 
-    @classmethod
-    def encodeval(handler, time, value, sep=':'):
+    def encodeval(self, time, value, sep=':'):
         return "%s%s%s" % (time, sep, value)
 
-    @classmethod
-    def decodeval(handler, value, sep=':'):
+    def decodeval(self, value, sep=':'):
         time, junk, value = value.partition(sep)
-        return handler.db_int(time), handler.db_int(value)
+        return self.db_int(time), self.db_int(value)
 
 class Record(DBResource):
     mimetypes = {
