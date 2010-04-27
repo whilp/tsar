@@ -99,6 +99,35 @@ class TestDBResource(BaseTest):
     def test_decodeval(self):
         self.assertEqual(self.decodeval("1272286116:10"), (1272286116, 10))
 
+class TestResource(BaseTest):
+
+    def setUp(self):
+        self.record = Record("foo")
+        self.sample = self.record.sample
+        self.input = range(10)
+
+    def test_sample_simple(self):
+        self.assertEqual(self.sample(self.input, 6), range(1, 10)[::2])
+
+    def test_sample_conversion(self):
+        self.assertEqual(self.sample(range(5), 3, lambda x: x*2), [2, 6])
+
+    def test_sample_zero_size(self):
+        self.assertEqual(self.sample(self.input, 0), self.input)
+
+    def test_sample_negative_size(self):
+        self.assertEqual(self.sample(self.input, -10), self.input)
+
+    def test_sample_big_size(self):
+        self.assertEqual(self.sample(self.input, 20), self.input)
+
+    def test_sample_twicethesize(self):
+        self.assertEqual(self.sample(range(20), 10), range(1, 20)[::2])
+
+    def test_sample_notmuchbigger(self):
+        self.assertEqual(self.sample(range(20), 17),
+            [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19])
+
 class TestTsar(AppTest):
 
     def setUp(self):

@@ -91,7 +91,7 @@ class Record(DBResource):
     }
     
     @staticmethod
-    def sample(self, sample, size, f=None):
+    def sample(sample, size, f=None):
         if f is None:
             f = lambda x: x
 
@@ -100,10 +100,7 @@ class Record(DBResource):
             return [f(x) for x in sample]
 
         difference = samplesize - size
-        if samplesize/size > 1:
-            keep = lambda x: (x % samplesize)/difference
-        else:
-            keep = lambda x: x % (samplesize/difference)
+        keep = lambda x: x % (samplesize/difference)
 
         return [f(sample[x]) for x in xrange(samplesize) if keep(x)]
 
