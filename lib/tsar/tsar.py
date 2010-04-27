@@ -115,7 +115,7 @@ class Record(DBResource):
 
         results = {}
         sa = []
-        keys = self.redis.keys("observations!%(subject)s!%(attribute)s" % params)
+        keys = self.redis.keys("records!%(subject)s!%(attribute)s" % params)
         for key in keys:
             _, subject, attribute = key.split('!')
             sa.append((subject, attribute))
@@ -167,14 +167,14 @@ class Record(DBResource):
 
         # In Redis, we save each observation as in a sorted set with the
         # time of the observation as its score. This allows us to easily
-        # pull observations in a range from history.
+        # pull records in a range from history.
 
         # Since value is not likely to be unique across the observation
         # period, we make a unique member by prepending the time of
         # observation to the value. Consumers must reverse this process
         # to get at the actual data (ie, value.split(':')).
 
-        key = "observations!%(subject)s!%(attribute)s" % params
+        key = "records!%(subject)s!%(attribute)s" % params
         uniqueval = self.encodeval(params["time"], params["value"])
         self.redis.zadd(key, uniqueval, params["time"])
         logging.debug("Recording %(subject)s's %(attribute)s "
