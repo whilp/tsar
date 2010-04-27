@@ -7,12 +7,12 @@ from functools import update_wrapper
 from string import digits, letters, punctuation
 
 from redis import Redis
-from neat import Resource, Service
+from neat import Resource, Dispatch
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
-__all__ = ["DBResource", "Record", "service"]
+__all__ = ["DBResource", "Record", "dispatch"]
 
 class DBResource(Resource):
     fieldchars = [x for x in digits + letters + punctuation if x not in "!/"]
@@ -194,11 +194,11 @@ class Record(DBResource):
         if created:
             req.response.status_int = 201
 
-service = Service(
+dispatch = Dispatch(
     Record("records"),
 )
 
 if __name__ == "__main__":
     from wsgiref.simple_server import make_server
-    server = make_server('', 8000, service)
+    server = make_server('', 8000, dispatch)
     server.serve_forever()
