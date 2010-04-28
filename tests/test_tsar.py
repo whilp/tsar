@@ -136,11 +136,11 @@ class TestTsarRecordEmpty(DBTest):
 
     def test_list_simple(self):
         response = self.resource.list(self.req(""))
-        self.assertEqual(response, {"results": {}})
+        self.assertEqual(response.data, {"results": {}})
 
     def test_list_params(self):
         response = self.resource.list(self.req("/records?start=0&stop=-1&subject=foo"))
-        self.assertEqual(response, {"results": {}})
+        self.assertEqual(response.data, {"results": {}})
 
     def test_list_impossible_times(self):
         req = self.req("/records?start=10&stop=8")

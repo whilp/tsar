@@ -7,7 +7,7 @@ from functools import update_wrapper
 from string import digits, letters, punctuation
 
 from redis import Redis
-from neat import Resource, Dispatch
+from neat import Resource, Dispatch, wsgify
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
@@ -105,6 +105,7 @@ class Record(DBResource):
 
         return [f(sample[x]) for x in xrange(samplesize) if keep(x)]
 
+    @wsgify
     def list(self, req):
         params = self.validate(req.params,
             subject=(self.db_key, "*"),
@@ -146,7 +147,9 @@ class Record(DBResource):
             self.log.debug("Serving %(len)d results for %(subject)s's "
                 "%(attribute)s from %(start)d to %(stop)d", params)
 
-        return {"results": results}
+        req.response.data = {"results": results}
+
+        return req.response
 
     def list_json(self, req):
         params = self.validate(req.params, callback=(self.db_key, None))
