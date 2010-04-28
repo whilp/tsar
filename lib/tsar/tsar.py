@@ -14,6 +14,9 @@ compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 __all__ = ["DBResource", "Record", "dispatch"]
 
+def logger(base, cls):
+    return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
+
 class DBResource(Resource):
     fieldchars = [x for x in digits + letters + punctuation if x not in "!/"]
     fieldlen = 128
@@ -21,6 +24,7 @@ class DBResource(Resource):
 
     def __init__(self, collection="", mimetypes={}):
         super(DBResource, self).__init__(collection, mimetypes)
+        self.log = logger(__name__, self)
 
         self.redis = Redis(**self.dsn)
 
@@ -139,7 +143,7 @@ class Record(DBResource):
             params["len"] = len(results[s][a])
             params["subject"] = s
             params["attribute"] = a
-            logging.debug("Serving %(len)d results for %(subject)s's "
+            self.log.debug("Serving %(len)d results for %(subject)s's "
                 "%(attribute)s from %(start)d to %(stop)d", params)
 
         return {"results": results}
@@ -177,7 +181,7 @@ class Record(DBResource):
         key = "records!%(subject)s!%(attribute)s" % params
         uniqueval = self.encodeval(params["time"], params["value"])
         self.redis.zadd(key, uniqueval, params["time"])
-        logging.debug("Recording %(subject)s's %(attribute)s "
+        self.log.debug("Recording %(subject)s's %(attribute)s "
             "(%(value)d) at %(time)d", params)
 
     def create_form(self, req):
