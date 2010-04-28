@@ -156,7 +156,6 @@ class TestTsarRecordPopulated(DBTest):
         zadd("records!foo!bar", 11, 1272286116)
         zadd("records!foo!bar", 12, 1272286126)
 
-    @log
     def test_list_simple(self):
         response = self.resource.list(self.req(""))
         self.assertEqual(response["results"]["foo"]["bar"][0], (10000, 1272286106))
