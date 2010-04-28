@@ -155,7 +155,28 @@ class TestTsarRecordPopulated(DBTest):
         zadd("records!foo!bar", 10, 1272286106)
         zadd("records!foo!bar", 11, 1272286116)
         zadd("records!foo!bar", 12, 1272286126)
+        zadd("records!foo!bar", 13, 1272286136)
+        zadd("records!foo!bar", 14, 1272286146)
+        zadd("records!foo!bar", 15, 1272286156)
+        zadd("records!foo!bar", 16, 1272286166)
+        zadd("records!foo!bar", 17, 1272286176)
+        zadd("records!foo!bar", 18, 1272286186)
+        zadd("records!spam!eggs", 0, 1272286186)
 
     def test_list_simple(self):
         response = self.resource.list(self.req(""))
-        self.assertEqual(response["results"]["foo"]["bar"][0], (10000, 1272286106))
+        self.assertEqual(response.data["results"]["foo"]["bar"][0], (10000, 1272286106))
+        self.assertEqual(len(response.data["results"]["foo"]["bar"]), 9)
+        self.assertEqual(response.data["results"]["spam"]["eggs"], [(0, 1272286186)])
+
+    def test_list_subject(self):
+        response = self.resource.list(self.req("/records?subject=foo"))
+        self.assertEqual(len(response.data["results"]["foo"]["bar"]), 9)
+
+    def test_list_attribute(self):
+        response = self.resource.list(self.req("/records?attribute=bar"))
+        self.assertEqual(len(response.data["results"]["foo"]["bar"]), 9)
+
+    def test_list_nonexistent_key(self):
+        response = self.resource.list(self.req("/records?attribute=doesnotexist"))
+        self.assertEqual(len(response.data["results"]), 0)
