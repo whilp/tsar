@@ -42,9 +42,11 @@ class AppTest(BaseTest):
 class DBTest(AppTest):
     
     def setUp(self):
+        super(DBTest, self).setUp()
         self.redis = Redis(db=15)
 
     def tearDown(self):
+        super(DBTest, self).tearDown()
         self.redis.flushdb()
 
 class Decorator(object):

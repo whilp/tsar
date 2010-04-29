@@ -5,10 +5,13 @@ from webob.exc import *
 
 from tests import AppTest, BaseTest, DBTest, log
 
-from tsar import *
+from neat import Dispatch
+from tsar import DBResource, Record
 
 class Record(Record):
-	dsn = {"db": 15}
+    dsn = {"db": 15}
+
+dispatch = Dispatch(Record("records"))
 
 class TestDBResource(BaseTest):
 
@@ -102,11 +105,10 @@ class TestDBResource(BaseTest):
     def test_decodeval(self):
         self.assertEqual(self.decodeval("1272286116:10"), (1272286116, 10))
 
-class TestResource(BaseTest):
+class TestSample(BaseTest):
 
     def setUp(self):
-        self.record = Record("foo")
-        self.sample = self.record.sample
+        self.sample = Record().sample
         self.input = range(10)
 
     def test_sample_simple(self):
@@ -131,7 +133,16 @@ class TestResource(BaseTest):
         self.assertEqual(self.sample(range(20), 17),
             [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19])
 
-class TestTsarRecordEmpty(DBTest):
+class TestRecord(DBTest):
+    application = dispatch
+
+    @log
+    def test_list_simple_json(self):
+        response = self.app("/records.json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.body, '')
+
+class FooTestTsarRecordEmpty(DBTest):
     resource = Record("records")
 
     def test_list_simple(self):
