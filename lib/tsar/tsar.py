@@ -90,6 +90,7 @@ class Record(DBResource):
         "text/csv": "csv",
         "application/x-www-form-urlencoded": "form",
     }
+    extensions = {".json": "application/json"}
     
     @staticmethod
     def sample(sample, size, f=None):
