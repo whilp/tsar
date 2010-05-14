@@ -7,7 +7,7 @@ from functools import update_wrapper
 from string import digits, letters, punctuation
 
 from redis import Redis
-from neat import Resource, Dispatch, wsgify
+from neat import Resource, Dispatch, validate
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
@@ -17,197 +17,72 @@ __all__ = ["DBResource", "Record", "dispatch"]
 def logger(base, cls):
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
 
-class DBResource(Resource):
-    fieldchars = [x for x in digits + letters + punctuation if x not in "!/"]
-    fieldlen = 128
-    dsn = {}
+class validate(object):
+    keychars = [x for x in digits + letters + punctuation if x not in "!/"]
+    keylen = 128
+    numbertypes = (int, float, long)
+    precision = 2
+    
+    def Key(self, value):
+        if len(value) > self.keylen:
+            raise TypeError("key too long")
 
-    def __init__(self, collection="", mimetypes={}):
-        super(DBResource, self).__init__(collection, mimetypes)
-        self.log = logger(__name__, self)
-
-        self.redis = Redis(**self.dsn)
-
-    def db_key(self, field):
-        if len(field) > self.fieldlen:
-            raise TypeError("field too long")
-
-        badchars = [x for x in field if x not in self.fieldchars]
+        badchars = [x for x in value if x not in self.keychars]
         if badchars:
-            raise TypeError("field contains reserved characters")
+            raise TypeError("key contains reserved characters")
 
-        return field
+        return value
 
-    def db_int(self, field):
-        if isinstance(field, (int, float, long)):
-            return field
-        if '.' in field:
-            return round(float(field), 2)
-        return int(field)
-
-    def db_reltime(self, field, now=None):
-        field = int(self.db_int(field))
-        if field < 0:
-            if now is None: # pragma: nocover
+    def Time(value, now=None):
+        value = self.Number(value)
+        if value < 0:
+            if now is None:
                 now = time.time()
-            now = self.db_reltime(now)
-            field = now + field
+            now = self.Time(now)
+            value += now
 
-        return field
+        return value
 
-    @staticmethod
-    def validate(params, **fields):
-        _params = {}
-        NoDefault = object()
-        for field, validator in fields.items():
-            default = NoDefault
+    def Number(value):
+        if isinstance(value, self.numbertypes):
+            return value
+        if '.' in value:
+            return round(float(value), self.precision)
+        return int(value)
 
-            # The validator must be a callable or a two-tuple.
-            if not callable(validator):
-                validator, default = validator
+# Keep a validate instance around to access its methods.
+_validate = validate()
 
-            param = params.get(field, default)
-            if param is NoDefault:
-                raise HTTPBadRequest("Missing parameter: %s" % field)
-            try:
-                param = validator(param)
-            except (TypeError, ValueError), e:
-                raise HTTPBadRequest("Bad parameter: %s" % field)
-            _params[field] = param
+class RedisResource(Resource):
+    delim = '!'
+    
+    def __init__(self, connection={}):
+        self.db = Redis(**connection)
 
-        return _params
+    def tokey(self, *chunks):
+        return self.delim.join(chunks)
 
-    def encodeval(self, time, value, sep=':'):
-        return "%s%s%s" % (time, sep, value)
+    def fromkey(self, key):
+        return key.split(self.delim)
 
-    def decodeval(self, value, sep=':'):
-        time, junk, value = value.partition(sep)
-        return self.db_int(time), self.db_int(value)
-
-class Record(DBResource):
-    mimetypes = {
-        "application/json": "json",
-        "text/csv": "csv",
+class Records(RecordResource):
+    prefix = "/record"
+    media = {
         "application/x-www-form-urlencoded": "form",
     }
-    extensions = {".json": "application/json"}
-    
-    @staticmethod
-    def sample(sample, size, f=None):
-        if f is None:
-            f = lambda x: x
 
-        samplesize = len(sample)
-        if size <= 0 or samplesize < size:
-            return [f(x) for x in sample]
+    @validate(stamp="Key", value="Key")
+    def tovalue(self, stamp, value):
+        return self.key(stamp, value)
 
-        difference = samplesize - size
-        keep = lambda x: x % (samplesize/difference)
+    def fromvalue(self, value):
+        Number = _validate.Number
+        return [Number(x) for x in self.fromkey(value)]
 
-        return [f(sample[x]) for x in xrange(samplesize) if keep(x)]
+    @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
+    def create(self, subject, attribute, stamp, value):
+        self.db.zadd(self.key(subject, attribute), self.value(stamp, value), stamp)
 
-    @wsgify
-    def list(self, req):
-        params = self.validate(req.params,
-            subject=(self.db_key, "*"),
-            attribute=(self.db_key, "*"),
-            start=(self.db_reltime, 0),
-            stop=(self.db_reltime, time.time()),
-            sample=(self.db_int, 0)
-        )
-
-        if params["start"] > params["stop"]:
-            raise HTTPBadRequest("Bad parameter: start must be less than stop")
-
-        results = {}
-        sa = []
-        keys = self.redis.keys("records!%(subject)s!%(attribute)s" % params)
-        for key in keys:
-            _, subject, attribute = key.split('!')
-            sa.append((subject, attribute))
-            results.setdefault(subject, {})
-            results[subject][attribute] = \
-                self.redis.zrangebyscore(key, params["start"], params["stop"])
-
-        for s, a in sa:
-            # Build the value processor. Since the members of the sorted
-            # timeseries set have the timestamp prepended, we don't
-            # need to request scores as well. Instead, we simply decode
-            # the members themselves. Additionally, JavaScript expects
-            # millisecond precision.
-            jsprecision = lambda (t, v): (t * 1000, v)
-            processor = compose(self.decodeval, jsprecision)
-
-            # Downsample (if necessary) and apply the value processor
-            # built above.
-            results[s][a] = self.sample(results[s][a], params["sample"], processor)
-
-            params["len"] = len(results[s][a])
-            params["subject"] = s
-            params["attribute"] = a
-            self.log.debug("Serving %(len)d results for %(subject)s's "
-                "%(attribute)s from %(start)d to %(stop)d", params)
-
-        req.response.data = {"results": results}
-
-        return req.response
-
-    def list_json(self, req):
-        params = self.validate(req.params, callback=(self.db_key, None))
-        result = self.list(req)
-
-        req.response.content_type = "application/javascript"
-        req.response.body = json.dumps(result)
-        if params["callback"] is not None:
-            req.response.body = "%s(%s)" % (params["callback"], req.response.body)
-
-        return req.response
-
-    def create(self, time=None, value=None, subject=None, attribute=None, **kwargs):
-        """Record an observation."""
-        params = self.validate(
-            dict(time=time, value=value, subject=subject, attribute=attribute),
-            time=self.db_int,
-            value=self.db_int,
-            subject=self.db_key,
-            attribute=self.db_key,
-        )
-
-        # In Redis, we save each observation as in a sorted set with the
-        # time of the observation as its score. This allows us to easily
-        # pull records in a range from history.
-
-        # Since value is not likely to be unique across the observation
-        # period, we make a unique member by prepending the time of
-        # observation to the value. Consumers must reverse this process
-        # to get at the actual data (ie, value.split(':')).
-
-        key = "records!%(subject)s!%(attribute)s" % params
-        uniqueval = self.encodeval(params["time"], params["value"])
-        self.redis.zadd(key, uniqueval, params["time"])
-        self.log.debug("Recording %(subject)s's %(attribute)s "
-            "(%(value)d) at %(time)d", params)
-
-    def create_form(self, req):
-        self.create(**req.params)
-        req.response.status_int = 201
-        
-    def create_csv(self, req):
-        records = DictReader(req.body_file)
-
-        created = False
-        for record in records:
-            created = True
-            self.create(**record)
-
-        if created:
-            req.response.status_int = 201
-
-dispatch = Dispatch(
-    Record("records"),
-)
-
-if __name__ == "__main__":
-    from wsgiref.simple_server import make_server
-    server = make_server('', 8000, dispatch)
-    server.serve_forever()
+    def post_form(self):
+        self.create(**self.req.params)
+        self.response.status_int = 201
