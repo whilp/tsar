@@ -96,6 +96,7 @@ class TestValidate(BaseTest):
 class TestRedisResource(BaseTest):
     
     def setUp(self):
+        super(TestRedisResource, self).setUp()
         self.resource = RedisResource()
 
     def test_tokey(self):
