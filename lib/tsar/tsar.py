@@ -26,11 +26,11 @@ class validate(validate):
     def Key(self, value):
         value = str(value)
         if len(value) > self.keylen:
-            raise TypeError("key too long")
+            raise TypeError("value too long: %s" % repr(value))
 
         badchars = [x for x in value if x not in self.keychars]
         if badchars:
-            raise TypeError("key contains reserved characters")
+            raise TypeError("value contains reserved characters: %s" % repr(value))
 
         return value
 
