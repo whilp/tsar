@@ -1,4 +1,4 @@
 try:
 	import json
-except ImportError:
+except ImportError: # pragma: nocover
 	import simplejson as json
