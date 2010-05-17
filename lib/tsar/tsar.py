@@ -84,8 +84,11 @@ class Records(RedisResource):
         return self.tokey(stamp, value)
 
     def fromvalue(self, value):
-        Number = _validate.Number
-        return [Number(x) for x in self.fromkey(value)]
+        try:
+            stamp, value = self.fromkey(value)
+        except ValueError, e:
+            raise TypeError(e.args[0])
+        return _validate.Time(stamp), _validate.Number(value)
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
