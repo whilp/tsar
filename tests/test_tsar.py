@@ -42,3 +42,15 @@ class TestValidate(BaseTest):
 
     def test_number_notanumber(self):
         self.assertRaises(ValueError, self.validate.Number, "foo")
+
+    def test_time_simple(self):
+        self.assertEqual(self.validate.Time("1"), 1)
+
+    def test_time_float(self):
+        self.assertEqual(self.validate.Time("1272286116.421756"), 1272286116)
+
+    def test_time_relative(self):
+        self.assertEqual(self.validate.Time("-10", 1272286116.421756), 1272286106)
+
+    def test_time_badinput(self):
+        self.assertRaises(ValueError, self.validate.Time, "foo")
