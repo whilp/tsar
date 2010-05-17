@@ -1,5 +1,8 @@
+import webob.exc
+
 from webob import Request
-from tsar.tsar import RedisResource, validate
+from tsar.tsar import Records, RedisResource, validate
+from tsar.util import json
 
 from tests import AppTest, BaseTest
 
@@ -90,7 +93,7 @@ class TestValidate(BaseTest):
             start="1272286116.421756", stop="-10")
 
     def test_validate_badinput(self):
-        self.assertRaises(TypeError, self.foo, foo="b!ar",
+        self.assertRaises(webob.exc.HTTPBadRequest, self.foo, foo="b!ar",
             someint="10.1", start="1272286116.421756", stop="-10")
 
 class TestRedisResource(BaseTest):
@@ -108,3 +111,50 @@ class TestRedisResource(BaseTest):
     def test_key_roundtrip(self):
         input = "foo!bar"
         self.assertEqual(self.resource.tokey(*self.resource.fromkey(input)), input)
+
+class TestRecords(BaseTest):
+
+    def setUp(self):
+        super(TestRecords, self).setUp()
+        self.records = Records(connection={"port": 16379})
+        self.db = self.records.db
+        self.db.flushall()
+        self.postdict = dict(subject="bar", attribute="foo", stamp=1274110760, value=10)
+
+    def tearDown(self):
+        self.db.flushall()
+
+    def test_tovalue(self):
+        self.assertEqual(self.records.tovalue("1274110760", "10"), "1274110760!10")
+
+    def test_tovalue_invalid(self):
+        self.assertRaises(webob.exc.HTTPBadRequest, self.records.tovalue, "foo", "bar")
+
+    def test_fromvalue(self):
+        self.assertEqual(self.records.fromvalue("1274110760!10"), (1274110760, 10))
+
+    def test_fromvalue_invalid(self):
+        self.assertRaises(TypeError, self.records.fromvalue, "foo!10")
+
+    def test_fromvalue_notavalue(self):
+        self.assertRaises(TypeError, self.records.fromvalue, "12312030123")
+
+    def test_create(self):
+        self.records.create("foo", "bar", 1274110760, 10)
+        self.assertEqual(self.db.zcard("foo!bar"), 1)
+
+    def test_create_invalid(self):
+        self.assertRaises(webob.exc.HTTPBadRequest, self.records.create,
+            "foo!", "bar", 1274110760, 10)
+        self.assertEqual(self.db.keys("*"), [])
+
+    def test_post_form(self):
+        req = Request.blank("/record", POST=self.postdict)
+        response = req.get_response(self.records)
+        self.assertEqual(response.status_int, 201)
+
+    def test_post_json(self):
+        req = Request.blank("/record", method="POST", body=json.dumps(self.postdict))
+        req.content_type = "application/json"
+        response = req.get_response(self.records)
+        self.assertEqual(response.status_int, 201)
