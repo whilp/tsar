@@ -12,7 +12,7 @@ from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
-__all__ = ["Records"]
+__all__ = ["Records", "validate"]
 
 def logger(base, cls): # pragma: nocover
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
@@ -24,6 +24,7 @@ class validate(validate):
     precision = 2
     
     def Key(self, value):
+        value = str(value)
         if len(value) > self.keylen:
             raise TypeError("key too long")
 
@@ -33,7 +34,7 @@ class validate(validate):
 
         return value
 
-    def Time(value, now=None):
+    def Time(self, value, now=None):
         value = self.Number(value)
         if value < 0:
             if now is None:
@@ -43,7 +44,7 @@ class validate(validate):
 
         return value
 
-    def Number(value):
+    def Number(self, value):
         if isinstance(value, self.numbertypes):
             return value
         if '.' in value:
