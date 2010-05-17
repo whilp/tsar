@@ -50,7 +50,7 @@ class TestValidate(BaseTest):
         self.assertEqual("%0.3f" % self.validate.Number("1.00002"), "1.000")
 
     def test_number_notanumber(self):
-        self.assertRaises(ValueError, self.validate.Number, "foo")
+        self.assertRaises(TypeError, self.validate.Number, "foo")
 
     def test_time_simple(self):
         self.assertEqual(self.validate.Time("1"), 1)
@@ -62,7 +62,7 @@ class TestValidate(BaseTest):
         self.assertEqual(self.validate.Time("-10"), 1272286106)
 
     def test_time_badinput(self):
-        self.assertRaises(ValueError, self.validate.Time, "foo")
+        self.assertRaises(TypeError, self.validate.Time, "foo")
 
     @testvalidate(foo="Key", start="Time", someint="Number", stop="Time")
     def foo(self, foo, someint, start, stop):

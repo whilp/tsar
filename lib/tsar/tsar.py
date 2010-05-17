@@ -49,7 +49,10 @@ class validate(validate):
             return value
         if '.' in value:
             return round(float(value), self.precision)
-        return int(value)
+        try:
+            return int(value)
+        except ValueError, e:
+            raise TypeError(e.args[0])
 
 # Keep a validate instance around to access its methods.
 _validate = validate()
