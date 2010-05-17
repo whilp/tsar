@@ -35,7 +35,7 @@ class validate(validate):
         return value
 
     def Time(self, value, now=None):
-        value = self.Number(value)
+        value = int(self.Number(value))
         if value < 0:
             if now is None:
                 now = time.time()
