@@ -12,12 +12,12 @@ from webob.exc import HTTPBadRequest, HTTPNotFound
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
-__all__ = ["DBResource", "Record", "dispatch"]
+__all__ = ["Records"]
 
 def logger(base, cls):
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
 
-class validate(object):
+class validate(validate):
     keychars = [x for x in digits + letters + punctuation if x not in "!/"]
     keylen = 128
     numbertypes = (int, float, long)
@@ -65,7 +65,7 @@ class RedisResource(Resource):
     def fromkey(self, key):
         return key.split(self.delim)
 
-class Records(RecordResource):
+class Records(RedisResource):
     prefix = "/record"
     media = {
         "application/x-www-form-urlencoded": "form",
