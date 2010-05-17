@@ -68,7 +68,7 @@ class RedisResource(Resource):
         self.db = Redis(**connection)
 
     def tokey(self, *chunks):
-        return self.delim.join(_validate.Key(c) for c in chunks)
+        return self.delim.join(validate().Key(c) for c in chunks)
 
     def fromkey(self, key):
         return key.split(self.delim)
@@ -88,7 +88,8 @@ class Records(RedisResource):
             stamp, value = self.fromkey(value)
         except ValueError, e:
             raise TypeError(e.args[0])
-        return _validate.Time(stamp), _validate.Number(value)
+        v = validate()
+        return v.Time(stamp), v.Number(value)
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
