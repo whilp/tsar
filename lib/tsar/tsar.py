@@ -14,6 +14,12 @@ compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 __all__ = ["Records", "validate"]
 
+# Media types.
+v = "application/vnd.tsar";
+mediatypes = {
+	"record": v + ".record.v1",
+}
+
 def logger(base, cls): # pragma: nocover
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
 
@@ -75,7 +81,10 @@ class RedisResource(Resource):
 class Records(RedisResource):
     prefix = "/record"
     media = {
+        mediatypes["record"] + "+form": "form",
         "application/x-www-form-urlencoded": "form",
+        mediatypes["record"] + "+json": "json",
+        "application/javascript": "json",
     }
 
     @validate(stamp="Time", value="Number")
