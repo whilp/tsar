@@ -14,7 +14,7 @@ compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 __all__ = ["Records"]
 
-def logger(base, cls):
+def logger(base, cls): # pragma: nocover
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
 
 class validate(validate):
@@ -55,6 +55,10 @@ _validate = validate()
 
 class RedisResource(Resource):
     delim = '!'
+
+    def __init__(self, *args, **kwargs):
+        super(RedisResource, self).__init__(*args, **kwargs)
+        self.log = logger("tsar", self)
     
     def __init__(self, connection={}):
         self.db = Redis(**connection)
