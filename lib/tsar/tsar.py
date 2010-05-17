@@ -37,7 +37,7 @@ class validate(validate):
     def Time(self, value, now=None):
         value = int(self.Number(value))
         if value < 0:
-            if now is None:
+            if now is None: # pragma: nocover
                 now = time.time()
             now = self.Time(now)
             value += now
@@ -57,7 +57,7 @@ _validate = validate()
 class RedisResource(Resource):
     delim = '!'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs): # pragma: nocover
         super(RedisResource, self).__init__(*args, **kwargs)
         self.log = logger("tsar", self)
     
