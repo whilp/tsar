@@ -68,7 +68,7 @@ class RedisResource(Resource):
         self.db = Redis(**connection)
 
     def tokey(self, *chunks):
-        return self.delim.join(chunks)
+        return self.delim.join(_validate.Key(c) for c in chunks)
 
     def fromkey(self, key):
         return key.split(self.delim)
@@ -79,9 +79,9 @@ class Records(RedisResource):
         "application/x-www-form-urlencoded": "form",
     }
 
-    @validate(stamp="Key", value="Key")
+    @validate(stamp="Time", value="Number")
     def tovalue(self, stamp, value):
-        return self.key(stamp, value)
+        return self.tokey(stamp, value)
 
     def fromvalue(self, value):
         Number = _validate.Number
@@ -89,7 +89,7 @@ class Records(RedisResource):
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
-        self.db.zadd(self.key(subject, attribute), self.value(stamp, value), stamp)
+        self.db.zadd(self.tokey(subject, attribute), self.value(stamp, value), stamp)
 
     def post_form(self):
         self.create(**self.req.params)
