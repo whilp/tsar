@@ -54,8 +54,7 @@ class validate(validate):
         except ValueError, e:
             raise TypeError(e.args[0])
 
-# Keep a validate instance around to access its methods.
-_validate = validate()
+validate.exception = HTTPBadRequest
 
 class RedisResource(Resource):
     delim = '!'
