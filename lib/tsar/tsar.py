@@ -10,6 +10,8 @@ from redis import Redis
 from neat import Resource, Dispatch, validate
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
+from .util import json
+
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 __all__ = ["Records", "validate"]
@@ -84,7 +86,7 @@ class Records(RedisResource):
         mediatypes["record"] + "+form": "form",
         "application/x-www-form-urlencoded": "form",
         mediatypes["record"] + "+json": "json",
-        "application/javascript": "json",
+        "application/json": "json",
     }
 
     @validate(stamp="Time", value="Number")
@@ -105,4 +107,9 @@ class Records(RedisResource):
 
     def post_form(self):
         self.create(**self.req.params)
+        self.response.status_int = 201
+
+    def post_json(self):
+        params = dict((str(k), v) for k, v in json.loads(self.req.body).items())
+        self.create(**params)
         self.response.status_int = 201
