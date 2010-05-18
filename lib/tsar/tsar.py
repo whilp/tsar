@@ -152,4 +152,4 @@ class Records(RedisResource):
         return results
 
     def get_json(self):
-        self.create(**self.req.content)
+        self.list(**self.req.content)
