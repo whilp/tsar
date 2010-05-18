@@ -4,7 +4,7 @@ from webob import Request
 from tsar.tsar import Records, RedisResource, validate
 from tsar.util import json
 
-from tests import AppTest, BaseTest
+from tests import AppTest, BaseTest, log
 
 class testvalidate(validate):
 
