@@ -133,13 +133,16 @@ class Records(RedisResource):
         # when we start seeing fewer results. This should give us the dataset
         # with the highest precision at the cost of a few extra roundtrips to
         # the server.
+        interval = None
         data = []
-        key = self.tokey("records", subject, attribute)
-        for interval in self.intervals:
-            d = self.db.zrange(self.tokey(key, interval.interval, cf), start, stop)
-            if len(d) < data:
+        key = ["records", subject, attribute]
+        for ival in self.intervals:
+            d = self.db.zrangebyscore(self.tokey(*(key + [ival.interval, cf])),
+                start, stop)
+            if len(d) < len(data):
                 break
             data = d
+            interval = ival
 
         data = [self.fromvalue(d) for d in data]
         results = {
