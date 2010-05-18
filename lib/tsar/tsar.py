@@ -137,8 +137,8 @@ class Records(RedisResource):
         data = []
         key = ["records", subject, attribute]
         for ival in self.intervals:
-            d = self.db.zrangebyscore(self.tokey(*(key + [ival.interval, cf])),
-                start, stop)
+            k = self.tokey(*(key + [ival.interval, cf]))
+            d = self.db.zrangebyscore(k, start, stop)
             if len(d) < len(data):
                 break
             data = d
