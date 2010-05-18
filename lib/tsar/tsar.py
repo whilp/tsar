@@ -118,11 +118,7 @@ class Records(RedisResource):
     def create(self, subject, attribute, stamp, value):
         self.db.zadd(self.tokey(subject, attribute), self.tovalue(stamp, value), stamp)
 
-    def post_form(self):
-        self.create(**self.req.content)
-        self.response.status_int = 201
-
-    def post_json(self):
+    def post(self):
         self.create(**self.req.content)
         self.response.status_int = 201
 
