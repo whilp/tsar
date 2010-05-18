@@ -1,3 +1,5 @@
+import math
+
 import webob.exc
 
 from webob import Request
@@ -162,3 +164,35 @@ class TestRecordsPost(RecordsTest):
         req.content_type = "application/json"
         response = req.get_response(self.records)
         self.assertEqual(response.status_int, 201)
+
+class TestRecordsGet(RecordsTest):
+
+    def setUp(self):
+        super(TestRecordsGet, self).setUp()
+        time = 1274203741
+        pipe = self.db.pipeline()
+        for interval in Records.intervals:
+            _time = time
+            key = "records!foo!bar!%s!average" % interval.interval
+            for i in range(interval.samples):
+                pipe.zadd(key, "%d!%d" % (_time, 100 + 75 * math.cos(i)), _time)
+                _time -= interval.interval
+        pipe.execute()
+
+    def test_list_start_bigger_than_stop(self):
+        self.assertRaises(webob.exc.HTTPBadRequest, self.records.list,
+            "foo", "bar", 1274203741, 1274203731)
+
+    def test_list_nothing(self):
+        results = self.records.list("dne", "dne", 1274103741, 1274203741)
+        self.assertEqual(len(results["records"]), 0)
+
+    def test_list_interval_60(self):
+        results = self.records.list("foo", "bar", 1274160541, 1274203741)
+        self.assertEqual(results["interval"], 60)
+        records = results.pop("records")
+        self.assertEqual(results,
+            {'attribute': 'bar', 'interval': 60, 'cf': 'average',
+            'samples': 720, 'subject': 'foo'})
+        self.assertEqual(len(records), 720)
+        self.assertTrue(records[0][0] < records[-1][0])
