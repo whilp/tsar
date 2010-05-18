@@ -91,10 +91,10 @@ class Records(RedisResource):
     cf = ["minimum", "average", "maximum", "last"]
     intervals = [Interval(*x) for x in [
         # interval  samples
-        (604800,    480),   # one week, max 10 years
-        (86400,     730),   # one day,  max 2 years
-        (3600,      672),   # one hour, max 28 days
         (60,        720),   # one minute, max 12 hours
+        (3600,      672),   # one hour, max 28 days
+        (86400,     730),   # one day,  max 2 years
+        (604800,    480),   # one week, max 10 years
     ]]
 
     @validate(stamp="Time", value="Number")
