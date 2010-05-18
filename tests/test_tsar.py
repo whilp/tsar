@@ -196,3 +196,27 @@ class TestRecordsGet(RecordsTest):
             'samples': 720, 'subject': 'foo'})
         self.assertEqual(len(records), 720)
         self.assertTrue(records[0][0] < records[-1][0])
+    
+    def test_list_odd_range(self):
+        results = self.records.list("foo", "bar", 1271131741, 1271774541)
+        records = results.pop("records")
+        self.assertEqual(results["interval"], 86400)
+        self.assertEqual(len(records), 7)
+
+    def test_get_json_v1(self):
+        req = Request.blank(
+            "/record?subject=foo&attribute=bar&start=1274160541&stop=1274203741",
+            accept="application/vnd.tsar.record.v1+json")
+        response = req.get_response(self.records)
+        results = json.loads(response.body)
+        self.assertEqual(response.content_type, "application/vnd.tsar.record.v1+json")
+        self.assertEqual(len(results["records"]), 720)
+
+    def test_get_json_generic(self):
+        req = Request.blank(
+            "/record?subject=foo&attribute=bar&start=1274160541&stop=1274203741",
+            accept="application/json")
+        response = req.get_response(self.records)
+        results = json.loads(response.body)
+        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(len(results["records"]), 720)
