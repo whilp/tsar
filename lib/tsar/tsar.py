@@ -66,10 +66,6 @@ validate.exception = HTTPBadRequest
 
 class RedisResource(Resource):
     delim = '!'
-
-    def __init__(self, *args, **kwargs): # pragma: nocover
-        super(RedisResource, self).__init__(*args, **kwargs)
-        self.log = logger("tsar", self)
     
     def __init__(self, connection={}):
         self.db = Redis(**connection)
@@ -101,15 +97,20 @@ class Records(RedisResource):
         v = validate()
         return v.Time(stamp), v.Number(value)
 
+    def handle_form(self):
+        return self.req.params
+
+    def handle_json(self):
+        return dict((str(k), v) for k, v in json.loads(self.req.body).items())
+
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
         self.db.zadd(self.tokey(subject, attribute), self.tovalue(stamp, value), stamp)
 
     def post_form(self):
-        self.create(**self.req.params)
+        self.create(**self.req.content)
         self.response.status_int = 201
 
     def post_json(self):
-        params = dict((str(k), v) for k, v in json.loads(self.req.body).items())
-        self.create(**params)
+        self.create(**self.req.content)
         self.response.status_int = 201
