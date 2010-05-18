@@ -112,10 +112,10 @@ class TestRedisResource(BaseTest):
         input = "foo!bar"
         self.assertEqual(self.resource.tokey(*self.resource.fromkey(input)), input)
 
-class TestRecords(BaseTest):
+class RecordsTest(BaseTest):
 
     def setUp(self):
-        super(TestRecords, self).setUp()
+        super(RecordsTest, self).setUp()
         self.records = Records(connection={"port": 16379})
         self.db = self.records.db
         self.db.flushall()
@@ -123,6 +123,8 @@ class TestRecords(BaseTest):
 
     def tearDown(self):
         self.db.flushall()
+
+class TestRecords(RecordsTest):
 
     def test_tovalue(self):
         self.assertEqual(self.records.tovalue("1274110760", "10"), "1274110760!10")
@@ -147,6 +149,8 @@ class TestRecords(BaseTest):
         self.assertRaises(webob.exc.HTTPBadRequest, self.records.create,
             "foo!", "bar", 1274110760, 10)
         self.assertEqual(self.db.keys("*"), [])
+
+class TestRecordsPost(RecordsTest):
 
     def test_post_form(self):
         req = Request.blank("/record", POST=self.postdict)
