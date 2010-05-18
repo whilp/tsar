@@ -19,7 +19,7 @@ __all__ = ["Records", "validate"]
 # Media types.
 v = "application/vnd.tsar";
 mediatypes = {
-	"record": v + ".record.v1",
+    "record": v + ".record.v1",
 }
 
 def logger(base, cls): # pragma: nocover
