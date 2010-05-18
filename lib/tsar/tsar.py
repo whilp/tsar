@@ -2,6 +2,7 @@ import logging
 import string
 import time
 
+from collections import namedtuple
 from csv import DictReader
 from functools import update_wrapper
 from string import digits, letters, punctuation
@@ -21,6 +22,8 @@ v = "application/vnd.tsar";
 mediatypes = {
     "record": v + ".record.v1",
 }
+
+Interval = namedtuple("Interval", "interval samples")
 
 def logger(base, cls): # pragma: nocover
     return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
@@ -84,6 +87,14 @@ class Records(RedisResource):
         mediatypes["record"] + "+json": "json",
         "application/json": "json",
     }
+    cf = ["minimum", "average", "maximum", "last"]
+    intervals = [Interval(*x) for x in [
+        # interval  samples
+        (604800,    480),   # one week, max 10 years
+        (86400,     730),   # one day,  max 2 years
+        (3600,      672),   # one hour, max 28 days
+        (60,        720),   # one minute, max 12 hours
+    ]]
 
     @validate(stamp="Time", value="Number")
     def tovalue(self, stamp, value):
@@ -114,3 +125,35 @@ class Records(RedisResource):
     def post_json(self):
         self.create(**self.req.content)
         self.response.status_int = 201
+
+    @validate(subject="Key", attribute="Key", start="Time", stop="Time", cf="Key")
+    def list(self, subject, attribute, start=0, stop=time.time(), cf="average"):
+        if start > stop:
+            raise HTTPBadRequest("start %d is more recent than stop %d" % (
+                start, stop))
+
+        # Step through the list of intervals from largest to smallest, stopping
+        # when we start seeing fewer results. This should give us the dataset
+        # with the highest precision at the cost of a few extra roundtrips to
+        # the server.
+        data = []
+        key = self.tokey("records", subject, attribute)
+        for interval in self.intervals:
+            d = self.db.zrange(self.tokey(key, interval.interval, cf), start, stop)
+            if len(d) < data:
+                break
+            data = d
+
+        data = [self.fromvalue(d) for d in data]
+        results = {
+            "records": data,
+            "cf": cf,
+            "interval": interval.interval,
+            "samples": interval.samples,
+            "subject": subject,
+            "attribute": attribute,
+        }
+        return results
+
+    def get_json(self):
+        self.create(**self.req.content)
