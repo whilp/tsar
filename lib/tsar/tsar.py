@@ -25,8 +25,9 @@ mediatypes = {
 
 Interval = namedtuple("Interval", "interval samples")
 
-def logger(base, cls): # pragma: nocover
-    return logging.getLogger("%s.%s" % (base, cls.__class__.__name__))
+def logger(cls): # pragma: nocover
+    name = "%s.%s" % (__name__, cls.__class__.__name__)
+    return logging.getLogger(name)
 
 class validate(validate):
     keychars = [x for x in digits + letters + punctuation if x not in "!/"]
