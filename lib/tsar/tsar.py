@@ -119,6 +119,7 @@ class Records(RedisResource):
     def create(self, subject, attribute, stamp, value):
         self.db.zadd(self.tokey("records", subject, attribute),
             self.tovalue(stamp, value), stamp)
+        self.db.sadd("queues!records!raw", self.tokey(subject, attribute))
 
     def post(self):
         self.create(**self.req.content)
