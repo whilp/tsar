@@ -145,7 +145,7 @@ class TestRecords(RecordsTest):
 
     def test_create(self):
         self.records.create("foo", "bar", 1274110760, 10)
-        self.assertEqual(self.db.zcard("foo!bar"), 1)
+        self.assertEqual(self.db.zcard("records!foo!bar"), 1)
 
     def test_create_invalid(self):
         self.assertRaises(webob.exc.HTTPBadRequest, self.records.create,

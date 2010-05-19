@@ -117,7 +117,8 @@ class Records(RedisResource):
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
-        self.db.zadd(self.tokey(subject, attribute), self.tovalue(stamp, value), stamp)
+        self.db.zadd(self.tokey("records", subject, attribute),
+            self.tovalue(stamp, value), stamp)
 
     def post(self):
         self.create(**self.req.content)
