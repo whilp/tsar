@@ -5,6 +5,7 @@ import time
 from collections import namedtuple
 from csv import DictReader
 from functools import update_wrapper
+from itertools import chain
 from string import digits, letters, punctuation
 
 from redis import Redis
@@ -74,11 +75,12 @@ class RedisResource(Resource):
     def __init__(self, connection={}):
         self.db = Redis(**connection)
 
-    def tokey(self, *chunks):
-        return self.delim.join(validate().Key(c) for c in chunks)
-
     def fromkey(self, key):
         return key.split(self.delim)
+
+    def tokey(self, *chunks):
+        chunks = chain(*[self.fromkey(str(c)) for c in chunks])
+        return self.delim.join(validate().Key(c) for c in chunks)
 
 class Records(RedisResource):
     prefix = "/record"
@@ -117,9 +119,13 @@ class Records(RedisResource):
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
+        intervals = self.tokey("records", subject, attribute, "intervals")
         pipe = self.db.pipeline()
         pipe.zadd(self.tokey("records", subject, attribute),
             self.tovalue(stamp, value), stamp)
+        pipe.delete(intervals)
+        for i in self.intervals:
+            pipe.lpush(intervals, i.interval)
         pipe.sadd(self.tokey("queues", "records", "raw"),
             self.tokey(subject, attribute))
         pipe.execute()
@@ -140,9 +146,9 @@ class Records(RedisResource):
         # the server.
         interval = None
         data = []
-        key = ["records", subject, attribute]
+        key = self.tokey("records", subject, attribute)
         for ival in self.intervals:
-            k = self.tokey(*(key + [ival.interval, cf]))
+            k = self.tokey(key, ival.interval, cf)
             d = self.db.zrangebyscore(k, start, stop)
             if len(d) < len(data):
                 break
