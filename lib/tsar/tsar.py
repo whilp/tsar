@@ -117,10 +117,12 @@ class Records(RedisResource):
 
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
-        self.db.zadd(self.tokey("records", subject, attribute),
+        pipe = self.db.pipeline()
+        pipe.zadd(self.tokey("records", subject, attribute),
             self.tovalue(stamp, value), stamp)
-        self.db.sadd(self.tokey("queues", "records", "raw")
+        pipe.sadd(self.tokey("queues", "records", "raw"),
             self.tokey(subject, attribute))
+        pipe.execute()
 
     def post(self):
         self.create(**self.req.content)
