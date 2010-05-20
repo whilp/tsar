@@ -18,13 +18,17 @@ def consolidate(records, interval, cf=None):
         cf = lambda values: values[-1]
     for stamp, value in records:
         remainder = stamp % interval
-        rest = interval - remainder
-        if abs(rest) > remainder:
-            remainder = rest
+        if remainder > (interval/2):
+            remainder = -(interval - remainder)
         nearest = stamp - remainder
-        if nearest != bin:
+
+        if bin is None:
+            bin = nearest
+        elif bin != nearest:
             yield bin, cf(values)
             bin = nearest
             values = []
-        else:
-            values.append(value)
+        values.append(value)
+
+    if values:
+        yield bin, cf(values)
