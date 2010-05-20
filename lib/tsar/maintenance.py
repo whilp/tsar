@@ -1,3 +1,14 @@
+from itertools import chain
+
+delim = '!'
+
+def fromkey(key):
+    return key.split(delim)
+
+def tokey(*chunks):
+    chunks = chain(*[fromkey(str(c)) for c in chunks])
+    return delim.join(validate().Key(c) for c in chunks)
+
 def consolidate(records, interval, cf=None):
     """Consolidate *records* according to *interval*.
 
