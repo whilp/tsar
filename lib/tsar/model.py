@@ -6,6 +6,13 @@ def fromkey(key, delimiter=delimiter):
 def tokey(*chunks, delimiter=delimiter):
     return delimiter.join(str(c) for c in chunks)
 
+def nearest(value, interval):
+	"""Round *value* to the nearest value evenly divisible by *interval*."""
+    distance = value % interval
+    if distance > (interval/2):
+        distance -= interval
+    return value - distance
+
 class Records(object):
     """A series of records."""
 
