@@ -43,3 +43,19 @@ def consolidate(records, interval, cf=None):
 
     if values:
         yield bin, cf(values)
+
+def work(db):
+    # Pull a recently updated record set from the queue set.
+    queues = tokey("queues", "records", "raw")
+    key = db.spop(queues)
+    if key is None:
+        return
+
+    # If the record is already being processed, return it to the queue and bail.
+    lock = tokey("locks", key)
+    if db.exists(lock):
+        db.sadd(queues, key)
+        return
+
+	# :q
+
