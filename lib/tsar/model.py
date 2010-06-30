@@ -28,8 +28,8 @@ class Records(object):
     consolidated. The samples determine the number of bins kept for each
     interval.
     """
-    cf = "average"
-    """The default consolidation function."""
+    cfs = ["average", "minimum", "maximum", "last"]
+    """Supported consolidation functions."""
     
     def __init__(self, subject, attribute):
         global db
@@ -53,13 +53,12 @@ class Records(object):
         """
         key = tokey(self.namespace, self.intervals[0])
 
-    def query(self, start, stop, cf=None):
+    def query(self, start, stop, cf="average"):
         """Select a range of data from the series.
 
-        The range spans from *start* to *stop*, inclusive. If *cf* is not
-        defined, data from the default consolidation series will be used (see
-        :attr:`cf`). If all of the requested range could be selected from
-        multiple intervals, data from the smallest interval (and the highest
-        resolution) will be chosen.
+        The range spans from *start* to *stop*, inclusive; *cf* is the name
+        of the function used to consolidate the data. If all of the requested
+        range could be selected from multiple intervals, data from the smallest
+        interval (and the highest resolution) will be chosen.
         """
         raise NotImplementedError
