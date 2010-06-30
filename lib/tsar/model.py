@@ -9,7 +9,7 @@ def tokey(*chunks, delimiter=delimiter):
 class Records(object):
     """A series of records."""
 
-    ns = "records"
+    namespace = "records"
     """Root namespace in the data store.
 
     All class:`Records` instances will be stored somewhere under the root
@@ -38,10 +38,9 @@ class Records(object):
         self.attribute = attribute
         self.db = db
 
-    @property
-    def namespace(self):
-        """The namespace for this instance."""
-        return tokey(self.ns, self.subject, self.attribute)
+    def subkey(self, *chunks):
+        """Return a key within this :class:`Record`'s :attr:`namespace`."""
+        return tokey(self.namespace, self.subject, self.attribute, *chunks)
 
     def record(self, timestamp, value):
         """Add a new record to the series.
@@ -51,7 +50,10 @@ class Records(object):
         by the series. If any of the intervals now exceeds its sample limit, old
         data will be expired.
         """
-        key = tokey(self.namespace, self.intervals[0])
+        for interval, samples in self.intervals:
+            ikey = self.subkey(interval)
+			
+        key = tokey(self.ns, self.intervals[0])
 
     def query(self, start, stop, cf="average"):
         """Select a range of data from the series.
