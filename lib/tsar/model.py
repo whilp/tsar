@@ -9,11 +9,11 @@ def tokey(*chunks, delimiter=delimiter):
 class Records(object):
     ns = "records"
     intervals = [
-        # interval  unit    samples
-        60,       # minute  720 (12 hours)
-        3600,     # hour    672 (28 days)
-        86400,    # day     730 (2 years)
-        #604800,  # week    480 (10 years) # technically unbounded
+        # interval  samples     unit
+        (60,        720),     # minute, max 12 hours
+        (3600,      672),     # hour, max 28 days
+        (86400,     730),     # day, max 2 years (unbounded)
+        #(604800,   480),     # week, max 10 years
     ]
     cf = "average"
     
