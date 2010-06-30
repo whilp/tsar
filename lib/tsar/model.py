@@ -4,7 +4,7 @@ def fromkey(key, delimiter=delimiter):
     return key.split(delimiter)
 
 def tokey(*chunks, delimiter=delimiter):
-    return delimiter.join(chunks)
+    return delimiter.join(str(c) for c in chunks)
 
 class Records(object):
     namespace = "records"
