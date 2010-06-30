@@ -7,7 +7,7 @@ def tokey(*chunks, delimiter=delimiter):
     return delimiter.join(str(c) for c in chunks)
 
 class Records(object):
-    namespace = "records"
+    ns = "records"
     intervals = [
         # interval  unit    samples
         60,       # minute  720 (12 hours)
@@ -23,6 +23,10 @@ class Records(object):
         self.subject = subject
         self.attribute = attribute
         self.db = db
+
+    @property
+    def namespace(self):
+        return tokey(self.ns, self.subject, self.attribute)
 
     def record(self, timestamp, value):
         raise NotImplementedError
