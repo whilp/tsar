@@ -69,7 +69,7 @@ class Records(DBObject):
             self.db.setex(self.key, "", self.expire)
 
         def __exit__(self, *args):
-            self.db.del(key)
+            self.db.delete(key)
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
