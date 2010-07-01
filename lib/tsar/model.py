@@ -179,11 +179,11 @@ class Records(DBObject):
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
-            data = consolidate(data, interval, cfunc)
+            idata = consolidate(data, interval, cfunc)
 
             # Since we included the first entry in data above, remove it here.
             pipeline.lpop(ikey)
-            for timestamp, value in data:
+            for timestamp, value in idata:
                 pipeline.lpush(ikey, value)
             pipeline.set(lkey, timestamp)
             pipeline.ltrim(ikey, 0, samples)
