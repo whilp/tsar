@@ -89,7 +89,7 @@ class Records(DBObject):
         """
         for interval, samples in self.intervals:
             ikey = self.subkey(interval, cf)
-            lkey = self.subject(ikey, "last")
+            lkey = self.subkey(interval, cf, "last")
 
             last = self.db.get(lkey)
             if last is None:
@@ -124,7 +124,7 @@ class Records(DBObject):
             timestamp = nearest(timestamp, interval)
             for cf, cfunc in self.cfs.items():
                 ikey = self.subkey(interval, cf)
-                lkey = self.subkey(ikey, "last")
+                lkey = self.subkey(interval, cf, "last")
 
                 last = self.db.get(lkey)
                 if last is not None and timestamp < last:
