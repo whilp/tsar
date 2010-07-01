@@ -72,7 +72,7 @@ class Records(DBObject):
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
-        return tokey(self.namespace, self.subject, self.attribute, *chunks)
+        return self.tokey(self.namespace, self.subject, self.attribute, *chunks)
 
     def query(self, start, stop, cf="last"):
         """Select a range of data from the series.
