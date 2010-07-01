@@ -181,12 +181,18 @@ class Records(DBObject):
                 data = chain([(lasttime, lastval)], data)
             idata = consolidate(data, interval, cfunc)
 
-            # Since we included the first entry in data above, remove it here.
-            pipeline.lpop(ikey)
+            # Only remove the possibly redundant first entry if we're actually
+            # going to write new data.
+            needspop = True
             for timestamp, value in idata:
+                if needspop:
+                    pipeline.lpop(ikey)
+                    needspop = False
                 pipeline.lpush(ikey, value)
-            pipeline.set(lkey, timestamp)
-            pipeline.ltrim(ikey, 0, samples)
+
+            if not needspop:
+                pipeline.set(lkey, timestamp)
+                pipeline.ltrim(ikey, 0, samples)
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
