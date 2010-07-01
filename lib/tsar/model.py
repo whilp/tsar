@@ -1,3 +1,5 @@
+import tsar.errors
+
 from tsar.lib.util import Decorator
 
 delimiter = '!'
@@ -83,10 +85,33 @@ class Records(object):
         by the series. If any of the intervals now exceeds its sample limit, old
         data will be expired.
         """
+        # Create a single pipeline so we can run all of the updates atomically.
+        pipe = self.db.pipeline(transaction=True)
+
         for interval, samples in self.intervals:
-            ikey = self.subkey(interval)
-			
-        key = tokey(self.ns, self.intervals[0])
+            timestamp = nearest(timestamp, interval)
+            for cf, cfunc in self.cfs.items():
+                ikey = self.subkey(interval, cf)
+                lkey = self.subkey(ikey, "last")
+
+                last = self.db.get(lkey)
+                if last is not None and timestamp < last:
+                    raise tsar.errors.RecordError(
+                        "New record is older than the last update")
+
+                lastval = self.db.lindex(ikey, 0)
+                if last == timestamp and lastval is not None:
+                    value = cfunc(lastval, value)
+
+                while (timestamp - last) > interval:
+                    last += interval
+                    pipe.lpush(ikey, None)
+                pipe.set(lkey, timestamp)
+                pipe.lpush(ikey, value)
+                pipe.ltrim(ikey, 0, samples)
+
+        # Run the updates.
+        pipe.execute()
 
     def query(self, start, stop, cf="average"):
         """Select a range of data from the series.
