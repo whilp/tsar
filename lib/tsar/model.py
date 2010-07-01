@@ -1,3 +1,5 @@
+from itertools import chain
+
 from . import errors
 from .util import Decorator
 
@@ -142,7 +144,7 @@ class Records(DBObject):
                 yield (timestamp, data.pop())
                 timestamp -= interval
 
-    def record(self, pipeline, timestamp, value):
+    def record(self, pipeline, data):
         """Add a new record to the series.
 
         The record consists of a Unix-style *timestamp* and a *value*. The new
@@ -155,31 +157,33 @@ class Records(DBObject):
         pipeline and, finally, executing it. This approach allows for atomic
         updates of both single and multiple values.
         """
+        if not data:
+            return
+
         cfunc = self.cfs[self.cf]
         for interval, samples in self.intervals:
-            timestamp = nearest(timestamp, interval)
             ikey = self.subkey(interval)
             lkey = self.subkey(interval, "last")
 
-            last = self.db.get(lkey)
-            if last is None:
-                last = timestamp
-            else:
-                last = int(last)
+            lasttime = self.db.get(lkey)
+            if lasttime is not None:
+                lasttime = int(lasttime)
 
-            if timestamp < last:
-                raise errors.RecordError(
-                    "New record is older than the last update")
-
+            # Read the first element; we'll pop it later on to avoid duplicates.
             lastval = self.db.lindex(ikey, 0)
-            if last == timestamp and lastval is not None:
-                value = cfunc(lastval, value)
+            if lastval is not None:
+                # XXX: Can be float or int...
+                lastval = int(lastval)
 
-            while (timestamp - last) > interval:
-                last += interval
-                pipeline.lpush(ikey, None)
+            if lasttime is not None:
+                data = chain([(lasttime, lastval)], data)
+            data = consolidate(data, interval, cfunc)
+
+            # Since we included the first entry in data above, remove it here.
+            pipeline.lpop(ikey)
+            for timestamp, value in data:
+                pipeline.lpush(ikey, value)
             pipeline.set(lkey, timestamp)
-            pipeline.lpush(ikey, value)
             pipeline.ltrim(ikey, 0, samples)
 
     def extend(self, iterable):
@@ -190,8 +194,7 @@ class Records(DBObject):
         """
         with self.lock(self.db, self.subkey("lock"), 60):
             pipe = self.db.pipeline(transaction=True)
-            for value in iterable:
-                self.record(pipe, *value)
+            self.record(pipe, iterable)
             pipe.execute()
 
     def append(self, value):
