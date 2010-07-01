@@ -67,29 +67,30 @@ class Records(DBObject):
     }
     """Supported consolidation functions."""
     
-    def __init__(self, db, subject, attribute):
+    def __init__(self, db, subject, attribute, cf="last"):
         super(Records, self).__init__(db)
 
         self.subject = subject
         self.attribute = attribute
+        self.cf = cf
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
-        return self.tokey(self.namespace, self.subject, self.attribute, *chunks)
+        return self.tokey(self.namespace, \
+            self.subject, self.attribute, self.cf, *chunks)
 
-    def query(self, start, stop, cf="last"):
+    def query(self, start, stop):
         """Select a range of data from the series.
 
-        The range spans from *start* to *stop*, inclusive; *cf* is the name
-        of the function used to consolidate the data. If all of the requested
-        range could be selected from multiple intervals, data from the smallest
-        interval (and the highest resolution) will be chosen.
+        The range spans from *start* to *stop*, inclusive. If all of the
+        requested range could be selected from multiple intervals, data from the
+        smallest interval (and the highest resolution) will be chosen.
 
         Returns an iterator.
         """
         for interval, samples in self.intervals:
-            ikey = self.subkey(interval, cf)
-            lkey = self.subkey(interval, cf, "last")
+            ikey = self.subkey(interval)
+            lkey = self.subkey(interval, "last")
 
             last = self.db.get(lkey)
             if last is None:
@@ -120,29 +121,29 @@ class Records(DBObject):
         pipeline and, finally, executing it. This approach allows for atomic
         updates of both single and multiple values.
         """
+        cfunc = self.cfs[self.cf]
         for interval, samples in self.intervals:
             timestamp = nearest(timestamp, interval)
-            for cf, cfunc in self.cfs.items():
-                ikey = self.subkey(interval, cf)
-                lkey = self.subkey(interval, cf, "last")
+            ikey = self.subkey(interval)
+            lkey = self.subkey(interval, "last")
 
-                last = self.db.get(lkey)
-                if last is not None and timestamp < last:
-                    raise errors.RecordError(
-                        "New record is older than the last update")
-                if last is None:
-                    last = timestamp
+            last = self.db.get(lkey)
+            if last is not None and timestamp < last:
+                raise errors.RecordError(
+                    "New record is older than the last update")
+            if last is None:
+                last = timestamp
 
-                lastval = self.db.lindex(ikey, 0)
-                if last == timestamp and lastval is not None:
-                    value = cfunc(lastval, value)
+            lastval = self.db.lindex(ikey, 0)
+            if last == timestamp and lastval is not None:
+                value = cfunc(lastval, value)
 
-                while (timestamp - last) > interval:
-                    last += interval
-                    pipeline.lpush(ikey, None)
-                pipeline.set(lkey, timestamp)
-                pipeline.lpush(ikey, value)
-                pipeline.ltrim(ikey, 0, samples)
+            while (timestamp - last) > interval:
+                last += interval
+                pipeline.lpush(ikey, None)
+            pipeline.set(lkey, timestamp)
+            pipeline.lpush(ikey, value)
+            pipeline.ltrim(ikey, 0, samples)
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
