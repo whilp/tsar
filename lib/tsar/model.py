@@ -1,3 +1,5 @@
+from tsar.lib.util import Decorator
+
 delimiter = '!'
 
 def fromkey(key, delimiter=delimiter):
@@ -45,10 +47,29 @@ class Records(object):
         self.attribute = attribute
         self.db = db
 
+    class lock(Decorator):
+
+        def __init__(self, func=None, key="lock", expire=60):
+            self.func = func
+            self.key = key
+            self.expire = expire
+        
+        def call(self, func, args, kwargs):
+            instance = args[0]
+            key = instance.subkey(self.key)
+            instance.db.setex(key, "", self.expire)
+            try:
+                value = self.func(*args, **kwargs)
+            finally:
+                instance.db.del(key)
+
+            return value
+
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
         return tokey(self.namespace, self.subject, self.attribute, *chunks)
 
+    @lock
     def record(self, timestamp, value):
         """Add a new record to the series.
 
