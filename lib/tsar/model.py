@@ -21,6 +21,19 @@ class DBObject(object):
     def tokey(self, *chunks):
         return self.delimiter.join(str(c) for c in chunks)
 
+    class lock(object):
+        def __call__(self, db, key, expire):
+            self.db = db
+            self.key = key
+            self.expire = expire
+            return self
+        
+        def __enter__(self):
+            self.db.setex(self.key, "", self.expire)
+
+        def __exit__(self, *args):
+            self.db.delete(key)
+
 class Records(DBObject):
     """A series of records."""
 
@@ -56,19 +69,6 @@ class Records(DBObject):
 
         self.subject = subject
         self.attribute = attribute
-
-    class lock(object):
-        def __call__(self, db, key, expire):
-            self.db = db
-            self.key = key
-            self.expire = expire
-            return self
-        
-        def __enter__(self):
-            self.db.setex(self.key, "", self.expire)
-
-        def __exit__(self, *args):
-            self.db.delete(key)
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
