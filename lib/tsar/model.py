@@ -8,6 +8,39 @@ def nearest(value, interval):
         distance -= interval
     return value - distance
 
+def consolidate(data, interval, cfunc, missing=None):
+    """Consolidate a data in a timeseries.
+
+    *data* is an iterable consisting of two-tuples (timestamp, value), where
+    timestamp is a Unix timestamp and value is an integer or float. The
+    timestamps in *data* should be increasing. *interval* is an integer that
+    determins the size of the bins. *cfunc* is a callable that takes two
+    adjacent values as its arguments and returns a new, consolidated value. If
+    there are any gaps in the consolidated data set, they will be filled with
+    *missing* values.
+
+    Yields an iterable of new (timestamp, value) two-tuples.
+    """
+    lasttime, lastval = None, None
+    for timestamp, value in data:
+        timestamp = nearest(timestamp, interval)
+
+        if lasttime is None:
+            lasttime = timestamp
+
+        # Fill in any missing values.
+        while (timestamp - lasttime) > interval:
+            lasttime += interval
+            print "A", lasttime, missing
+            yield (lasttime, missing)
+
+        if lastval is not None:
+            value = cfunc(lastval, value)
+        if timestamp != lasttime:
+            print "B", timestamp, value, lasttime
+            yield (timestamp, value)
+            lasttime = timestamp
+
 class DBObject(object):
     delimiter = '!'
 
