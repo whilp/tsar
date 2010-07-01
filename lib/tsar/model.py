@@ -24,6 +24,7 @@ def consolidate(data, interval, cfunc, missing=None):
     Yields an iterable of new (timestamp, value) two-tuples.
     """
     lasttime, lastval = None, None
+    first = True
     for timestamp, value in data:
         timestamp = nearest(timestamp, interval)
 
@@ -40,8 +41,9 @@ def consolidate(data, interval, cfunc, missing=None):
 
         if lastval is not None:
             value = cfunc(lastval, value)
-        if timestamp != lasttime:
+        if first or timestamp != lasttime:
             yield (timestamp, value)
+            first = False
             lasttime = timestamp
 
 class DBObject(object):
