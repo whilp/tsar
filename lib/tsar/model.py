@@ -148,7 +148,7 @@ class Records(DBObject):
         Each value is a two-tuple consisting of (timestamp, value) that willbe
         passed to :meth:`record`.
         """
-        with self.lock(self.subkey("lock"), 60):
+        with self.lock(self.db, self.subkey("lock"), 60):
             pipe = self.db.pipeline(transaction=True)
             for value in iterable:
                 self.record(pipe, *value)
