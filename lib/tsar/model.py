@@ -2,14 +2,6 @@ import tsar.errors
 
 from tsar.lib.util import Decorator
 
-delimiter = '!'
-
-def fromkey(key, delimiter=delimiter):
-    return key.split(delimiter)
-
-def tokey(*chunks, delimiter=delimiter):
-    return delimiter.join(str(c) for c in chunks)
-
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
     distance = value % interval
@@ -17,7 +9,20 @@ def nearest(value, interval):
         distance -= interval
     return value - distance
 
-class Records(object):
+class DBObject(object):
+    delimiter = '!'
+
+    def __init__(self, db):
+        super(DBObject, self).__init__()
+        self.db = db
+
+    def fromkey(self, key):
+        return key.split(self.delimiter)
+
+    def tokey(self, *chunks):
+        return self.delimiter.join(str(c) for c in chunks)
+
+class Records(DBObject):
     """A series of records."""
 
     namespace = "records"
@@ -47,12 +52,11 @@ class Records(object):
     }
     """Supported consolidation functions."""
     
-    def __init__(self, subject, attribute):
-        global db
+    def __init__(self, db, subject, attribute):
+        super(Records, self).__init__(db)
 
         self.subject = subject
         self.attribute = attribute
-        self.db = db
 
     class lock(object):
         def __call__(self, db, key, expire):
