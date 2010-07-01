@@ -130,6 +130,8 @@ class Records(DBObject):
                 if last is not None and timestamp < last:
                     raise errors.RecordError(
                         "New record is older than the last update")
+                if last is None:
+                    last = 0
 
                 lastval = self.db.lindex(ikey, 0)
                 if last == timestamp and lastval is not None:
