@@ -12,7 +12,7 @@ from redis import Redis
 from neat import Resource, Dispatch, validate
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
-from tsar.util import json
+from .util import json
 
 compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 

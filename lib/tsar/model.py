@@ -1,6 +1,5 @@
-import tsar.errors
-
-from tsar.lib.util import Decorator
+from . import errors
+from .util import Decorator
 
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
@@ -96,7 +95,7 @@ class Records(DBObject):
 
                 last = self.db.get(lkey)
                 if last is not None and timestamp < last:
-                    raise tsar.errors.RecordError(
+                    raise errors.RecordError(
                         "New record is older than the last update")
 
                 lastval = self.db.lindex(ikey, 0)
