@@ -106,6 +106,26 @@ class Records(object):
                 pipe.lpush(ikey, value)
                 pipe.ltrim(ikey, 0, samples)
 
+    def extend(self, iterable):
+        """Atomically extend the series with new values from *iterable*.
+
+        Each value is a two-tuple consisting of (timestamp, value) that willbe
+        passed to :meth:`record`.
+        """
+        with self.lock(self.subkey("lock"), 60):
+            pipe = self.db.pipeline(transaction=True)
+            for value in iterable:
+                self.record(pipe, *value)
+            pipe.execute()
+
+    def append(self, value):
+        """Atomically append a new *value* to the series.
+
+        *value* is a two-tuple consisting of (timestamp, value) that will be
+        passed to :meth:`record`.
+        """
+        self.extend([value])
+
     def query(self, start, stop, cf="average"):
         """Select a range of data from the series.
 
