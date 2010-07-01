@@ -126,7 +126,7 @@ class Records(object):
         """
         self.extend([value])
 
-    def query(self, start, stop, cf="average"):
+    def query(self, start, stop, cf="last"):
         """Select a range of data from the series.
 
         The range spans from *start* to *stop*, inclusive; *cf* is the name
