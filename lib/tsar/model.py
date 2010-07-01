@@ -31,13 +31,11 @@ def consolidate(data, interval, cfunc, missing=None):
         # Fill in any missing values.
         while (timestamp - lasttime) > interval:
             lasttime += interval
-            print "A", lasttime, missing
             yield (lasttime, missing)
 
         if lastval is not None:
             value = cfunc(lastval, value)
         if timestamp != lasttime:
-            print "B", timestamp, value, lasttime
             yield (timestamp, value)
             lasttime = timestamp
 
