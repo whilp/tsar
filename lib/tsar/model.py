@@ -37,7 +37,12 @@ class Records(object):
     consolidated. The samples determine the number of bins kept for each
     interval.
     """
-    cfs = ["average", "minimum", "maximum", "last"]
+    cfs = {
+        "average": None, # XXX
+        "minimum": min,
+        "maximum": max,
+        "last": lambda x, y: y,
+    }
     """Supported consolidation functions."""
     
     def __init__(self, subject, attribute):
