@@ -57,5 +57,3 @@ __todo__ = """\
  * how to express times before the epoch in get()? (start=e-102301?)
  * how to handle '*' in subject/attribute queries?
 """.split(" * ")
-
-from tsar import *
