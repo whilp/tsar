@@ -54,40 +54,36 @@ class Records(object):
         self.attribute = attribute
         self.db = db
 
-    class lock(Decorator):
-
-        def __init__(self, func=None, key="lock", expire=60):
-            self.func = func
+    class lock(object):
+        def __call__(self, db, key, expire):
+            self.db = db
             self.key = key
             self.expire = expire
+            return self
         
-        def call(self, func, args, kwargs):
-            instance = args[0]
-            key = instance.subkey(self.key)
-            instance.db.setex(key, "", self.expire)
-            try:
-                value = self.func(*args, **kwargs)
-            finally:
-                instance.db.del(key)
+        def __enter__(self):
+            self.db.setex(self.key, "", self.expire)
 
-            return value
+        def __exit__(self, *args):
+            self.db.del(key)
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
         return tokey(self.namespace, self.subject, self.attribute, *chunks)
 
-    @lock
-    def record(self, timestamp, value):
+    def record(self, pipeline, timestamp, value):
         """Add a new record to the series.
 
         The record consists of a Unix-style *timestamp* and a *value*. The new
         data will be consolidated and added to each of the intervals supported
         by the series. If any of the intervals now exceeds its sample limit, old
         data will be expired.
-        """
-        # Create a single pipeline so we can run all of the updates atomically.
-        pipe = self.db.pipeline(transaction=True)
 
+        All of the updates are queued in the *pipeline*. The caller is
+        responsible for locking the relevant keys in the database, creating the
+        pipeline and, finally, executing it. This approach allows for atomic
+        updates of both single and multiple values.
+        """
         for interval, samples in self.intervals:
             timestamp = nearest(timestamp, interval)
             for cf, cfunc in self.cfs.items():
@@ -109,9 +105,6 @@ class Records(object):
                 pipe.set(lkey, timestamp)
                 pipe.lpush(ikey, value)
                 pipe.ltrim(ikey, 0, samples)
-
-        # Run the updates.
-        pipe.execute()
 
     def query(self, start, stop, cf="average"):
         """Select a range of data from the series.
