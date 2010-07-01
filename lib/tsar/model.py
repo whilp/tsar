@@ -74,6 +74,36 @@ class Records(DBObject):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
         return tokey(self.namespace, self.subject, self.attribute, *chunks)
 
+    def query(self, start, stop, cf="last"):
+        """Select a range of data from the series.
+
+        The range spans from *start* to *stop*, inclusive; *cf* is the name
+        of the function used to consolidate the data. If all of the requested
+        range could be selected from multiple intervals, data from the smallest
+        interval (and the highest resolution) will be chosen.
+
+        Returns an iterator.
+        """
+        for interval, samples in self.intervals:
+            ikey = self.subkey(interval, cf)
+            lkey = self.subject(ikey, "last")
+
+            last = self.db.get(lkey)
+            if last is None:
+                raise StopIteration
+
+            llen = self.db.llen(ikey)
+            first = last - (llen * interval)
+            istart, istop = nearest(start, interval), nearest(stop, interval)
+            if not (first <= ifirst and last >= istop):
+                continue
+
+            data = self.db.lrange(ikey, (last - istop)/interval, (last - istart)/interval)
+            timestamp = istop
+            while data:
+                yield (timestamp, data.pop())
+                timestamp -= interval
+
     def record(self, pipeline, timestamp, value):
         """Add a new record to the series.
 
@@ -128,13 +158,3 @@ class Records(DBObject):
         passed to :meth:`record`.
         """
         self.extend([value])
-
-    def query(self, start, stop, cf="last"):
-        """Select a range of data from the series.
-
-        The range spans from *start* to *stop*, inclusive; *cf* is the name
-        of the function used to consolidate the data. If all of the requested
-        range could be selected from multiple intervals, data from the smallest
-        interval (and the highest resolution) will be chosen.
-        """
-        raise NotImplementedError
