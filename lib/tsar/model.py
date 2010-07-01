@@ -139,10 +139,10 @@ class Records(DBObject):
 
                 while (timestamp - last) > interval:
                     last += interval
-                    pipe.lpush(ikey, None)
-                pipe.set(lkey, timestamp)
-                pipe.lpush(ikey, value)
-                pipe.ltrim(ikey, 0, samples)
+                    pipeline.lpush(ikey, None)
+                pipeline.set(lkey, timestamp)
+                pipeline.lpush(ikey, value)
+                pipeline.ltrim(ikey, 0, samples)
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
