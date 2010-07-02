@@ -211,6 +211,7 @@ class Records(DBObject):
         if not data:
             return
 
+        lasti = len(self.intervals) - 1
         cfunc = self.cfs[self.cf]
         dirty = {}
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
@@ -243,7 +244,9 @@ class Records(DBObject):
             if not needspop:
                 dirty.setdefault("last", [])
                 dirty["last"].append((lkey, ' '.join(str(x) for x in (timestamp, value))))
-                pipeline.ltrim(ikey, 0, samples)
+                # Don't trim the last interval, letting it grow.
+                if i < lasti:
+                    pipeline.ltrim(ikey, 0, samples)
         last = dirty.get("last", [])
         if last:
             pipeline.mset(dict(last))
