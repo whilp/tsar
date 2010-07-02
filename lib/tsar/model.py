@@ -163,19 +163,16 @@ class Records(DBObject):
             return
 
         cfunc = self.cfs[self.cf]
-        for interval, samples in self.intervals:
+        lkeys = [self.subkey(i, "last") for i, s in self.intervals]
+        for i, last in enumerate(self.db.mget(lkeys)):
+            interval, samples = self.intervals[i]
             ikey = self.subkey(interval)
-            lkey = self.subkey(interval, "last")
+            lkey = lkeys[i]
 
-            lasttime = self.db.get(lkey)
-            if lasttime is not None:
-                lasttime = int(lasttime)
-
-            # Read the first element; we'll pop it later on to avoid duplicates.
-            lastval = self.db.lindex(ikey, 0)
-            if lastval is not None:
-                # XXX: Can be float or int...
-                lastval = int(lastval)
+            lasttime, lastval = None, None
+            if last is not None:
+                # XXX: lastval can be float or int...
+                lasttime, lastval = [int(x) for x in last.split()]
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
@@ -191,7 +188,7 @@ class Records(DBObject):
                 pipeline.lpush(ikey, value)
 
             if not needspop:
-                pipeline.set(lkey, timestamp)
+                pipeline.set(lkey, ' '.join(str(x) for x in (timestamp, value)))
                 pipeline.ltrim(ikey, 0, samples)
 
     def extend(self, iterable):
