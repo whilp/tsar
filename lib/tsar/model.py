@@ -212,6 +212,7 @@ class Records(DBObject):
 
         cfunc = self.cfs[self.cf]
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
+        dirty = {}
         for i, last in enumerate(self.db.mget(lkeys)):
             interval, samples = self.intervals[i]
             ikey = self.subkey(interval)
@@ -239,8 +240,12 @@ class Records(DBObject):
                 pipeline.lpush(ikey, value)
 
             if not needspop:
-                pipeline.set(lkey, ' '.join(str(x) for x in (timestamp, value)))
+                dirty.setdefault("last", [])
+                dirty["last"].append((lkey, ' '.join(str(x) for x in (timestamp, value))))
                 pipeline.ltrim(ikey, 0, samples)
+        last = dirty.get("last", [])
+        if last:
+            pipeline.mset(dict(last))
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
