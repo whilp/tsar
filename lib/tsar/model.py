@@ -149,6 +149,7 @@ class Records(DBObject):
         "average": None, # XXX
         "minimum": min,
         "maximum": max,
+        "first": lambda x, y: x,
         "last": lambda x, y: y,
     }
     """Supported consolidation functions."""
