@@ -212,8 +212,8 @@ class Records(DBObject):
             return
 
         cfunc = self.cfs[self.cf]
-        lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         dirty = {}
+        lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         for i, last in enumerate(self.db.mget(lkeys)):
             interval, samples = self.intervals[i]
             ikey = self.subkey(interval)
