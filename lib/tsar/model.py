@@ -195,12 +195,13 @@ class Records(DBObject):
                 timestamp -= interval
 
     def record(self, pipeline, data):
-        """Add a new record to the series.
+        """Add new data to the series.
 
-        The record consists of a Unix-style *timestamp* and a *value*. The new
-        data will be consolidated and added to each of the intervals supported
-        by the series. If any of the intervals now exceeds its sample limit, old
-        data will be expired.
+        *data* is an iterable consisting of two-tuples (timestamp, value).
+        *timestamp* is a Unix-style timestamp; *value* is a float or an integer.
+        The new data will be consolidated and added to each of the intervals
+        supported by the series. If any of the intervals now exceeds its sample
+        limit, old data will be expired.
 
         All of the updates are queued in the *pipeline*. The caller is
         responsible for locking the relevant keys in the database, creating the
