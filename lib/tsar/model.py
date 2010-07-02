@@ -1,4 +1,7 @@
 from itertools import chain
+from string import digits, letters, punctuation
+
+from neat import validate
 
 from . import errors
 from .util import Decorator
@@ -46,18 +49,63 @@ def consolidate(data, interval, cfunc, missing=None):
             first = False
             lasttime = timestamp
 
+class Types(validate):
+    keylen = 128
+    keydelim = '!'
+    keychars = [x for x in digits + letters + punctuation \
+        if x not in (keydelim, '/')]
+    numbertypes = (int, float, long)
+    precision = 2
+    
+    def Key(self, value):
+        value = str(value)
+        if len(value) > self.keylen:
+            raise TypeError("value too long: %s" % repr(value))
+
+        badchars = [x for x in value if x not in self.keychars]
+        if badchars:
+            raise TypeError("value contains reserved characters: %s" % repr(value))
+
+        return value
+
+    def Time(self, value, now=None):
+        value = int(self.Number(value))
+        if value < 0:
+            if now is None: # pragma: nocover
+                now = time.time()
+            now = self.Time(now)
+            value += now
+
+        return value
+
+    def Number(self, value):
+        if isinstance(value, self.numbertypes):
+            return value
+        if '.' in value:
+            return round(float(value), self.precision)
+        try:
+            return int(value)
+        except ValueError, e:
+            raise TypeError(e.args[0])
+
+    def Value(self, value):
+        if value is not None:
+            value = self.Number(value)
+
+        return value
+
 class DBObject(object):
-    delimiter = '!'
+    types = Types()
 
     def __init__(self, db):
         super(DBObject, self).__init__()
         self.db = db
 
     def fromkey(self, key):
-        return key.split(self.delimiter)
+        return key.split(self.types.keydelim)
 
     def tokey(self, *chunks):
-        return self.delimiter.join(str(c) for c in chunks)
+        return self.types.keydelim.join(self.types.Key(c) for c in chunks)
 
     class Lock(object):
 
@@ -171,8 +219,9 @@ class Records(DBObject):
 
             lasttime, lastval = None, None
             if last is not None:
-                # XXX: lastval can be float or int...
-                lasttime, lastval = [int(x) for x in last.split()]
+                lasttime, lastval = last.split()
+                lasttime = self.types.Time(lasttime)
+                lastval = self.types.Value(lastval)
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
@@ -182,6 +231,8 @@ class Records(DBObject):
             # going to write new data.
             needspop = True
             for timestamp, value in idata:
+                timestamp = self.types.Time(timestamp)
+                value = self.types.Value(value)
                 if needspop:
                     pipeline.lpop(ikey)
                     needspop = False
