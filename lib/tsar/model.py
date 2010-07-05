@@ -8,7 +8,6 @@ from string import digits, letters, punctuation
 from neat import validate
 
 from . import errors
-from .util import Decorator
 
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
