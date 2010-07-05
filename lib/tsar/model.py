@@ -17,12 +17,12 @@ def nearest(value, interval):
     return value - distance
 
 def consolidate(data, interval, cfunc, missing=None):
-    """Consolidate a data in a timeseries.
+    """Consolidate a data in a time series.
 
     *data* is an iterable consisting of two-tuples (timestamp, value), where
-    timestamp is a Unix timestamp and value is an integer or float. The
-    timestamps in *data* should be increasing. *interval* is an integer that
-    determins the size of the bins. *cfunc* is a callable that takes two
+    timestamp is a Unix time stamp and value is an integer or float. The
+    time stamps in *data* should be increasing. *interval* is an integer that
+    determines the size of the bins. *cfunc* is a callable that takes two
     adjacent values as its arguments and returns a new, consolidated value. If
     there are any gaps in the consolidated data set, they will be filled with
     *missing* values.
@@ -161,7 +161,7 @@ class Records(DBObject):
     cfs = {
         # XXX: This should be implemented as a cumulative moving average, but to
         # do that we need to know how many points have already been consolidated
-        # into the latest datapoint. This will require some more bookkeeping in
+        # into the latest data point. This will require some more bookkeeping in
         # the server.
         #"average": None,
         "minimum": min,
@@ -186,7 +186,7 @@ class Records(DBObject):
     def query(self, start, stop):
         """Select a range of data from the series.
 
-        The range spans from Unix timestamps *start* to *stop*, inclusive. If
+        The range spans from Unix time stamps *start* to *stop*, inclusive. If
         all of the requested range could be selected from multiple intervals,
         data from the smallest interval (and the highest resolution) will be
         chosen.
@@ -240,7 +240,7 @@ class Records(DBObject):
         """Add new data to the series.
 
         *data* is an iterable consisting of two-tuples (timestamp, value).
-        *timestamp* is a Unix-style timestamp; *value* is a float or an integer.
+        *timestamp* is a Unix-style time stamp; *value* is a float or an integer.
         The new data will be consolidated and added to each of the intervals
         supported by the series. If any of the intervals now exceeds its sample
         limit, old data will be expired.
@@ -295,7 +295,7 @@ class Records(DBObject):
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
 
-        Each value is a two-tuple consisting of (timestamp, value) that willbe
+        Each value is a two-tuple consisting of (timestamp, value) that will be
         passed to :meth:`record`.
         """
         with self.lock(self.db, self.subkey("lock"), 60):
