@@ -1,9 +1,8 @@
 import math
 import time
 
-from functools import partial
 from datetime import datetime
-ttod = lambda x: datetime(*time.gmtime(x)[:6])
+from functools import partial
 
 import redis
 
@@ -39,6 +38,7 @@ data = [(x, abs(int(100 * math.cos(x)))) for x in \
     range(now, stop + (3 * interval), 3 * interval)]
 
 
+ttod = records.types.Time.todatetime
 print "Generating data from %s to %s" % (ttod(now), ttod(stop))
 
 #print "append: %g" % cleanloop(lambda : records.append((now, 12)))
@@ -47,9 +47,10 @@ print "Generating data from %s to %s" % (ttod(now), ttod(stop))
 print ttod(data[0][0]), ttod(data[-1][0])
 
 db.flushdb()
+#records.append((datetime.now(), 10))
 records.extend(data)
 #print "start monitor"; time.sleep(5)
-q1, q2 =  stop - (10 * interval), stop
+q1, q2 =  stop - (400 * interval), stop
 print "Querying from %s to %s" % (ttod(q1), ttod(q2))
 result = [(str(ttod(x)), y) for x,y  in list(records.query(q1, q2))]
 print len(result), result[0], result[-1]
