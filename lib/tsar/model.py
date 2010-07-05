@@ -1,5 +1,7 @@
 import time
 
+from calendar import timegm
+from datetime import datetime
 from itertools import chain
 from string import digits, letters, punctuation
 
@@ -71,7 +73,11 @@ class Types(validate):
         return value
 
     def Time(self, value, now=None):
-        value = int(self.Number(value))
+        timetuple = getattr(value, "timetuple", None)
+        if callable(timetuple):
+            value = timegm(timetuple())
+        else:
+            value = int(self.Number(value))
         if value < 0:
             if now is None: # pragma: nocover
                 now = time.time()
@@ -79,6 +85,8 @@ class Types(validate):
             value += now
 
         return value
+
+    Time.todatetime = lambda value: datetime(*time.gmtime(value)[:6])
 
     def Number(self, value):
         if isinstance(value, self.numbertypes):
@@ -259,14 +267,13 @@ class Records(DBObject):
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
-            idata = consolidate(data, interval, cfunc)
+            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
+            idata = consolidate(idata, interval, cfunc)
 
             # Only remove the possibly redundant first entry if we're actually
             # going to write new data.
             needspop = True
             for timestamp, value in idata:
-                timestamp = self.types.Time(timestamp)
-                value = self.types.Value(value)
                 if needspop:
                     pipeline.lpop(ikey)
                     needspop = False
