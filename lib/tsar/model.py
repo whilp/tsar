@@ -91,6 +91,10 @@ class Types(validate):
             raise TypeError(e.args[0])
 
     def Value(self, value):
+        # XXX: The backend stores nil values as "None" strings; convert them
+        # here to None.
+        if value == "None":
+            value = None
         if value is not None:
             value = self.Number(value)
 
