@@ -1,3 +1,5 @@
+import time
+
 from itertools import chain
 from string import digits, letters, punctuation
 
