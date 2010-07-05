@@ -99,8 +99,8 @@ class Types(validate):
             raise TypeError(e.args[0])
 
     def Value(self, value):
-        # XXX: The backend stores nil values as "None" strings; convert them
-        # here to None.
+        # The backend stores nil values as "None" strings; convert them here to
+        # None.
         if value == "None":
             value = None
         if value is not None:
@@ -160,7 +160,11 @@ class Records(DBObject):
     interval.
     """
     cfs = {
-        "average": None, # XXX
+        # XXX: This should be implemented as a cumulative moving average, but to
+        # do that we need to know how many points have already been consolidated
+        # into the latest datapoint. This will require some more bookkeeping in
+        # the server.
+        #"average": None,
         "minimum": min,
         "maximum": max,
         "first": lambda x, y: x,
