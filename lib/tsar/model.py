@@ -169,31 +169,55 @@ class Records(DBObject):
     def query(self, start, stop):
         """Select a range of data from the series.
 
-        The range spans from *start* to *stop*, inclusive. If all of the
-        requested range could be selected from multiple intervals, data from the
-        smallest interval (and the highest resolution) will be chosen.
+        The range spans from Unix timestamps *start* to *stop*, inclusive. If
+        all of the requested range could be selected from multiple intervals,
+        data from the smallest interval (and the highest resolution) will be
+        chosen.
 
         Returns an iterator.
         """
-        for interval, samples in self.intervals:
-            ikey = self.subkey(interval)
-            lkey = self.subkey(interval, "last")
+        start, stop = self.types.Time(start), self.types.Time(stop)
+        lasti = len(self.intervals) - 1
+        lkeys = [self.subkey(i, "last") for i, s in self.intervals]
+        ikey = None
+        for i, last in enumerate(self.db.mget(lkeys)):
+            interval, samples = self.intervals[i]
+            istart, istop = nearest(start, interval), nearest(stop, interval)
+            lkey = lkeys[i]
 
-            last = self.db.get(lkey)
+            # Bail if we don't have any data yet.
             if last is None:
                 raise StopIteration
 
-            llen = self.db.llen(ikey)
-            first = last - (llen * interval)
-            istart, istop = nearest(start, interval), nearest(stop, interval)
-            if not (first <= ifirst and last >= istop):
-                continue
+            # Choose the first interval that might encompass the requested
+            # range. If we're on the last interval, just use that (it's the best
+            # we'll be able to do).
+            lasttime = self.types.Time(last.split()[0])
+            earliest = lasttime - (interval * samples)
 
-            data = self.db.lrange(ikey, (last - istop)/interval, (last - istart)/interval)
-            timestamp = istop
-            while data:
-                yield (timestamp, data.pop())
-                timestamp -= interval
+
+            if (istart >= earliest and istop <= lasttime) or (lasti < i):
+                ikey = self.subkey(interval)
+                break
+
+        # Bail if we didn't find a suitable interval.
+        if ikey is None:
+            raise StopIteration
+
+        # Convert start and stop to indexes on the series. Since the series is
+        # stored from most recent to oldest in the database, we flip the order
+        # here.
+        first, last = (lasttime - istop)/interval, (lasttime - istart)/interval
+
+        # The data here runs from most to least recent, so we need to yield it
+        # in reverse order.
+        data = self.db.lrange(ikey, first, last)
+        dlen = len(data)
+        timestamp = istop - ((dlen - 1)* interval)
+        for i in xrange(dlen):
+            value = self.types.Value(data[-(i + 1)])
+            yield (timestamp, value)
+            timestamp += interval
 
     def record(self, pipeline, data):
         """Add new data to the series.
