@@ -37,7 +37,10 @@ class Records(neat.Resource):
     # HTTP methods.
     @method
     def post(self, records):
-        records.extend(self.req.content["data"])
+        try:
+            records.extend(self.req.content["data"])
+        except errors.RecordError, e:
+            raise errors.HTTPConflict(e.args[0])
         self.response.status_int = 204 # No Content
 
     @method

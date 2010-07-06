@@ -64,6 +64,14 @@ class TestRecordsPost(RecordsTest):
             body=json.dumps({"data": [(self.first, "ten")]}))
         self.assertEqual(response.status_int, 400)
 
+    def test_post_doublepost(self):
+        response = self.post("/records/dblfoo/bar/last", content_type="application/json",
+            body=json.dumps({"data": [self.data[-1]]}))
+        self.assertEqual(response.status_int, 204)
+        response = self.post("/records/dblfoo/bar/last", content_type="application/json",
+            body=json.dumps({"data": [self.data[-2]]}))
+        self.assertEqual(response.status_int, 409)
+
 class TestRecordsGet(RecordsTest):
 
     def setUp(self):
