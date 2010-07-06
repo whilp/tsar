@@ -9,12 +9,11 @@ from tests import AppTest, BaseTest, log
 
 model.db = model.connect(db=15)
 
-class TestRecords(AppTest):
-    application = Records
+class RecordsTest(AppTest):
     first = 1278007837
     
     def setUp(self):
-        super(TestRecords, self).setUp()
+        super(RecordsTest, self).setUp()
         self.db = model.db
         self.db.flushdb()
         self.application = Records()
@@ -28,8 +27,10 @@ class TestRecords(AppTest):
             self.last += interval + ((interval/5) * (random() - .5))
             
     def tearDown(self):
-        super(TestRecords, self).tearDown()
+        super(RecordsTest, self).tearDown()
         self.db.flushdb()
+
+class TestRecordsPost(RecordsTest):
 
     def post(self, path, body, content_type):
         req = self.req(path, method="POST")
@@ -37,17 +38,6 @@ class TestRecords(AppTest):
         req.body = body
 
         return req.get_response(self.application)
-
-    def get(self, path, accept):
-        req = self.req(path, headers=dict(accept=accept), method="GET")
-        return req.get_response(self.application)
-
-    def test_get(self):
-        response = self.get("/records/foo/bar/last", accept="application/json")
-        self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.content_type, "application/json")
-        body = json.loads(response.body)
-        self.assertEqual(body["data"], [])
 
     def test_post(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
@@ -73,3 +63,22 @@ class TestRecords(AppTest):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"data": [(self.first, "ten")]}))
         self.assertEqual(response.status_int, 400)
+
+class TestRecordsGet(RecordsTest):
+
+    def setUp(self):
+        super(TestRecordsGet, self).setUp()
+
+        full = model.Records("fullfoo", "bar", "last")
+        full.extend(self.data)
+
+    def get(self, path, accept):
+        req = self.req(path, headers=dict(accept=accept), method="GET")
+        return req.get_response(self.application)
+
+    def test_get(self):
+        response = self.get("/records/foo/bar/last", accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertEqual(body["data"], [])
