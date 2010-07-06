@@ -151,12 +151,12 @@ class Records(object):
                 lasttime += interval
                 yield (lasttime, missing)
 
-			if lastval is not None:
-				value = cfunc(lastval, value)
-			if first or timestamp != lasttime:
-				yield (timestamp, value)
-				first = False
-				lasttime = timestamp
+            if lastval is not None:
+                value = cfunc(lastval, value)
+            if first or timestamp != lasttime:
+                yield (timestamp, value)
+                first = False
+                lasttime = timestamp
 
     def fromkey(self, key):
         return key.split(self.types.keydelim)
