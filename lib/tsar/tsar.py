@@ -30,59 +30,9 @@ def logger(cls): # pragma: nocover
     name = "%s.%s" % (__name__, cls.__class__.__name__)
     return logging.getLogger(name)
 
-class validate(validate):
-    keychars = [x for x in digits + letters + punctuation if x not in "!/"]
-    keylen = 128
-    numbertypes = (int, float, long)
-    precision = 2
-    
-    def Key(self, value):
-        value = str(value)
-        if len(value) > self.keylen:
-            raise TypeError("value too long: %s" % repr(value))
-
-        badchars = [x for x in value if x not in self.keychars]
-        if badchars:
-            raise TypeError("value contains reserved characters: %s" % repr(value))
-
-        return value
-
-    def Time(self, value, now=None):
-        value = int(self.Number(value))
-        if value < 0:
-            if now is None: # pragma: nocover
-                now = time.time()
-            now = self.Time(now)
-            value += now
-
-        return value
-
-    def Number(self, value):
-        if isinstance(value, self.numbertypes):
-            return value
-        if '.' in value:
-            return round(float(value), self.precision)
-        try:
-            return int(value)
-        except ValueError, e:
-            raise TypeError(e.args[0])
-
 validate.exception = HTTPBadRequest
 
-class RedisResource(Resource):
-    delim = '!'
-    
-    def __init__(self, connection={}):
-        self.db = Redis(**connection)
-
-    def fromkey(self, key):
-        return key.split(self.delim)
-
-    def tokey(self, *chunks):
-        chunks = chain(*[self.fromkey(str(c)) for c in chunks])
-        return self.delim.join(validate().Key(c) for c in chunks)
-
-class Records(RedisResource):
+class Records(Resource):
     prefix = "/record"
     media = {
         mediatypes["record"] + "+form": "form",
@@ -90,14 +40,6 @@ class Records(RedisResource):
         mediatypes["record"] + "+json": "json",
         "application/json": "json",
     }
-    cf = ["minimum", "average", "maximum", "last"]
-    intervals = [Interval(*x) for x in [
-        # interval  samples
-        (60,        720),   # one minute, max 12 hours
-        (3600,      672),   # one hour, max 28 days
-        (86400,     730),   # one day,  max 2 years
-        (604800,    480),   # one week, max 10 years
-    ]]
 
     @validate(stamp="Time", value="Number")
     def tovalue(self, stamp, value):
