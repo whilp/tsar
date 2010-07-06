@@ -5,7 +5,7 @@ from tsar import model
 from tsar.web import Records
 from tsar.util import json
 
-from tests import AppTest, BaseTest, log
+from tests import AppTest, BaseTest, log, unittest
 
 model.db = model.connect(db=15)
 
