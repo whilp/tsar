@@ -1,12 +1,13 @@
 from math import cos
 from random import random
 
-import redis
-
+from tsar import model
 from tsar.web import Records
 from tsar.util import json
 
 from tests import AppTest, BaseTest, log
+
+model.db = model.connect(db=15)
 
 class TestRecords(AppTest):
     application = Records
@@ -14,7 +15,7 @@ class TestRecords(AppTest):
     
     def setUp(self):
         super(TestRecords, self).setUp()
-        self.db = redis.Redis(db=15)
+        self.db = model.db
         self.db.flushdb()
         self.application = Records()
 
@@ -31,7 +32,7 @@ class TestRecords(AppTest):
         self.db.flushdb()
 
     def test_post(self):
-        req = self.req("/records/foo/bar/last")
+        req = self.req("/records/foo/bar/last", method="POST")
         req.content_type = "application/json"
         req.body = json.dumps({"data": self.data})
         response = req.get_response(self.application)
