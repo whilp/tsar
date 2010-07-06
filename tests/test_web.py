@@ -42,6 +42,11 @@ class TestRecords(AppTest):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"data": [self.data[-1]]}))
         self.assertEqual(response.status_int, 204)
+
+    def test_post_bulk(self):
+        response = self.post("/records/foo/bar/last", content_type="application/json",
+            body=json.dumps({"data": self.data}))
+        self.assertEqual(response.status_int, 204)
     
     def test_post_badkey(self):
         response = self.post("/records/foo!/bar/last", content_type="application/json",
