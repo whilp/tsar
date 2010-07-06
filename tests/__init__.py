@@ -6,8 +6,7 @@ try:
 except ImportError:
     import unittest
 
-from redis import Redis
-from webob import Request, Response
+from neat import Request, Response
 
 try:
     from functools import wraps
@@ -38,16 +37,6 @@ class AppTest(BaseTest):
     
     def req(self, *args, **kwargs):
         return Request.blank(*args, **kwargs)
-
-class DBTest(AppTest):
-    
-    def setUp(self):
-        super(DBTest, self).setUp()
-        self.redis = Redis(db=15)
-
-    def tearDown(self):
-        super(DBTest, self).tearDown()
-        self.redis.flushdb()
 
 class Decorator(object):
 
