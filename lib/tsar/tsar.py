@@ -4,7 +4,7 @@ import time
 from neat import Resource, Dispatch
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
-from .model import validate
+from .model import Records, Types
 from .util import json
 
 __all__ = ["Records", "validate"]
@@ -19,6 +19,7 @@ def logger(cls): # pragma: nocover
     name = "%s.%s" % (__name__, cls.__class__.__name__)
     return logging.getLogger(name)
 
+validate = Types().validate
 validate.exception = HTTPBadRequest
 
 class Records(Resource):
@@ -30,24 +31,11 @@ class Records(Resource):
         "application/json": "json",
     }
 
-    @validate(stamp="Time", value="Number")
-    def tovalue(self, stamp, value):
-        return self.tokey(stamp, value)
-
-    def fromvalue(self, value):
-        try:
-            stamp, value = self.fromkey(value)
-        except ValueError, e:
-            raise TypeError(e.args[0])
-        v = validate()
-        return v.Time(stamp), v.Number(value)
-
-    def handle_form(self):
-        return self.req.params
-
-    def handle_json(self):
-        return dict((str(k), v) for k, v in json.loads(self.req.body).items())
-
+    # Base methods.
+	def create(subject="Key", attribute="Key", cf="Key"):
+		if cf not in Records.cfs:
+		
+		
     @validate(subject="Key", attribute="Key", stamp="Time", value="Number")
     def create(self, subject, attribute, stamp, value):
         intervals = self.tokey("records", subject, attribute, "intervals")
@@ -60,10 +48,6 @@ class Records(Resource):
         pipe.sadd(self.tokey("queues", "records", "raw"),
             self.tokey(subject, attribute))
         pipe.execute()
-
-    def post(self):
-        self.create(**self.req.content)
-        self.response.status_int = 201
 
     @validate(subject="Key", attribute="Key", start="Time", stop="Time", cf="Key")
     def list(self, subject, attribute, start=0, stop=time.time(), cf="average"):
@@ -96,6 +80,18 @@ class Records(Resource):
             "attribute": attribute,
         }
         return results
+
+    # Media type handlers.
+    def handle_form(self):
+        return self.req.params
+
+    def handle_json(self):
+        return dict((str(k), v) for k, v in json.loads(self.req.body).items())
+
+    # HTTP handlers.
+    def post(self):
+        self.create(**self.req.content)
+        self.response.status_int = 201
 
     def get_json(self):
         result = self.list(**self.req.content)
