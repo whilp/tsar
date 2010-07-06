@@ -71,36 +71,7 @@ class Types(validate):
 
         return value
 
-class DBObject(object):
-    types = Types()
-
-    def __init__(self, db):
-        super(DBObject, self).__init__()
-        self.db = db
-
-    def fromkey(self, key):
-        return key.split(self.types.keydelim)
-
-    def tokey(self, *chunks):
-        return self.types.keydelim.join(self.types.Key(c) for c in chunks)
-
-    class Lock(object):
-
-        def __call__(self, db, key, expire):
-            self.db = db
-            self.key = key
-            self.expire = expire
-            return self
-        
-        def __enter__(self):
-            self.db.setex(self.key, "", self.expire)
-
-        def __exit__(self, *args):
-            self.db.delete(self.key)
-
-    lock = Lock()
-
-class Records(DBObject):
+class Records(object):
     """A series of records."""
 
     namespace = "records"
@@ -134,10 +105,12 @@ class Records(DBObject):
         "last": lambda x, y: y,
     }
     """Supported consolidation functions."""
+    types = Types()
     
     def __init__(self, db, subject, attribute, cf="last"):
-        super(Records, self).__init__(db)
+        super(Records, self).__init__()
 
+        self.db = db
         self.subject = subject
         self.attribute = attribute
         self.cf = cf
@@ -182,6 +155,29 @@ class Records(DBObject):
 				yield (timestamp, value)
 				first = False
 				lasttime = timestamp
+
+    def fromkey(self, key):
+        return key.split(self.types.keydelim)
+
+    def tokey(self, *chunks):
+        return self.types.keydelim.join(self.types.Key(c) for c in chunks)
+
+    class Lock(object):
+
+        def __call__(self, db, key, expire):
+            self.db = db
+            self.key = key
+            self.expire = expire
+            return self
+        
+        def __enter__(self):
+            self.db.setex(self.key, "", self.expire)
+
+        def __exit__(self, *args):
+            self.db.delete(self.key)
+
+    lock = Lock()
+
 
     def query(self, start, stop):
         """Select a range of data from the series.
