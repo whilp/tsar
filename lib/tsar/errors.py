@@ -1,3 +1,5 @@
+from neat.errors import *
+
 class Error(Exception):
     pass
 

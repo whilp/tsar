@@ -1,8 +1,8 @@
 import logging
 
-from neat import Resource, errors
+import neat
 
-from . import model
+from . import errors, model
 from .util import Decorator, json
 
 def logger(cls): # pragma: nocover
@@ -18,7 +18,7 @@ mediatypes = {
 model.db = model.connect()
 model.Types.validator.exception = errors.HTTPBadRequest
 
-class Records(Resource):
+class Records(neat.Resource):
     prefix = "/records/"
     media = {
         mediatypes["records"] + "+json": "json",
