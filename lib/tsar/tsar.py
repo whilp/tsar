@@ -1,20 +1,11 @@
 import logging
-import string
 import time
 
-from collections import namedtuple
-from csv import DictReader
-from functools import update_wrapper
-from itertools import chain
-from string import digits, letters, punctuation
-
-from redis import Redis
-from neat import Resource, Dispatch, validate
+from neat import Resource, Dispatch
 from webob.exc import HTTPBadRequest, HTTPNotFound
 
+from .model import validate
 from .util import json
-
-compose = lambda f, g: update_wrapper(lambda *a, **k: g(f(*a, **k)), f)
 
 __all__ = ["Records", "validate"]
 
@@ -23,8 +14,6 @@ v = "application/vnd.tsar";
 mediatypes = {
     "record": v + ".record.v1",
 }
-
-Interval = namedtuple("Interval", "interval samples")
 
 def logger(cls): # pragma: nocover
     name = "%s.%s" % (__name__, cls.__class__.__name__)
