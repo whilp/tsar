@@ -3,7 +3,7 @@ import logging
 from neat import Resource, errors
 
 from . import model
-from .util import json
+from .util import Decorator, json
 
 def logger(cls): # pragma: nocover
     name = "%s.%s" % (__name__, cls.__class__.__name__)
@@ -30,16 +30,17 @@ class Records(Resource):
         records = model.Records(subject, attribute, cf)
         records.extend(data)
 
-    def parseuri(self, uri):
-        """Parse a URI.
+    class method(Decorator):
 
-        Returns a tuple (subject, attribute, cf).
-        """
-        return uri.lstrip('/').split('/', 3)[1:]
-
+        def call(self, func, args, kwargs):
+            instance = args[0]
+            subject, attribute, cf = \
+                instance.req.path_info.lstrip('/').split('/', 3)[1:]
+            return func(instance, subject, attribute, cf)
+        
     # HTTP methods.
-    def post(self):
-        subject, attribute, cf = self.parseuri(self.req.path_info)
+    @method
+    def post(self, subject, attribute, cf):
         self.record(subject, attribute, cf, self.req.content["data"])
         self.response.status_int = 204 # No Content
 
