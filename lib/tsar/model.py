@@ -174,7 +174,7 @@ class Records(object):
                 lasttime = timestamp
             if timestamp < lasttime:
                 raise errors.RecordError(
-                    "Series out of order: %d more recent than %d", lasttime, timestamp)
+                    "Series out of order: %d more recent than %d" % (lasttime, timestamp))
 
             # Fill in any missing values.
             while (timestamp - lasttime) > interval:
