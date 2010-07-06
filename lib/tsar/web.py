@@ -40,6 +40,18 @@ class Records(Resource):
         records.extend(self.req.content["data"])
         self.response.status_int = 204 # No Content
 
+    @method
+    def get_json(self, records):
+        body = {}
+        start = self.req.content.get("start", 0)
+        stop = self.req.content.get("stop", -1)
+        body["data"] = list(records.query(start, stop))
+        body["start"] = records.types.Time(start) 
+        body["stop"] = records.types.Time(stop) 
+
+        self.response.status_int = 200
+        self.response.body = json.dumps(body)
+
     # HTTP helpers.
     def handle_json(self):
         return json.loads(self.req.body)

@@ -38,6 +38,17 @@ class TestRecords(AppTest):
 
         return req.get_response(self.application)
 
+    def get(self, path, accept):
+        req = self.req(path, headers=dict(accept=accept), method="GET")
+        return req.get_response(self.application)
+
+    def test_get(self):
+        response = self.get("/records/foo/bar/last", accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertEqual(body["data"], [])
+
     def test_post(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"data": [self.data[-1]]}))
