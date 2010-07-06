@@ -25,23 +25,19 @@ class Records(Resource):
         "application/json": "json",
     }
 
-    # Model interface.
-    def record(self, subject, attribute, cf, data):
-        records = model.Records(subject, attribute, cf)
-        records.extend(data)
-
     class method(Decorator):
 
         def call(self, func, args, kwargs):
             instance = args[0]
             subject, attribute, cf = \
                 instance.req.path_info.lstrip('/').split('/', 3)[1:]
-            return func(instance, subject, attribute, cf)
+            records = model.Records(subject, attribute, cf)
+            return func(instance, records)
         
     # HTTP methods.
     @method
-    def post(self, subject, attribute, cf):
-        self.record(subject, attribute, cf, self.req.content["data"])
+    def post(self, records):
+        records.extend(self.req.content["data"])
         self.response.status_int = 204 # No Content
 
     # HTTP helpers.
