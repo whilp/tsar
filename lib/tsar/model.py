@@ -9,6 +9,8 @@ from neat import validate
 
 from . import errors
 
+__all__ = ["Records"]
+
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
     distance = value % interval
