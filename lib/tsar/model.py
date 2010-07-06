@@ -31,6 +31,7 @@ class Types(validate):
         if x not in (keydelim, '/')]
     numbertypes = (int, float, long)
     precision = 2
+    now = None
 
     validator = validate.validator
     
@@ -47,13 +48,14 @@ class Types(validate):
         return value
 
     @validator
-    def Time(self, value, now=None):
+    def Time(self, value):
         timetuple = getattr(value, "timetuple", None)
         if callable(timetuple):
             value = timegm(timetuple())
         else:
             value = int(self.Number(value))
         if value < 0:
+            now = self.now
             if now is None: # pragma: nocover
                 now = time.time()
             now = self.Time(now)
