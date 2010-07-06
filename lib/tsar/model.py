@@ -31,7 +31,10 @@ class Types(validate):
         if x not in (keydelim, '/')]
     numbertypes = (int, float, long)
     precision = 2
+
+    validator = validate.validator
     
+    @validator
     def Key(self, value):
         value = str(value)
         if len(value) > self.keylen:
@@ -43,6 +46,7 @@ class Types(validate):
 
         return value
 
+    @validator
     def Time(self, value, now=None):
         timetuple = getattr(value, "timetuple", None)
         if callable(timetuple):
@@ -59,6 +63,24 @@ class Types(validate):
 
     Time.todatetime = lambda value: datetime(*time.gmtime(value)[:6])
 
+    @validator
+    def Time(self, value, now=None):
+        timetuple = getattr(value, "timetuple", None)
+        if callable(timetuple):
+            value = timegm(timetuple())
+        else:
+            value = int(self.Number(value))
+        if value < 0:
+            if now is None: # pragma: nocover
+                now = time.time()
+            now = self.Time(now)
+            value += now
+
+        return value
+
+    Time.todatetime = lambda value: datetime(*time.gmtime(value)[:6])
+
+    @validator
     def Number(self, value):
         if isinstance(value, self.numbertypes):
             return value
@@ -69,6 +91,7 @@ class Types(validate):
         except ValueError, e:
             raise TypeError(e.args[0])
 
+    @validator
     def Value(self, value):
         # The backend stores nil values as "None" strings; convert them here to
         # None.
@@ -198,6 +221,7 @@ class Records(object):
 
         Returns an iterator.
         """
+        start, stop = self.types.Time(start), self.types.Time(stop)
         lasti = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         ikey = None
@@ -213,7 +237,7 @@ class Records(object):
             # Choose the first interval that might encompass the requested
             # range. If we're on the last interval, just use that (it's the best
             # we'll be able to do).
-            lasttime = last.split()[0]
+            lasttime = self.types.Time(last.split()[0])
             earliest = lasttime - (interval * samples)
 
 
@@ -236,7 +260,7 @@ class Records(object):
         dlen = len(data)
         timestamp = istop - ((dlen - 1)* interval)
         for i in xrange(dlen):
-            value = data[-(i + 1)]
+            value = self.types.Value(data[-(i + 1)])
             yield (timestamp, value)
             timestamp += interval
 
@@ -274,7 +298,8 @@ class Records(object):
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
-            idata = self.consolidate(data, interval, cfunc)
+            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
+            idata = self.consolidate(idata, interval, cfunc)
 
             # Only remove the possibly redundant first entry if we're actually
             # going to write new data.
