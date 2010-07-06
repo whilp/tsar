@@ -9,7 +9,13 @@ from neat import validate
 
 from . import errors
 
-__all__ = ["Records"]
+__all__ = ["Records", "connect", "db"]
+
+db = None
+
+def connect(**kwargs):
+    import redis
+    return redis.Redis(**kwargs)
 
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
@@ -109,9 +115,10 @@ class Records(object):
     """Supported consolidation functions."""
     types = Types()
     
-    def __init__(self, db, subject, attribute, cf="last"):
+    def __init__(self, subject, attribute, cf="last"):
         super(Records, self).__init__()
 
+        global db
         self.db = db
         self.subject = subject
         self.attribute = attribute
