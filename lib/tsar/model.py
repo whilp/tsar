@@ -16,42 +16,6 @@ def nearest(value, interval):
         distance -= interval
     return value - distance
 
-def consolidate(data, interval, cfunc, missing=None):
-    """Consolidate a data in a time series.
-
-    *data* is an iterable consisting of two-tuples (timestamp, value), where
-    timestamp is a Unix time stamp and value is an integer or float. The
-    time stamps in *data* should be increasing. *interval* is an integer that
-    determines the size of the bins. *cfunc* is a callable that takes two
-    adjacent values as its arguments and returns a new, consolidated value. If
-    there are any gaps in the consolidated data set, they will be filled with
-    *missing* values.
-
-    Yields an iterable of new (timestamp, value) two-tuples.
-    """
-    lasttime, lastval = None, None
-    first = True
-    for timestamp, value in data:
-        timestamp = nearest(timestamp, interval)
-
-        if lasttime is None:
-            lasttime = timestamp
-        if timestamp < lasttime:
-            raise errors.RecordError(
-                "Series out of order: %d more recent than %d", lasttime, timestamp)
-
-        # Fill in any missing values.
-        while (timestamp - lasttime) > interval:
-            lasttime += interval
-            yield (lasttime, missing)
-
-        if lastval is not None:
-            value = cfunc(lastval, value)
-        if first or timestamp != lasttime:
-            yield (timestamp, value)
-            first = False
-            lasttime = timestamp
-
 class Types(validate):
     keylen = 128
     keydelim = '!'
@@ -183,6 +147,42 @@ class Records(DBObject):
         return self.tokey(self.namespace, \
             self.subject, self.attribute, self.cf, *chunks)
 
+    def consolidate(self, data, interval, cfunc, missing=None):
+        """Consolidate a data in a time series.
+
+        *data* is an iterable consisting of two-tuples (timestamp, value), where
+        timestamp is a Unix time stamp and value is an integer or float. The
+        time stamps in *data* should be increasing. *interval* is an integer that
+        determines the size of the bins. *cfunc* is a callable that takes two
+        adjacent values as its arguments and returns a new, consolidated value. If
+        there are any gaps in the consolidated data set, they will be filled with
+        *missing* values.
+
+        Yields an iterable of new (timestamp, value) two-tuples.
+        """
+        lasttime, lastval = None, None
+        first = True
+        for timestamp, value in data:
+            timestamp = nearest(timestamp, interval)
+
+            if lasttime is None:
+                lasttime = timestamp
+            if timestamp < lasttime:
+                raise errors.RecordError(
+                    "Series out of order: %d more recent than %d", lasttime, timestamp)
+
+            # Fill in any missing values.
+            while (timestamp - lasttime) > interval:
+                lasttime += interval
+                yield (lasttime, missing)
+
+			if lastval is not None:
+				value = cfunc(lastval, value)
+			if first or timestamp != lasttime:
+				yield (timestamp, value)
+				first = False
+				lasttime = timestamp
+
     def query(self, start, stop):
         """Select a range of data from the series.
 
@@ -271,7 +271,7 @@ class Records(DBObject):
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
             idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
-            idata = consolidate(idata, interval, cfunc)
+            idata = self.consolidate(idata, interval, cfunc)
 
             # Only remove the possibly redundant first entry if we're actually
             # going to write new data.
