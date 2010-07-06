@@ -1,3 +1,4 @@
+import logging
 import time
 
 from calendar import timegm
@@ -12,6 +13,10 @@ from . import errors
 __all__ = ["Records", "connect", "db"]
 
 db = None
+
+def logger(cls): # pragma: nocover
+    name = "%s.%s" % (__name__, cls.__class__.__name__)
+    return logging.getLogger(name)
 
 def connect(**kwargs):
     import redis
