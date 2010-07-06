@@ -1,6 +1,6 @@
 import logging
 
-from neat import Resource
+from neat import Resource, errors
 
 from . import model
 from .util import json
@@ -16,6 +16,7 @@ mediatypes = {
 }
 
 model.db = model.connect()
+model.Types.exception = errors.HTTPBadRequest
 
 class Records(Resource):
     prefix = "/records/"
@@ -23,10 +24,13 @@ class Records(Resource):
         mediatypes["records"] + "+json": "json",
         "application/json": "json",
     }
+    validate = model.Records.types.validateone
 
     # Model interface.
     def record(self, subject, attribute, cf, data):
         records = model.Records(subject, attribute, cf)
+        data = ((self.validate("Time", t), self.validate("Value", v)) \
+            for t, v in data)
         records.extend(data)
 
     def parseuri(self, uri):
@@ -34,7 +38,7 @@ class Records(Resource):
 
         Returns a tuple (subject, attribute, cf).
         """
-        return uri.lstrip('/').split('/', 3)[1:]
+        return [self.validate("Key", k) for k in uri.lstrip('/').split('/', 3)[1:]]
 
     # HTTP methods.
     def post(self):

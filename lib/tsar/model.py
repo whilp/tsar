@@ -198,7 +198,6 @@ class Records(object):
 
         Returns an iterator.
         """
-        start, stop = self.types.Time(start), self.types.Time(stop)
         lasti = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         ikey = None
@@ -214,7 +213,7 @@ class Records(object):
             # Choose the first interval that might encompass the requested
             # range. If we're on the last interval, just use that (it's the best
             # we'll be able to do).
-            lasttime = self.types.Time(last.split()[0])
+            lasttime = last.split()[0]
             earliest = lasttime - (interval * samples)
 
 
@@ -237,7 +236,7 @@ class Records(object):
         dlen = len(data)
         timestamp = istop - ((dlen - 1)* interval)
         for i in xrange(dlen):
-            value = self.types.Value(data[-(i + 1)])
+            value = data[-(i + 1)]
             yield (timestamp, value)
             timestamp += interval
 
@@ -275,8 +274,7 @@ class Records(object):
 
             if lasttime is not None:
                 data = chain([(lasttime, lastval)], data)
-            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
-            idata = self.consolidate(idata, interval, cfunc)
+            idata = self.consolidate(data, interval, cfunc)
 
             # Only remove the possibly redundant first entry if we're actually
             # going to write new data.
