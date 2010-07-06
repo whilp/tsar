@@ -31,9 +31,14 @@ class TestRecords(AppTest):
         super(TestRecords, self).tearDown()
         self.db.flushdb()
 
+    def post(self, path, body, content_type):
+        req = self.req(path, method="POST")
+        req.content_type = content_type
+        req.body = body
+
+        return req.get_response(self.application)
+
     def test_post(self):
-        req = self.req("/records/foo/bar/last", method="POST")
-        req.content_type = "application/json"
-        req.body = json.dumps({"data": self.data})
-        response = req.get_response(self.application)
+        response = self.post("/records/foo/bar/last", content_type="application/json",
+            body=json.dumps({"data": [self.data[-1]]}))
         self.assertEqual(response.status_int, 204)
