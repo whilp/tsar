@@ -217,7 +217,6 @@ class Records(object):
 
     lock = Lock()
 
-
     def query(self, start, stop):
         """Select a range of data from the series.
 
