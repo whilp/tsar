@@ -89,3 +89,10 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
         self.assertEqual(body["data"], [])
+
+    def test_get_full(self):
+        response = self.get("/records/fullfoo/bar/last", accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertEqual(len(body["data"]), 3)

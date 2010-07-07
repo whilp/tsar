@@ -55,3 +55,19 @@ class TestRecords(BaseTest):
         self.assertEqual(len(data), 88)
         self.assertEqual(data[0], (1278007200, 100))
         self.assertEqual(data[-1], (1278320400, -63))
+
+    def test_query_lowstart(self):
+        t1, t2 = 0, self.data[-1][0]
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        self.assertEqual(data,
+            [(1278028800, 100), (1278115200, 22), 
+            (1278201600, -23), (1278288000, 30)])
+
+    def test_query_highstop(self):
+        t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        self.assertEqual(data,
+            [(1278028800, 100), (1278115200, 22), 
+            (1278201600, -23), (1278288000, 30)])
