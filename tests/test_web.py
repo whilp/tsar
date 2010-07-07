@@ -1,5 +1,4 @@
 from math import cos
-from random import random
 
 from tsar import model
 from tsar.web import Records
@@ -24,7 +23,7 @@ class RecordsTest(AppTest):
         for i in range(1000):
             value = int(100 * cos(i))
             self.data.append((self.last, value))
-            self.last += interval + ((interval/5) * (random() - .5))
+            self.last += interval + ((interval/5) * (.709 - .5))
             
     def tearDown(self):
         super(RecordsTest, self).tearDown()
