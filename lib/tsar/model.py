@@ -227,10 +227,12 @@ class Records(object):
 
         Returns an iterator.
         """
+        log = logger(self)
         start, stop = self.types.Time(start), self.types.Time(stop)
         lasti = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         ikey = None
+        log.debug("MGET %r", lkeys)
         for i, last in enumerate(self.db.mget(lkeys)):
             interval, samples = self.intervals[i]
             istart, istop = nearest(start, interval), nearest(stop, interval)
@@ -261,6 +263,7 @@ class Records(object):
 
         # The data here runs from most to least recent, so we need to yield it
         # in reverse order.
+        log.debug("LRANGE %s %r %r", ikey, first, last)
         data = self.db.lrange(ikey, first, last)
         dlen = len(data)
         timestamp = istop - ((dlen - 1)* interval)
@@ -285,11 +288,13 @@ class Records(object):
         """
         if not data:
             return
+        log = logger(self)
 
         lasti = len(self.intervals) - 1
         cfunc = self.cfs[self.cf]
         dirty = {}
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
+        log.debug("MGET %r", lkeys)
         for i, last in enumerate(self.db.mget(lkeys)):
             interval, samples = self.intervals[i]
             ikey = self.subkey(interval)
@@ -311,8 +316,10 @@ class Records(object):
             needspop = True
             for timestamp, value in idata:
                 if needspop:
+                    log.debug("LPOP %s", ikey)
                     pipeline.lpop(ikey)
                     needspop = False
+                log.debug("LPUSH %s %r", ikey, value)
                 pipeline.lpush(ikey, value)
 
             if not needspop:
@@ -320,10 +327,13 @@ class Records(object):
                 dirty["last"].append((lkey, ' '.join(str(x) for x in (timestamp, value))))
                 # Don't trim the last interval, letting it grow.
                 if i < lasti:
+                    log.debug("LTRIM %s %r %r", ikey, 0, samples)
                     pipeline.ltrim(ikey, 0, samples)
         last = dirty.get("last", [])
         if last:
-            pipeline.mset(dict(last))
+            last = dict(last)
+            log.debug("MSET %r", last)
+            pipeline.mset(last)
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
