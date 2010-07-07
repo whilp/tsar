@@ -95,4 +95,6 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(len(body["data"]), 3)
+        self.assertEqual(body["data"], 
+            [[1278028800, 100], [1278115200, 22], 
+            [1278201600, -23], [1278288000, 30]])

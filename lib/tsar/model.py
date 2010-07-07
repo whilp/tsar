@@ -259,6 +259,8 @@ class Records(object):
         # Convert start and stop to indexes on the series. Since the series is
         # stored from most recent to oldest in the database, we flip the order
         # here.
+        if istop > lasttime:
+            istop = lasttime
         first, last = (lasttime - istop)/interval, (lasttime - istart)/interval
 
         # The data here runs from most to least recent, so we need to yield it
