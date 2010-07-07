@@ -246,7 +246,7 @@ class Records(object):
             lasttime = self.types.Time(last.split()[0])
             earliest = lasttime - (interval * samples)
 
-            if (istart >= earliest and istop <= lasttime) or (lasti < i):
+            if (istart >= earliest and istop <= lasttime) or (lasti <= i):
                 ikey = self.subkey(interval)
                 break
 
