@@ -6,7 +6,7 @@ from datetime import datetime
 from itertools import chain
 from string import digits, letters, punctuation
 
-from neat import validate
+from neat import validate, validator
 
 from . import errors
 
@@ -37,8 +37,6 @@ class Types(validate):
     numbertypes = (int, float, long)
     precision = 2
     now = None
-
-    validator = validate.validator
     
     @validator
     def Key(self, value):
@@ -143,9 +141,8 @@ class Records(object):
         "last": lambda x, y: y,
     }
     """Supported consolidation functions."""
-    types = Types()
     
-    def __init__(self, subject, attribute, cf="last"):
+    def __init__(self, subject, attribute, cf="last", exception=None, excs=None):
         super(Records, self).__init__()
 
         global db
@@ -153,6 +150,9 @@ class Records(object):
         self.subject = subject
         self.attribute = attribute
         self.cf = cf
+        self.types = Types()
+        self.types.exception = exception
+        self.types.excs = excs
 
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""

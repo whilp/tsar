@@ -16,7 +16,6 @@ mediatypes = {
 }
 
 model.db = model.connect()
-model.Types.validator.exception = errors.HTTPBadRequest
 
 class Records(neat.Resource):
     prefix = "/records/"
@@ -31,7 +30,7 @@ class Records(neat.Resource):
             instance = args[0]
             subject, attribute, cf = \
                 instance.req.path_info.lstrip('/').split('/', 3)[1:]
-            records = model.Records(subject, attribute, cf)
+            records = model.Records(subject, attribute, cf, exception=errors.HTTPBadRequest)
             return func(instance, records)
         
     # HTTP methods.
