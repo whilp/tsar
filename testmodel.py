@@ -6,11 +6,11 @@ from functools import partial
 
 import redis
 
-from tsar.model import Records, consolidate, nearest
+from tsar import model
 
-db = redis.Redis(db=1)
+model.db = redis.Redis(db=1)
 
-records = Records(db, "foo", "bar")
+records = model.Records("foo", "bar")
 
 now = 1278007023
 now = 1278007837
@@ -30,7 +30,7 @@ def loop(f, count=100, before=None, after=None):
             mintime = runtime
     return mintime
 
-cleanloop = partial(loop, before=db.flushdb, after=db.flushdb)
+cleanloop = partial(loop, before=model.db.flushdb, after=model.db.flushdb)
 
 interval = 300
 stop = now + (500 * interval)
@@ -46,7 +46,7 @@ print "Generating data from %s to %s" % (ttod(now), ttod(stop))
 
 print ttod(data[0][0]), ttod(data[-1][0])
 
-db.flushdb()
+model.db.flushdb()
 #records.append((datetime.now(), 10))
 records.extend(data)
 #print "start monitor"; time.sleep(5)
