@@ -1,9 +1,12 @@
 """Add included modules here.
+
+wsgiserver - Cherrypy WSGI server module (BSD)
+    http://www.cherrypy.org/browser/trunk/cherrypy/wsgiserver/__init__.py?format=raw
 """
 import os
 
 # Add included module names to __all__.
-__all__ = []
+__all__ = ["wsgiserver"]
 project = os.path.basename(os.path.dirname(__file__))
 ext = project + "._ext"
 
