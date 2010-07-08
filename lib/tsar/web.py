@@ -62,10 +62,10 @@ class Records(neat.Resource):
     def handle_json(self):
         return json.loads(self.req.body)
 
-def Server(host, port):
+def Server(host, port, **dsn):
     from .ext import wsgiserver
 
-    model.db = model.connect()
+    model.db = model.connect(**dsn)
     service = neat.Dispatch(
         Records())
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
