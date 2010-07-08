@@ -4,7 +4,7 @@
 # description: tsar
 # processname: tsar-server
 
-REDISPORT=6379
+HOST=0.0.0.0:80
 DIR=/scratch/tsar
 BINDIR=${DIR}/bin
 PIDFILE=${DIR}/tsar.pid
@@ -22,7 +22,7 @@ start ()
         -l "${LOGFILE}" \
         -d \
         -D redis://localhost:6379/0 \
-        0.0.0.0:8000
+		${HOST}
     RETVAL=$?
     echo
     return ${RETVAL}
