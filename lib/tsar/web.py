@@ -1,6 +1,6 @@
 import logging
 
-import neat
+from neat import neat
 
 from . import errors, model
 from .util import Decorator, json
@@ -17,7 +17,7 @@ mediatypes = {
     "records": v + ".records.v1",
 }
 
-class Records(neat.neat.Resource):
+class Records(neat.Resource):
     prefix = "/records/"
     media = {
         mediatypes["records"] + "+json": "json",
