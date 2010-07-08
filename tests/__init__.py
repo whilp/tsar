@@ -6,7 +6,7 @@ try:
 except ImportError:
     import unittest
 
-from neat import Request, Response
+from neat.neat import Request
 
 from tsar.util import log
 

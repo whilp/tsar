@@ -6,7 +6,7 @@ from datetime import datetime
 from itertools import chain
 from string import digits, letters, punctuation
 
-from neat import validate, validator
+from neat.util import validate, validator
 
 from . import errors
 

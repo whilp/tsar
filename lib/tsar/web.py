@@ -17,7 +17,7 @@ mediatypes = {
     "records": v + ".records.v1",
 }
 
-class Records(neat.Resource):
+class Records(neat.neat.Resource):
     prefix = "/records/"
     media = {
         mediatypes["records"] + "+json": "json",
