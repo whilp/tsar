@@ -1,3 +1,6 @@
+from .util import log
+
+@log
 def server():
     from .ext import wsgiserver
     from .web import service

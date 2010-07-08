@@ -8,6 +8,8 @@ except ImportError:
 
 from neat import Request, Response
 
+from tsar.util import log
+
 try:
     from functools import wraps
 except ImportError:
@@ -67,39 +69,3 @@ class Decorator(object):
 
     def call(self, func, args, kwargs):
         return func(*args, **kwargs)
-
-class log(Decorator):
-
-    def __init__(self, func=None, level=logging.NOTSET,
-        format=logging.BASIC_FORMAT, stream=sys.stderr, date=None):
-        self.func = func
-        self.level = level
-        self.format = format
-        self.stream = stream
-        self.date = date
-
-    def call(self, func, args, kwargs):
-        funcname = func.func_name
-
-        self.stream.write("\n>>> begin log for %s\n" % funcname)
-        logMultiprocessing = logging.logMultiprocessing
-        logging.logMultiprocessing = 0
-
-        level = logging.root.level
-        logging.root.setLevel(self.level)
-
-        handlers = logging.root.handlers
-        formatter = logging.Formatter(self.format, self.date)
-        handler = logging.StreamHandler(self.stream)
-        handler.setFormatter(formatter)
-        logging.root.handlers = [handler]
-
-        try:
-            result = func(*args, **kwargs)
-        finally:
-            logging.root.setLevel(level)
-            logging.logMultiprocessing = logMultiprocessing
-            logging.root.handlers = handlers
-            self.stream.write(">>> end log for %s\n" % funcname)
-
-        return result
