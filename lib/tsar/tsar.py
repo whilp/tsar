@@ -1,16 +1,15 @@
 import cli
 
-@cli.DaemonizingApp
+@cli.DaemonizingApp(name="tsar-server")
 def server(app):
-    from .ext import wsgiserver
-    from .web import service
+    from .web import Server
 
     host, _, port = app.params.server.partition(':')
     if not port:
         port = 8000
 
     app.log.info("Starting server at http://%s:%s/", host, port)
-    server = wsgiserver.CherryPyWSGIServer((host, int(port)), service)
+    server = Server(host, int(port))
     if app.params.daemonize:
         app.daemonize()
     try:
@@ -18,4 +17,6 @@ def server(app):
     except KeyboardInterrupt:
         server.stop()
 
-server.add_param("server", nargs="?", help="<host>:<port>", default="0.0.0.0:8000")
+default_server = "0.0.0.0:8000"
+server.add_param("server", nargs="?",
+    help="<host>:<port> (default: %s)" % default_server, default=default_server)
