@@ -199,7 +199,7 @@ class Records(object):
 
     lock = Lock()
 
-    def query(self, start, stop):
+    def query(self, start=0, stop=-1):
         """Select a range of data from the series.
 
         The range spans from Unix time stamps *start* to *stop*, inclusive. If
