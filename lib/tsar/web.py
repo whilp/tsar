@@ -28,8 +28,11 @@ class Records(neat.Resource):
 
         def call(self, func, args, kwargs):
             instance = args[0]
-            subject, attribute, cf = \
-                instance.req.path_info.lstrip('/').split('/', 3)[1:]
+            try:
+                subject, attribute, cf = \
+                    instance.req.path_info.lstrip('/').split('/', 3)[1:]
+            except ValueError:
+                raise errors.HTTPNotFound
             records = model.Records(subject, attribute, cf, exception=errors.HTTPBadRequest)
             return func(instance, records)
         
