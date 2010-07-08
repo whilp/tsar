@@ -51,24 +51,6 @@ class Types(validate):
         return value
 
     @validator
-    def Time(self, value):
-        timetuple = getattr(value, "timetuple", None)
-        if callable(timetuple):
-            value = timegm(timetuple())
-        else:
-            value = int(self.Number(value))
-        if value < 0:
-            now = self.now
-            if now is None: # pragma: nocover
-                now = time.time()
-            now = self.Time(now)
-            value += now
-
-        return value
-
-    Time.todatetime = lambda value: datetime(*time.gmtime(value)[:6])
-
-    @validator
     def Time(self, value, now=None):
         timetuple = getattr(value, "timetuple", None)
         if callable(timetuple):
