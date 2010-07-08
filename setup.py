@@ -28,9 +28,11 @@ setup_options = {
     "include_package_data": True,
     "zip_safe": False,
     "install_requires": pkg.__requires__,
-    "entry_points": """
-        # -*- Entry points: -*-
-    """,
+    "entry_points": {
+        "console_scripts": [
+            "tsar = tsar:tsar.run",
+        ],
+    },
     "test_suite": "tests",
 }
 

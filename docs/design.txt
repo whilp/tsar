@@ -1,0 +1,42 @@
+delim       ->  !
+subject     ->  string, subject name
+attribute   ->  string, attribute name
+time        ->  integer, seconds since Epoch UTC
+interval    ->  integer, seconds between (consolidated) records
+cf          ->  string, function used to consolidate records
+record ZSET -> (score=<time>, member="<time>:<value>")
+
+records!<subject>!<attribute>!raw -> record ZSET
+
+    This is a queue of raw updates directly from the client. Periodically, a
+    worker consolidates this queue into the first consolidated ZSET. Should
+    generally be rather short (assuming the workers can keep up with the
+    workload).
+
+    # Add a new record.
+    ZADD records!foo!bar_bytes!raw 1273846570 1273846570:10
+
+    # Fetch all records and truncate the set, wrapped in MULTI/EXEC for
+    # atomicity.
+    MULTI
+    ZRANGE records!1!1!raw 0 -1
+    DEL records!1!1!raw
+    EXEC
+
+records!<subject>!<attribute>:<interval>:<cf> -> record ZSET
+
+    interval    unit    samples
+    60          minute  720 (12 hours)
+    3600        hour    672 (28 days)
+    86400       day     730 (2 years)
+    604800      week    480 (10 years) # technically unbounded
+
+    cf: minimum, average, maximum, last
+
+    Consolidated record sets. These are normalized on the given interval, with
+    data points produced by consolidating data from the more precise set. A
+    set of data spanning 10 years would require storing ~10k values across
+    4 keys (assuming one consolidation function). On a 64 bit machine, this
+    costs less than 1.5 MB. So, the available RAM (in MB) should probably be
+    about 1.5 times the number of subject/attribute pairs times the number of
+    consolidation functions (RAM_MB = 1.5 * PAIRS * CF).
