@@ -30,7 +30,7 @@ setup_options = {
     "install_requires": pkg.__requires__,
     "entry_points": {
         "console_scripts": [
-            "tsar-server = tsar.tsar:server",
+            "tsar-server = tsar.tsar:server.run",
         ],
     },
     "test_suite": "tests",
