@@ -5,6 +5,8 @@ import neat
 from . import errors, model
 from .util import Decorator, json
 
+__all__ = ["Records", "service"]
+
 def logger(cls): # pragma: nocover
     name = "%s.%s" % (__name__, cls.__class__.__name__)
     return logging.getLogger(name)
@@ -57,3 +59,6 @@ class Records(neat.Resource):
     # HTTP helpers.
     def handle_json(self):
         return json.loads(self.req.body)
+
+service = neat.Dispatch(
+    Records())
