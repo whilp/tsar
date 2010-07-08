@@ -47,6 +47,7 @@ class Records(neat.Resource):
         body = {}
         start = self.req.content.get("start", 0)
         stop = self.req.content.get("stop", -1)
+        records.types.now = self.req.content.get("now", None)
         body["data"] = list(records.query(start, stop))
         body["start"] = records.types.Time(start) 
         body["stop"] = records.types.Time(stop) 
