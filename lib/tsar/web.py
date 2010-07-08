@@ -17,8 +17,6 @@ mediatypes = {
     "records": v + ".records.v1",
 }
 
-model.db = model.connect()
-
 class Records(neat.Resource):
     prefix = "/records/"
     media = {
