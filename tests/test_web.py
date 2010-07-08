@@ -98,3 +98,22 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(body["data"], 
             [[1278028800, 100], [1278115200, 22], 
             [1278201600, -23], [1278288000, 30]])
+
+    def test_get_params_now(self):
+        start, now = 2 * -86400, 1278201600
+        response = self.get("/records/fullfoo/bar/last?start=%d&now=%d" % (start, now),
+            accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertEqual(body["data"], 
+            [[1278115200, 22], [1278201600, -23], [1278288000, 30]])
+
+    def test_get_params_startstop(self):
+        start, stop = 1278115200, 1278201600
+        response = self.get("/records/fullfoo/bar/last?start=%d&stop=%d" % (start, stop),
+            accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertEqual(len(body["data"]), 25)

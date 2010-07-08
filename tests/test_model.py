@@ -71,3 +71,11 @@ class TestRecords(BaseTest):
         self.assertEqual(data,
             [(1278028800, 100), (1278115200, 22), 
             (1278201600, -23), (1278288000, 30)])
+
+    def test_query_now(self):
+        t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        self.assertEqual(data,
+            [(1278028800, 100), (1278115200, 22), 
+            (1278201600, -23), (1278288000, 30)])
