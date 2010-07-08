@@ -21,8 +21,9 @@ start ()
     daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar-server \
         -l "${LOGFILE}" \
         -d \
+        -p "${PIDFILE}" \
         -D redis://localhost:6379/0 \
-		${HOST}
+        ${HOST}
     RETVAL=$?
     echo
     return ${RETVAL}
