@@ -34,6 +34,8 @@ __keywords__ = "time series monitor"
 
 __requires__ = [
     "redis",
+    "neat",
+    "pyCLI",
 ]
 
 # The following is modeled after the ISC license.
@@ -54,6 +56,4 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
 __todo__ = """\
- * how to express times before the epoch in get()? (start=e-102301?)
- * how to handle '*' in subject/attribute queries?
 """.split(" * ")
