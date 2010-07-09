@@ -18,16 +18,39 @@ mediatypes = {
 }
 
 class method(Decorator):
+    
+    def before(self, instance):
+        try:
+            subject, attribute, cf = \
+                instance.req.path_info.lstrip('/').split('/', 3)[1:]
+        except ValueError:
+            raise errors.HTTPNotFound
+        return [model.Records(subject, attribute, cf, 
+            exception=errors.HTTPBadRequest)]
+
+    def after(self, instance, value):
+        return value
 
     def call(self, func, args, kwargs):
-	instance = args[0]
-	try:
-	    subject, attribute, cf = \
-		instance.req.path_info.lstrip('/').split('/', 3)[1:]
-	except ValueError:
-	    raise errors.HTTPNotFound
-	records = model.Records(subject, attribute, cf, exception=errors.HTTPBadRequest)
-	return func(instance, records)
+        instance = args[0]
+
+        args = self.before(instance)
+        value = func(instance, *args)
+        value = self.after(instance, value)
+        return value
+
+class getmethod(method):
+    
+    def before(self, instance):
+        req = instance.req
+        args = super(getmethod, self).before(instance)
+        records = args[0]
+        records.types.now = req.content.get("now", None)
+        start = records.types.Time(req.content.get("start", 0))
+        stop = records.types.Time(req.content.get("stop", -1))
+        args.extend([start, stop])
+        return args
+
 class Records(neat.Resource):
     prefix = "/records/"
     media = {
@@ -44,15 +67,12 @@ class Records(neat.Resource):
             raise errors.HTTPConflict(e.args[0])
         self.response.status_int = 204 # No Content
 
-    @method
-    def get_json(self, records):
+    @getmethod
+    def get_json(self, records, start, stop):
         body = {}
-        start = self.req.content.get("start", 0)
-        stop = self.req.content.get("stop", -1)
-        records.types.now = self.req.content.get("now", None)
         body["data"] = list(records.query(start, stop))
-        body["start"] = records.types.Time(start) 
-        body["stop"] = records.types.Time(stop) 
+        body["start"] = start
+        body["stop"] = stop
 
         self.response.status_int = 200
         self.response.body = json.dumps(body)
