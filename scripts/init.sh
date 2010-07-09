@@ -4,7 +4,7 @@
 # description: tsar
 # processname: tsar-server
 
-HOST=0.0.0.0:80
+HOST=0.0.0.0:8080
 DIR=/scratch/tsar
 BINDIR=${DIR}/bin
 PIDFILE=${DIR}/tsar.pid
@@ -19,11 +19,11 @@ start ()
     echo -n "Starting $prog:"
     # XXX: --check?
     daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar-server \
+               -d \
         -l "${LOGFILE}" \
-        -d \
         -p "${PIDFILE}" \
         -D redis://localhost:6379/0 \
-        ${HOST}
+        ${HOST} >/dev/null 2>&1
     RETVAL=$?
     echo
     return ${RETVAL}
