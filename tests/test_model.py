@@ -39,7 +39,7 @@ class TestRecords(BaseTest):
     def test_append_oldtime(self):
         t = 1278508719
         self.records.append((t, 10))
-        self.assertRaises(errors.RecordError, self.records.append, (t-100, 11))
+        self.assertRaises(errors.RecordError, self.records.append, (t-10000, 11))
 
     def test_extend(self):
         self.records.extend(self.data)
@@ -53,29 +53,47 @@ class TestRecords(BaseTest):
         self.records.extend(self.data)
         data = list(self.records.query(t1, t2))
         self.assertEqual(len(data), 88)
-        self.assertEqual(data[0], (1278007200, 100))
-        self.assertEqual(data[-1], (1278320400, -63))
+        self.assertEqual(data[0], (1278007200, -98))
+        self.assertEqual(data[-1], (1278320400, 99))
 
     def test_query_lowstart(self):
         t1, t2 = 0, self.data[-1][0]
         self.records.extend(self.data)
         data = list(self.records.query(t1, t2))
         self.assertEqual(data,
-            [(1278028800, 100), (1278115200, 22), 
-            (1278201600, -23), (1278288000, 30)])
+            [(1278028800, -69), (1278115200, -94), 
+            (1278201600, -64), (1278288000, 99)])
 
     def test_query_highstop(self):
         t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
         self.records.extend(self.data)
         data = list(self.records.query(t1, t2))
         self.assertEqual(data,
-            [(1278028800, 100), (1278115200, 22), 
-            (1278201600, -23), (1278288000, 30)])
+            [(1278028800, -69), (1278115200, -94), 
+            (1278201600, -64), (1278288000, 99)])
 
     def test_query_now(self):
         t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
         self.records.extend(self.data)
         data = list(self.records.query(t1, t2))
         self.assertEqual(data,
-            [(1278028800, 100), (1278115200, 22), 
-            (1278201600, -23), (1278288000, 30)])
+            [(1278028800, -69), (1278115200, -94),
+            (1278201600, -64), (1278288000, 99)])
+
+    def test_consolidate_min(self):
+        t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
+        self.records.cf = "min"
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        self.assertEqual(data,
+            [(1278028800, -99), (1278115200, -99), 
+            (1278201600, -99), (1278288000, -99)])
+
+    def test_consolidate_max(self):
+        t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
+        self.records.cf = "max"
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        self.assertEqual(data,
+            [(1278028800, 100), (1278115200, 99), 
+            (1278201600, 99), (1278288000, 99)])

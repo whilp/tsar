@@ -96,8 +96,8 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
         self.assertEqual(body["data"], 
-            [[1278028800, 100], [1278115200, 22], 
-            [1278201600, -23], [1278288000, 30]])
+            [[1278028800, -69], [1278115200, -94], 
+            [1278201600, -64], [1278288000, 99]])
 
     def test_get_params_now(self):
         start, now = 2 * -86400, 1278201600
@@ -107,7 +107,7 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
         self.assertEqual(body["data"], 
-            [[1278115200, 22], [1278201600, -23], [1278288000, 30]])
+            [[1278201600, -64], [1278288000, 99]])
 
     def test_get_params_startstop(self):
         start, stop = 1278115200, 1278201600

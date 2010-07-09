@@ -157,28 +157,36 @@ class Records(object):
 
         Yields an iterable of new (timestamp, value) two-tuples.
         """
-        lasttime, lastval = None, None
-        first = True
+        log = logger(self)
+        lasttime = None
+        lastval = None
         for timestamp, value in data:
             timestamp = nearest(timestamp, interval)
-
-            if lasttime is None:
-                lasttime = timestamp
-            if timestamp < lasttime:
+            if lasttime is not None and lasttime > timestamp:
                 raise errors.RecordError(
                     "Series out of order: %d more recent than %d" % (lasttime, timestamp))
 
             # Fill in any missing values.
-            while (timestamp - lasttime) > interval:
+            while lasttime is not None and ((timestamp - lasttime) > interval):
                 lasttime += interval
                 yield (lasttime, missing)
 
-            if lastval is not None:
-                value = cfunc(lastval, value)
-            if first or timestamp != lasttime:
-                yield (timestamp, value)
-                first = False
+            if lasttime is None:
                 lasttime = timestamp
+                lastval = value
+            elif timestamp != lasttime:
+                # We've entered a new interval, so dump whatever we were working
+                # on and start over.
+                yield (lasttime, lastval)
+                lasttime, lastval = None, None
+            else:
+                # This record belongs in the current bin, so consolidate it.
+                lastval = cfunc(lastval, value)
+
+        # We've reached the end of the series. If we're in the middle of
+        # something, yield it.
+        if lasttime is not None:
+            yield (lasttime, lastval)
 
     def fromkey(self, key):
         return key.split(self.types.keydelim)
