@@ -1,4 +1,5 @@
 import logging
+import operator
 import time
 
 from calendar import timegm
@@ -117,10 +118,12 @@ class Records(object):
         # into the latest data point. This will require some more bookkeeping in
         # the server.
         #"average": None,
-        "minimum": min,
-        "maximum": max,
+        "min": min,
+        "max": max,
         "first": lambda x, y: x,
         "last": lambda x, y: y,
+        "add": operator.add,
+        "sub": operator.sub,
     }
     """Supported consolidation functions."""
     
