@@ -17,24 +17,23 @@ mediatypes = {
     "records": v + ".records.v1",
 }
 
+class method(Decorator):
+
+    def call(self, func, args, kwargs):
+	instance = args[0]
+	try:
+	    subject, attribute, cf = \
+		instance.req.path_info.lstrip('/').split('/', 3)[1:]
+	except ValueError:
+	    raise errors.HTTPNotFound
+	records = model.Records(subject, attribute, cf, exception=errors.HTTPBadRequest)
+	return func(instance, records)
 class Records(neat.Resource):
     prefix = "/records/"
     media = {
         mediatypes["records"] + "+json": "json",
         "application/json": "json",
     }
-
-    class method(Decorator):
-
-        def call(self, func, args, kwargs):
-            instance = args[0]
-            try:
-                subject, attribute, cf = \
-                    instance.req.path_info.lstrip('/').split('/', 3)[1:]
-            except ValueError:
-                raise errors.HTTPNotFound
-            records = model.Records(subject, attribute, cf, exception=errors.HTTPBadRequest)
-            return func(instance, records)
         
     # HTTP methods.
     @method
