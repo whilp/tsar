@@ -122,9 +122,12 @@ class RESTClient(object):
     handlers = [RESTHandler]
     headers = {}
     requestfactory = Request
+    agent = None
 
-    def __init__(self, service, agent):
+    def __init__(self, service, agent=None):
         self.service = service
+        if agent is None:
+            agent = self.agent
         self.headers["User-agent"] = agent
         self.opener = build_opener()
 
@@ -155,79 +158,6 @@ class RESTClient(object):
 
         return response
 
-    def list(self, collection, accept="*/*"):
-        headers = {}
-        if accept is not None:
-            headers["Accept"] = accept
-
-        response = self.request(collection, method="GET", headers=headers)
-        contenttype = response.headers.get("Content-Type", None)
-
-        return self.deserialize(response, contenttype)
-
-    def create(self, collection, representation, contenttype=None):
-        headers = {}
-        if contenttype is not None:
-            headers["Content-Type"] = contenttype
-        data = self.serialize(representation, contenttype)
-
-        response = self.request(collection, method="POST", data=data, headers=headers)
-
-        status = response.getcode()
-        if status != 201:
-            raise RESTError("expected status 200, got %d" % status)
-
-        location = resposnse.headers.get("Location", None)
-        if location is None:
-            raise RESTError("server did not return location of new member")
-
-        return location
-
-    def retrieve(self, member, accept=None):
-        headers = {}
-        if accept is not None:
-            headers["Accept"] = accept
-
-        response = self.request(member, method="GET")
-        contenttype = response.headers.get("Content-Type", None)
-        return self.deserialize(response, contenttype)
-
-    def edit(self, member, representation, contenttype=None):
-        headers = {}
-        if contenttype is not None:
-            headers["Content-Type"] = contenttype
-
-        data = self.serialize(representation, contenttype)
-
-        response = self.request(member, method="PUT", data=data, headers=headers)
-
-        status = response.getcode()
-        if status != 200:
-            raise RESTError("server refused to edit member %s (status: %d)" % 
-                (member, status))
-
-        return True
-
-    def delete(self, member):
-        response = self.request(member, method="DELETE")
-
-        status = response.getcode()
-        if status != 200:
-            raise RESTError("server refused to delete member %s (status: %d)" %
-                (member, status))
-
-        return True
-
-json = False
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        pass
-    pass
-
 def parse_json(response):
     return json.load(response)
 
@@ -239,36 +169,16 @@ class Tsar(RESTClient):
 
     *service* should be a URL pointing to the server's API endpoint.
     """
-    if json:
-        parsers["application/json"] = parse_json
-        parsers["text/javascript"] = parse_json
+    mediatype = "application/vnd.tsar.records.v1"
 
-	def serialize(self, representation, contenttype):
-		pass
-    
-    def parse(self, response):
-        """Parse and return the service's response as a string.
+    def serialize(self, representation, contenttype):
+        pass
 
-        This method tries to find an appropriate parser by matching
-        the *response*'s Content-type header against the registered
-        parsers (:attr:`parsers`). If the mimeparse package is
-        available, it is used to find the best match; if it is not
-        available, only exact matches are considered. If no match is
-        found, the *response* data is simply read and returned.
-        """
-        contenttype = response.headers.get("Content-type", None)
-        if best_match is not False:
-            match = best_match(self.parsers.keys(), contenttype)
-            parser = self.parsers[match]
-        else:
-            parser = self.parsers.get(contenttype, None)
+    def resource(self, subject, attribute, cf):
+        """Create a resource name."""
+        return '/'.join((subject, attribute, cf))
 
-        if parser is None:
-            parser = lambda r: r.read()
-
-        return parser(response)
-
-    def record(self, subject, attribute, time, value):
+    def record(self, subject, attribute, time, value, cf="last"):
         """Record a new observation.
 
         *subject* and *attribute* are free-form string fields. *time* is
@@ -282,10 +192,12 @@ class Tsar(RESTClient):
         """
         time = timetostamp(time)
 
-        response = self.post("records", subject=subject, attribute=attribute,
-            time=time, value=value)
+        data = "timestamp,value\n%d,%s\n" % (timetostamp(time), value)
+        resource = self.resource(subject, attribute, cf)
+        response = self.request(resource, method="POST", data=data, 
+            headers={"Content-Type": self.mediatype + "+csv"})
 
-        if response.getcode() != 201:
+        if response.getcode() != 204:
             raise APIError("failed to create record", response,
                 (subject, attribute, time, value))
 
@@ -327,7 +239,7 @@ class Tsar(RESTClient):
 
 if __name__ == "__main__":
     Tsar.debuglevel = 100
-    tsar = Tsar("http://tsar.hep.wisc.edu/observations")
-    tsar.record("foo","bar", datetime.datetime.now(), 10)
-    r = tsar.query("production_*_stevia","router_Running",-3600,-1)
-    print r
+    tsar = Tsar("http://g13n01.hep.wisc.edu:8080/records")
+    tsar.record("test_foo","bar", datetime.datetime.now(), 10)
+    #r = tsar.query("production_*_stevia","router_Running",-3600,-1)
+    #print r
