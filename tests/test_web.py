@@ -1,3 +1,5 @@
+import csv
+
 from math import cos
 
 from tsar import model
@@ -118,3 +120,15 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
         self.assertEqual(len(body["data"]), 25)
+
+    def test_get_csv(self):
+        response = self.get("/records/fullfoo/bar/last", accept="text/csv")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "text/csv")
+        reader = csv.reader(iter(response.body.splitlines()))
+        self.assertEqual(list(reader), 
+            [['timestamp', 'value'],
+            ['1278028800', '-69'],
+            ['1278115200', '-94'],
+            ['1278201600', '-64'],
+            ['1278288000', '99']] )

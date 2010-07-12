@@ -59,6 +59,8 @@ class Records(neat.Resource):
     media = {
         mediatypes["records"] + "+json": "json",
         "application/json": "json",
+        mediatypes["records"] + "+csv": "json",
+        "text/csv": "csv",
     }
         
     # HTTP methods.
@@ -79,6 +81,15 @@ class Records(neat.Resource):
 
         self.response.status_int = 200
         self.response.body = json.dumps(body)
+
+    @getmethod
+    def get_csv(self, records, start, stop):
+        # XXX: We don't use a csv.writer here because it doesn't work well with
+        # unicode output across interpreter versions.
+        self.response.body_file.write("timestamp,value\n")
+        for t, v in records.query(start, stop):
+            self.response.body_file.write("%s,%s\n" % (t, v))
+        self.response.status_int = 200
 
     # HTTP helpers.
     def handle_json(self):
