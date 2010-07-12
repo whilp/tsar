@@ -42,12 +42,15 @@ class method(Decorator):
 class getmethod(method):
     
     def before(self, instance):
+        log = logger(self)
         req = instance.req
         args = super(getmethod, self).before(instance)
         records = args[0]
         records.types.now = req.content.get("now", None)
-        start = records.types.Time(req.content.get("start", 0))
-        stop = records.types.Time(req.content.get("stop", -1))
+        start = req.content.get("start", 0)
+        stop = req.content.get("stop", -1)
+        log.debug("Handling GET, start=%s, stop=%s, now=%s", 
+            start, stop, records.types.now)
         args.extend([start, stop])
         return args
 
