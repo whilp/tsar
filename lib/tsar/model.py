@@ -52,17 +52,17 @@ class Types(validate):
         return value
 
     @validator
-    def Time(self, value, now=None):
+    def Time(self, value):
         timetuple = getattr(value, "timetuple", None)
         if callable(timetuple):
             value = timegm(timetuple())
         else:
             value = int(self.Number(value))
         if value < 0:
+            now = self.now
             if now is None: # pragma: nocover
-                now = time.time()
-            now = self.Time(now)
-            value += now
+                now = int(time.time())
+            value += self.Time(now)
 
         return value
 

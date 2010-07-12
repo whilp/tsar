@@ -106,8 +106,9 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(body["data"], 
-            [[1278201600, -64], [1278288000, 99]])
+        self.assertEqual(len(body["data"]), 49)
+        self.assertEqual(body["data"][0], [1278028800, -96])
+        self.assertEqual(body["data"][-1], [1278201600, -98])
 
     def test_get_params_startstop(self):
         start, stop = 1278115200, 1278201600
