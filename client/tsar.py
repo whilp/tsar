@@ -190,11 +190,18 @@ class Tsar(RESTClient):
         If the server accepts the new record, :meth:`record` returns
         True. Otherwise, :class:`APIError` is raised.
         """
-        time = timetostamp(time)
+        data = [[time, value]]
+        return self.bulk(subject, attribute, data, cf)
 
-        data = "timestamp,value\n%d,%s\n" % (timetostamp(time), value)
+        return True
+
+    def bulk(self, subject, attribute, data, cf="last"):
         resource = self.resource(subject, attribute, cf)
-        response = self.request(resource, method="POST", data=data, 
+        postdata = ["timestamp,value"]
+        for t, v in data:
+            postdata.append("%d,%s" % (timetostamp(t), v))
+        response = self.request(resource, method="POST", 
+            data='\n'.join(postdata), 
             headers={"Content-Type": self.mediatype + "+csv"})
 
         if response.getcode() != 204:
@@ -202,9 +209,6 @@ class Tsar(RESTClient):
                 (subject, attribute, time, value))
 
         return True
-
-    def bulk(self, fileobj):
-        raise NotImplementedError
 
     def records(self, subject, attribute, start, stop, **kwargs):
         """Query the tsar service.
