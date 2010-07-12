@@ -60,7 +60,7 @@ class Records(neat.Resource):
     media = {
         mediatypes["records"] + "+json": "json",
         "application/json": "json",
-        mediatypes["records"] + "+csv": "json",
+        mediatypes["records"] + "+csv": "csv",
         "text/csv": "csv",
     }
         
