@@ -94,7 +94,10 @@ class Records(neat.Resource):
 
     # HTTP helpers.
     def handle_json(self):
-        return json.loads(self.req.body)
+        try:
+            return json.loads(self.req.body)
+        except ValueError:
+            raise errors.HTTPBadRequest("Could not parse JSON")
 
     def handle_csv(self):
         body = {}
