@@ -49,6 +49,14 @@ class TestRecordsPost(RecordsTest):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"data": self.data}))
         self.assertEqual(response.status_int, 204)
+
+    def test_post_bulk_csv(self):
+        data = "timestamp,value\n"
+        data += '\n'.join("%s,%s" % (t, v) for t, v in self.data)
+        response = self.post("/records/foo/bar/last", content_type="text/csv",
+            body=data)
+        print response.body
+        self.assertEqual(response.status_int, 204)
     
     def test_post_badkey(self):
         response = self.post("/records/foo!/bar/last", content_type="application/json",

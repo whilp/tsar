@@ -1,3 +1,4 @@
+import csv
 import logging
 
 from neat import neat
@@ -94,6 +95,15 @@ class Records(neat.Resource):
     # HTTP helpers.
     def handle_json(self):
         return json.loads(self.req.body)
+
+    def handle_csv(self):
+        body = {}
+        reader = csv.reader(iter(self.req.body.splitlines()))
+        data = [reader.next()]
+        if data[0] == ["timestamp", "value"]:
+            data = []
+        body["data"] = list(reader)
+        return body
 
 def Server(host, port, **dsn):
     from .ext import wsgiserver
