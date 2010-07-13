@@ -303,9 +303,10 @@ class Records(object):
                 lasttime = self.types.Time(lasttime)
                 lastval = self.types.Value(lastval)
 
+            idata = iter(data)
             if lasttime is not None:
-                data = chain([(lasttime, lastval)], data)
-            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
+                idata = chain([(lasttime, lastval)], data)
+            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in idata)
             idata = self.consolidate(idata, interval, cfunc)
 
             # Only remove the possibly redundant first entry if we're actually
