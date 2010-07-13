@@ -28,7 +28,10 @@ class TestRecords(BaseTest):
         self.db.flushdb()
 
     def test_append(self):
-        self.records.append((1278508719, 10))
+        t = 1278508719
+        self.records.append((t, 10))
+        data = list(self.records.query(t - 60, t + 60))
+        self.assertEquals(data, [])
 
     def test_append_badtime(self):
         self.assertRaises(TypeError, self.records.append, ("foo", 10))
@@ -40,6 +43,22 @@ class TestRecords(BaseTest):
         t = 1278508719
         self.records.append((t, 10))
         self.assertRaises(errors.RecordError, self.records.append, (t-10000, 11))
+
+    def test_append_repeated(self):
+        t = 1278508719
+        data = [(t + i*80, i) for i in range(20)]
+        for t, v in data:
+            self.records.append((t, v))
+        data = list(self.records.query(t, t + (20 * 80)))
+        self.assertEquals(data, [])
+
+    def test_extend_quick(self):
+        t = 1278508719
+        data = [(t + i*10, i) for i in range(20)]
+        self.records.extend(data)
+        result = list(self.records.query(t, t + 20 * 10))
+        self.assertEquals(result, 
+            [(1278508740, 5), (1278508800, 11), (1278508860, 17), (1278508920, 19)])
 
     def test_extend(self):
         self.records.extend(self.data)
