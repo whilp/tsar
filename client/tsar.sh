@@ -57,7 +57,6 @@ tsar_bulk () {
     local CF=${3:-last}
 
     local RESOURCE="${SUBJECT}/${ATTRIBUTE}/${CF}"
-    local DATA="timestamp,value\n"
 
     (echo "timestamp,value"; \
         while read TIMESTAMP VALUE; do echo "${TIMESTAMP},${VALUE}"; done) |\
