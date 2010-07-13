@@ -2,12 +2,13 @@
 
 #sadf -p /var/log/sa/sa* -- -c -n DEV -n EDEV -q -r -u -w
 
-import cli
+import csv
 import os
 import sys
 
-from csv import writer
 from subprocess import PIPE, Popen
+
+import cli
 
 FIELDS = "subject attribute time value".split()
 fieldattributes = {
@@ -53,9 +54,7 @@ def sar2tsar(line):
 
 @cli.LoggingApp
 def sartsar(app):
-    csvwriter = writer(app.stdout)
-    if app.params.fieldnames:
-        csvwriter.writerow(FIELDS)
+    writer = csv.writer(app.stdout)
 
     sadfcmd = "/usr/bin/sadf -p FILE -- -c -n DEV -n EDEV -q -r -u -w".split()
 
