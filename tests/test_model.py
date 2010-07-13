@@ -60,6 +60,14 @@ class TestRecords(BaseTest):
             (1278509400, None),
             (1278509460, 9)])
 
+    def test_append_repeated_quick(self):
+        t = 1279012518
+        data = [(t + i, i) for i in range(10)]
+        for t, v in data:
+            self.records.append((t, v))
+        results = list(self.records.query(t-60, t+60))
+        self.assertEquals(results, [(1279011600, 9)])
+
     def test_extend_quick(self):
         t = 1278508719
         data = [(t + i*10, i) for i in range(20)]
