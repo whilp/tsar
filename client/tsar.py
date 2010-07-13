@@ -137,12 +137,6 @@ class RESTClient(object):
         for handler in self.opener.handlers:
             handler._debuglevel = self.debuglevel
 
-    def serialize(self, representation, contenttype):
-        return representation
-
-    def deserialize(self, representation, contenttype):
-        return representation.read()
-
     def request(self, resource, method="GET", data=None, headers={}):
         """Send a request to the service, returning its response.
 
@@ -171,9 +165,6 @@ class Tsar(RESTClient):
     *service* should be a URL pointing to the server's API endpoint.
     """
     mediatype = "application/vnd.tsar.records.v1"
-
-    def serialize(self, representation, contenttype):
-        pass
 
     def resource(self, subject, attribute, cf):
         """Create a resource name."""
