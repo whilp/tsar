@@ -72,6 +72,8 @@ class Records(neat.Resource):
             raise errors.HTTPBadRequest("No data")
         try:
             records.extend(data)
+        except ValueError:
+            raise errors.HTTPBadRequest("Bad data")
         except errors.RecordError, e:
             raise errors.HTTPConflict(e.args[0])
         self.response.status_int = 204 # No Content
