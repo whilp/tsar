@@ -46,11 +46,19 @@ class TestRecords(BaseTest):
 
     def test_append_repeated(self):
         t = 1278508719
-        data = [(t + i*80, i) for i in range(20)]
+        data = [(t + i*80, i) for i in range(10)]
         for t, v in data:
             self.records.append((t, v))
-        data = list(self.records.query(t, t + (20 * 80)))
-        self.assertEquals(data, [])
+        results = list(self.records.query(1278509023, 1278509452))# t, t + (10 * 80)))
+        self.assertEquals(results, 
+            [(1278509040, 4),
+            (1278509100, 5),
+            (1278509160, None),
+            (1278509220, 6),
+            (1278509280, 7),
+            (1278509340, 8),
+            (1278509400, None),
+            (1278509460, 9)])
 
     def test_extend_quick(self):
         t = 1278508719
@@ -98,6 +106,25 @@ class TestRecords(BaseTest):
         self.assertEqual(data,
             [(1278028800, -69), (1278115200, -94),
             (1278201600, -64), (1278288000, 99)])
+
+    def test_consolidate(self):
+        t = 1279004415
+        data = [(t + i*80, i) for i in range(10)]
+        result = list(self.records.consolidate(data, 60, lambda x, y: y))
+        self.assertEquals(result,
+            [(1279004400, 0),
+             (1279004460, None),
+             (1279004520, 1),
+             (1279004580, 2),
+             (1279004640, 3),
+             (1279004700, None),
+             (1279004760, 4),
+             (1279004820, 5),
+             (1279004880, 6),
+             (1279004940, None),
+             (1279005000, 7),
+             (1279005060, 8),
+             (1279005120, 9)])
 
     def test_consolidate_min(self):
         t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
