@@ -34,19 +34,16 @@ tsar_record () {
         tsar_bulk "${SUBJECT}" "${ATTRIBUTE}" "${CF}"
 }
 
-# tsar also supports bulk submission of observations. Bulk records should be
-# formatted as comma-separated values (CSV) with column headers and passed to
-# tsar_bulk on stdin. Two columns, 'timestamp' and 'value', are defined as in
-# tsar_record:
+# tsar also supports bulk submission of observations. Each bulk record must have
+# a timestamp and a value separated by whitespace:
 #
-#     timestamp,value
-#     1268665017,10
-#     1268665027,12
-#     1268665037,11
-#     1268665047,10
+#     1268665017 10
+#     1268665027 12
+#     1268665037 11
+#     1268665047 10
 #     [...]
 #
-# As with tsar_record, the records' ssubject and attribute should be passed as
+# As with tsar_record, the records' subject and attribute should be passed as
 # command line arguments. If the desired consolidation function is omitted, a
 # default value will be used.
 #
@@ -62,7 +59,8 @@ tsar_bulk () {
     local RESOURCE="${SUBJECT}/${ATTRIBUTE}/${CF}"
     local DATA="timestamp,value\n"
 
-    (echo "timestamp,value"; while read LINE; do echo $LINE; done) |\
+    (echo "timestamp,value"; \
+        while read TIMESTAMP VALUE; do echo "${TIMESTAMP},${VALUE}"; done) |\
         ${TSAR_CURL} --data-binary @- -H "Content-Type: ${TSAR_MEDIA}+csv" \
             "${TSAR_SERVICE}/${RESOURCE}"
 }
