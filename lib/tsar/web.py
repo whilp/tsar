@@ -55,14 +55,19 @@ class getmethod(method):
         args.extend([start, stop])
         return args
 
-class Records(neat.Resource):
-    prefix = "/records/"
+class BaseRecords(neat.Resource):
     media = {
         mediatypes["records"] + "+json": "json",
         "application/json": "json",
         mediatypes["records"] + "+csv": "csv",
         "text/csv": "csv",
     }
+
+class NewRecords(BaseRecords):
+    prefix = "/records"
+
+class Records(BaseRecords):
+    prefix = "/records/"
         
     # HTTP methods.
     @method
