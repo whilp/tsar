@@ -61,7 +61,6 @@ tsar_bulk () {
 
     local RESOURCE=${SUBJECT}/${ATTRIBUTE}/${CF}
     local DATA="timestamp,value\n"
-    while read LINE; do
 
     (echo "timestamp,value"; while read LINE; do echo $LINE; done) |\
     #${TSAR_CURL} --request POST --data-binary  --header "Content-Type: ${TSAR_MEDIA}+csv"
@@ -100,7 +99,7 @@ tsar_query () {
 
     local RESOURCE=${SUBJECT}/${ATTRIBUTE}/${CF}
 
-    local CMD="${CURL} -G -d start=${START} -d stop=${STOP}"
+    local CMD="${TSAR_CURL} -G -d start=${START} -d stop=${STOP}"
     if [ -n "${NOW}" ]; then
         CMD="${CMD} -d now=${NOW}"
     fi
