@@ -300,8 +300,6 @@ class Records(object):
             lasttime, lastval = None, None
             if last is not None:
                 lasttime, lastval = last.split()
-                lasttime = self.types.Time(lasttime)
-                lastval = self.types.Value(lastval)
 
             idata = iter(data)
             if lasttime is not None:
