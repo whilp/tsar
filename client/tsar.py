@@ -166,6 +166,9 @@ class Tsar(RESTClient):
     """
     mediatype = "application/vnd.tsar.records.v1"
 
+    def __init__(self, service="http://tsar.hep.wisc.edu/records"):
+        super(Tsar, self).__init__(service)
+
     def resource(self, subject, attribute, cf):
         """Create a resource name."""
         return '/'.join((subject, attribute, cf))
