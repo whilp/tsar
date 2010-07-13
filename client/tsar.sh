@@ -63,8 +63,8 @@ tsar_bulk () {
     local DATA="timestamp,value\n"
 
     (echo "timestamp,value"; while read LINE; do echo $LINE; done) |\
-    #${TSAR_CURL} --request POST --data-binary  --header "Content-Type: ${TSAR_MEDIA}+csv"
-    ${TSAR_CURL} -v -F "@-;type=${TSAR_MEDIA}+csv" "${TSAR_SERVICE}/${RESOURCE}"
+        ${TSAR_CURL} --data-binary @- -H "Content-Type: ${TSAR_MEDIA}+csv" \
+            "${TSAR_SERVICE}/${RESOURCE}"
 }
 
 # Clients may request a range of records for a given (subject, attribute) pair.
