@@ -56,7 +56,7 @@ def timetostamp(time, now=None):
         time = now - time
 
     if isinstance(time, datetime.datetime):
-        time = time.timetuple()
+        time = time.utctimetuple()
 
     if isinstance(time, struct_time):
         time = timegm(time)
@@ -258,7 +258,7 @@ class Tsar(RESTClient):
 if __name__ == "__main__":
     Tsar.debuglevel = 100
     tsar = Tsar("http://g13n01.hep.wisc.edu:8080/records")
-    tsar.record("test_foo","baz", datetime.datetime.now(), 80)
+    tsar.record("test_foo","baz", datetime.datetime.utcnow(), 30)
     print list(tsar.query("test_foo", "baz", start=-1600, stop=-1))
     #r = tsar.query("production_*_stevia","router_Running",-3600,-1)
     #print r
