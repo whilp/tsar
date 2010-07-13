@@ -11,6 +11,7 @@ a TSAR service.
     True
 """
 
+import csv
 import datetime
 
 from calendar import timegm
@@ -210,40 +211,54 @@ class Tsar(RESTClient):
 
         return True
 
-    def records(self, subject, attribute, start, stop, **kwargs):
+    def query(self, subject, attribute, cf="last", start=None, stop=None,
+        now=None):
         """Query the tsar service.
 
-        *subject* and *attribute* are free-form string fields which may
-        include the wildcard operator '*'. *start* and *stop* are absolute
-        or relative times. See :func:`timetostamp` for more information.
-        Other optional keyword arguments include:
+        *subject* and *attribute* are free-form string fields which may include
+        the wildcard operator '*'. *cf* is a consolidation function supported by
+        the service. *start*, *stop* and *now* are absolute or relative times.
+        See :func:`timetostamp` for more information.
 
-        *sample* may be an integer. If the query returns more than
-        *sample* records for a given (subject, attribute) pair, the
-        service will downsample the result set before returning it to
-        the client.
+        Returns an iterable yielding (time, value) tuples.
         """
-        istart, istop = timetostamp(start), timetostamp(stop)
-        response = self.get("records", subject=subject, attribute=attribute,
-            start=istart, stop=istop, **kwargs)
+        resource = self.resource(subject, attribute, cf)
+        query = {}
+        if start is not None:
+            query["start"] = start
+        if stop is not None:
+            query["stop"] = stop
+        if now is not None:
+            query["now"] = now
+        if query:
+            resource += '?' + urlencode(query)
+
+        response = self.request(resource, method="GET",
+            headers={"Accept": self.mediatype + "+csv"})
 
         if response.getcode() != 200:
             raise APIError("query failed", response,
                 (subject, attribute, start, stop))
 
-        results = self.parse(response)
-        r = results["results"]
-
-        convert = lambda x, y: [stamptotime(x/1000), y]
-        for s in r:
-            for a in r[s]:
-                r[s][a] = [convert(*i) for i in r[s][a]]
-            
-        return r
+        body = response.read()
+        print body
+        reader = csv.reader(iter(body.splitlines()))
+        # Discard headers.
+        _ = reader.next()
+        for t, v in reader:
+            t = stamptotime(int(t))
+            if v == "None":
+                v = None
+            try:
+                v = int(v)
+            except ValueError:
+                v = float(v)
+            yield (t, v)
 
 if __name__ == "__main__":
     Tsar.debuglevel = 100
     tsar = Tsar("http://g13n01.hep.wisc.edu:8080/records")
-    tsar.record("test_foo","bar", datetime.datetime.now(), 10)
+    tsar.record("test_foo","baz", datetime.datetime.now(), 80)
+    print list(tsar.query("test_foo", "baz", start=-1600, stop=-1))
     #r = tsar.query("production_*_stevia","router_Running",-3600,-1)
     #print r
