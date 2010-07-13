@@ -168,8 +168,8 @@ class Records(object):
 
             # Fill in any missing values.
             while lasttime is not None and ((timestamp - lasttime) > interval):
-                lasttime += interval
-                yield (lasttime, missing)
+                yield (lasttime, lastval)
+                lasttime += interval; lastval = missing
 
             if lasttime is None:
                 lasttime = timestamp
@@ -178,7 +178,8 @@ class Records(object):
                 # We've entered a new interval, so dump whatever we were working
                 # on and start over.
                 yield (lasttime, lastval)
-                lasttime, lastval = None, None
+                lasttime = timestamp
+                lastval = value
             else:
                 # This record belongs in the current bin, so consolidate it.
                 lastval = cfunc(lastval, value)
