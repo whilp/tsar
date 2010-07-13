@@ -251,6 +251,9 @@ class Tsar(RESTClient):
                 v = None
             try:
                 v = int(v)
+            except TypeError:
+                # v=None.
+                pass
             except ValueError:
                 v = float(v)
             yield (t, v)
