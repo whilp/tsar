@@ -31,7 +31,7 @@ class TestRecords(BaseTest):
         t = 1278508719
         self.records.append((t, 10))
         data = list(self.records.query(t - 60, t + 60))
-        self.assertEquals(data, [])
+        self.assertEquals(data, [(1278508740, 10)])
 
     def test_append_badtime(self):
         self.assertRaises(TypeError, self.records.append, ("foo", 10))
