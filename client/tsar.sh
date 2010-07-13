@@ -103,7 +103,7 @@ tsar_query () {
     ${CMD} "${TSAR_SERVICE}/${RESOURCE}" | while read LINE; do
         case $LINE in timestamp,value) continue;; esac
         TIMESTAMP=${LINE%,*}
-        VALUE=${LINE#*}
+        VALUE=${LINE#*,}
         echo ${TIMESTAMP} ${VALUE}
     done
 }
