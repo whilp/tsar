@@ -30,7 +30,7 @@ tsar_record () {
     local VALUE=$4
     local CF=${5:-last}
 
-    echo "${TIMESTAMP},${VALUE}" |\
+    echo "${TIMESTAMP} ${VALUE}" |\
         tsar_bulk "${SUBJECT}" "${ATTRIBUTE}" "${CF}"
 }
 
