@@ -51,11 +51,14 @@ class TestRecordsPost(RecordsTest):
         self.assertEqual(response.status_int, 204)
 
     def test_post_bulk_csv(self):
-        data = "id,timestamp,value\n"
-        data += '\n'.join("%s,%s,%s" % (
-            "foo/bar/last", t, v) for t, v in self.data)
+        buffer = csv.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(u"subject attribute cf timestamp value".split())
+        for t, v in self.data:
+            writer.writerow(("foo", "bar", "last", t, v))
+        print buffer.read(); buffer.seek(0)
         response = self.post("/records/foo/bar/last", content_type="text/csv",
-            body=data)
+            body=buffer.read())
         self.assertEqual(response.status_int, 204)
     
     def test_post_badkey(self):
@@ -136,8 +139,8 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "text/csv")
         reader = csv.reader(iter(response.body.splitlines()))
         self.assertEqual(list(reader), 
-            [['id', 'timestamp', 'value'],
-            ['fullfoo/bar/last', '1278028800', '-69'],
-            ['fullfoo/bar/last', '1278115200', '-94'],
-            ['fullfoo/bar/last', '1278201600', '-64'],
-            ['fullfoo/bar/last', '1278288000', '99']] )
+            [['subject', 'attribute', 'cf', 'timestamp', 'value'],
+            ['fullfoo', 'bar', 'last', '1278028800', '-69'],
+            ['fullfoo', 'bar', 'last', '1278115200', '-94'],
+            ['fullfoo', 'bar', 'last', '1278201600', '-64'],
+            ['fullfoo', 'bar', 'last', '1278288000', '99']] )

@@ -104,13 +104,13 @@ class AllRecords(neat.Resource):
         data = {}
         reader = csv.reader(iter(self.req.body.splitlines()))
         for row in reader:
-            if row == ["id", "timestamp", "value"]:
+            if row == ["subject", "attribute", "cf", "timestamp", "value"]:
                 continue
             try:
-                rid, timestamp, value = row
+                subject, attribute, cf, timestamp, value = row
             except ValueError:
                 raise errors.HTTPBadRequest("Too few fields in CSV")
-            key = self.decodeid(rid)
+            key = (subject, attribute, cf)
             data.setdefault(key, [])
             data[key].append((timestamp, value))
 
@@ -132,10 +132,11 @@ class Records(AllRecords):
     def get_csv(self, records, start, stop):
         # XXX: We don't use a csv.writer here because it doesn't work well with
         # unicode output across interpreter versions.
-        self.response.body_file.write("id,timestamp,value\n")
-        rid = self.encodeid(records)
+        writer = csv.writer(self.response.body_file)
+        writer.writerow("subject attribute cf timestamp value".split())
         for t, v in records.query(start, stop):
-            self.response.body_file.write("%s,%s,%s\n" % (rid, t, v))
+            writer.writerow((records.subject, records.attribute, records.cf, t, v))
+
         self.response.status_int = 200
 
 def Server(host, port, **dsn):
