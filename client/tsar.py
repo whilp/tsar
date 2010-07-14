@@ -189,10 +189,10 @@ class Tsar(RESTClient):
         writer = csv.writer(buffer)
         writer.writerow("subject attribute cf timestamp value".split())
         for s, a, c, t, v in data:
-            writer.writerows((s, a, c, timetostamp(t), v))
+            writer.writerow((s, a, c, timetostamp(t), v))
+        buffer.seek(0); body = buffer.read()
         response = self.request(self.service, method="POST", 
-            data='\n'.join(postdata), 
-            headers={"Content-Type": self.mediatype + "+csv"})
+            data=body, headers={"Content-Type": self.mediatype + "+csv"})
 
         if response.getcode() != 204:
             raise APIError("failed to create records", response)
@@ -233,7 +233,7 @@ class Tsar(RESTClient):
         _ = reader.next()
         for s, a, c, t, v in reader:
             t = stamptotime(int(t))
-            if v == "None":
+            if v in ("None", ''):
                 v = None
             try:
                 v = int(v)
