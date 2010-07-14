@@ -18,6 +18,7 @@ from calendar import timegm
 from time import struct_time
 from urllib import urlencode
 from urllib2 import HTTPError, HTTPRedirectHandler, Request, build_opener
+from urllib2 import quote, unquote
 
 try:
     from mimeparse import best_match
@@ -32,9 +33,8 @@ class TsarError(Exception):
 class APIError(TsarError):
     """Raised when the server rejects the client's API call."""
     
-    def __init__(self, message, response, request):
+    def __init__(self, message, response):
         self.response = response
-        self.request = request
 
         message = message + " (HTTP status: %d)" % self.response.getcode()
 
@@ -137,13 +137,11 @@ class RESTClient(object):
         for handler in self.opener.handlers:
             handler._debuglevel = self.debuglevel
 
-    def request(self, resource, method="GET", data=None, headers={}):
+    def request(self, url, method="GET", data=None, headers={}):
         """Send a request to the service, returning its response.
 
         The response is a httplib.HTTPResponse instance.
         """
-        url = '/'.join((self.service, resource))
-
         _headers = self.headers.copy()
         _headers.update(headers)
 
@@ -153,9 +151,6 @@ class RESTClient(object):
 
         return response
 
-def parse_json(response):
-    return json.load(response)
-
 class Tsar(RESTClient):
     """A Tsar client.
 
@@ -164,14 +159,16 @@ class Tsar(RESTClient):
 
     *service* should be a URL pointing to the server's API endpoint.
     """
-    mediatype = "application/vnd.tsar.records.v1"
+    mediatype = "application/vnd.tsar.records.v2"
 
     def __init__(self, service="http://tsar.hep.wisc.edu/records"):
         super(Tsar, self).__init__(service)
 
-    def resource(self, subject, attribute, cf):
-        """Create a resource name."""
-        return '/'.join((subject, attribute, cf))
+    def decodeid(self, id):
+        return tuple(unquote(id.encode("utf8")).split('/'))
+
+    def encodeid(self, subject, attribute, cf):
+        return quote(u'/'.join((subject, attribute, cf)))
 
     def record(self, subject, attribute, time, value, cf="last"):
         """Record a new observation.
@@ -185,28 +182,26 @@ class Tsar(RESTClient):
         If the server accepts the new record, :meth:`record` returns
         True. Otherwise, :class:`APIError` is raised.
         """
-        data = [[time, value]]
-        return self.bulk(subject, attribute, data, cf)
+        data = [[subject, attribute, cf, time, value]]
+        return self.bulk(data)
 
         return True
 
-    def bulk(self, subject, attribute, data, cf="last"):
-        resource = self.resource(subject, attribute, cf)
-        postdata = ["timestamp,value"]
-        for t, v in data:
-            postdata.append("%d,%s" % (timetostamp(t), v))
-        response = self.request(resource, method="POST", 
+    def bulk(self, data):
+        postdata = ["id,timestamp,value"]
+        for s, a, c, t, v in data:
+            id = self.encodeid(s, a, c)
+            postdata.append("%s,%d,%s" % (id, timetostamp(t), v))
+        response = self.request(self.service, method="POST", 
             data='\n'.join(postdata), 
             headers={"Content-Type": self.mediatype + "+csv"})
 
         if response.getcode() != 204:
-            raise APIError("failed to create record", response,
-                (subject, attribute, time, value))
+            raise APIError("failed to create records", response)
 
         return True
 
-    def query(self, subject, attribute, cf="last", start=None, stop=None,
-        now=None):
+    def query(self, subject, attribute, cf="last", start=None, stop=None, now=None):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may include
@@ -216,7 +211,8 @@ class Tsar(RESTClient):
 
         Returns an iterable yielding (time, value) tuples.
         """
-        resource = self.resource(subject, attribute, cf)
+        rid = self.encodeid(subject, attribute, cf)
+        resource = '/'.join((self.service, rid))
         query = {}
         if start is not None:
             query["start"] = start
@@ -231,15 +227,14 @@ class Tsar(RESTClient):
             headers={"Accept": self.mediatype + "+csv"})
 
         if response.getcode() != 200:
-            raise APIError("query failed", response,
-                (subject, attribute, start, stop))
+            raise APIError("query failed", response)
 
         body = response.read()
-        print body
         reader = csv.reader(iter(body.splitlines()))
         # Discard headers.
         _ = reader.next()
-        for t, v in reader:
+        for i, t, v in reader:
+            s, a, c = self.decodeid(i)
             t = stamptotime(int(t))
             if v == "None":
                 v = None
@@ -250,7 +245,7 @@ class Tsar(RESTClient):
                 pass
             except ValueError:
                 v = float(v)
-            yield (t, v)
+            yield (s, a, c, t, v)
 
 if __name__ == "__main__":
     Tsar.debuglevel = 100
