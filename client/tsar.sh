@@ -1,9 +1,11 @@
 #!/bin/sh
 
-TSAR_SERVICE=http://tsar.hep.wisc.edu/records/
-TSAR_MEDIA=application/vnd.tsar.records.v1
+TSAR_SERVICE=http://tsar.hep.wisc.edu/records
+TSAR_MEDIA=application/vnd.tsar.records.v2
 TSAR_AGENT=
 TSAR_CURL="curl -s -A '${TSAR_AGENT}'"
+local CSVIFS=",
+"
 
 # Record a new observation. 'timestamp' is an integer representing seconds since
 # the Unix Epoch, UTC (ie `date '+%s'`). 'subject' is a string indicating the
@@ -16,7 +18,8 @@ TSAR_CURL="curl -s -A '${TSAR_AGENT}'"
 #
 # The 'subject' and 'attribute' fields are free-form. By convention, fields with
 # multiple elements in a hierarchy (ie, "dcache" and "pfm") are delimited by
-# underscores.
+# underscores. 'subject', 'attribute' and 'cf' should be URL-encoded (escaping
+# reserved characters per RFC 2396).
 #
 # The following request would record a new observation for the 'bar' attribute
 # of the 'foo' subject:
@@ -30,38 +33,32 @@ tsar_record () {
     local VALUE=$4
     local CF=${5:-last}
 
-    echo "${TIMESTAMP} ${VALUE}" |\
-        tsar_bulk "${SUBJECT}" "${ATTRIBUTE}" "${CF}"
+    echo "${SUBJECT},${ATTRIBUTE},${CF},${TIMESTAMP},${VALUE}" | tsar_bulk 
 }
 
 # tsar also supports bulk submission of observations. Each bulk record must have
-# a timestamp and a value separated by whitespace:
+# all fields as defined in tsar_record(), formatted as a series of
+# comma-separated values (CSV)
 #
-#     1268665017 10
-#     1268665027 12
-#     1268665037 11
-#     1268665047 10
+#     foo,bar,last,1268665017,10
+#     foo,bar,last,1268665027,10
+#     foo,bar,last,1268665037,10
+#     foo,bar,last,1268665047,10
 #     [...]
-#
-# As with tsar_record, the records' subject and attribute should be passed as
-# command line arguments. If the desired consolidation function is omitted, a
-# default value will be used.
 #
 # For example (assuming observations.csv contains the above text):
 # 
-#    tsar_bulk foo bar < /path/to/observations.csv
+#    tsar_bulk < /path/to/observations.csv
 #
 tsar_bulk () {
-    local SUBJECT=$1
-    local ATTRIBUTE=$2
-    local CF=${3:-last}
-
-    local RESOURCE="${SUBJECT}/${ATTRIBUTE}/${CF}"
-
-    (echo "timestamp,value"; \
-        while read TIMESTAMP VALUE; do echo "${TIMESTAMP},${VALUE}"; done) |\
+    local LINE
+    (echo "subject,attribute,cf,timestamp,value"; \
+        while read LINE; do  \
+            case $LINE in id,timestamp,value) continue; esac
+            echo $LINE
+        done) |\
         ${TSAR_CURL} --data-binary @- -H "Content-Type: ${TSAR_MEDIA}+csv" \
-            "${TSAR_SERVICE}/${RESOURCE}"
+            "${TSAR_SERVICE}"
 }
 
 # Clients may request a range of records for a given (subject, attribute) pair.
@@ -69,17 +66,17 @@ tsar_bulk () {
 # and 'stop' are either valid 'time' values as defined in tsar_record() or
 # negative integers representing points in time counted back from now. 'cf' is
 # an optional string as defined in tsar_record(). For example, the following
-# request would return all records for (foo, bar):
+# request would return all records for (foo, bar) with the default consolidation
+# function:
 #
 #    tsar_query foo bar 0 -1
 #
-# Successful queries output one or more lines of records, with the 'timestamp'
-# and 'value' fields separated by a space. The output of the above query might
-# look like:
+# Successful queries output one or more lines of records, formatted as CSV.
+# The output of the above query might look like:
 #
-#    1268665030 10
-#    1268665040 12
-#    1268665050 14
+#    foo,bar,last,1268665030,10
+#    foo,bar,last,1268665040,10
+#    foo,bar,last,1268665050,10
 #
 # Additional options:
 #    cf         (string)    Condolidation function.
@@ -93,6 +90,7 @@ tsar_query () {
     local CF=${5:-"last"}
     local NOW=$6
 
+    local LINE
     local RESOURCE=${SUBJECT}/${ATTRIBUTE}/${CF}
 
     local CMD="${TSAR_CURL} -G -d start=${START} -d stop=${STOP}"
@@ -100,10 +98,9 @@ tsar_query () {
         CMD="${CMD} -d now=${NOW}"
     fi
 
-    ${CMD} "${TSAR_SERVICE}/${RESOURCE}" | while read LINE; do
-        case $LINE in timestamp,value) continue;; esac
-        TIMESTAMP=${LINE%,*}
-        VALUE=${LINE#*,}
-        echo ${TIMESTAMP} ${VALUE}
+    ${CMD} "${TSAR_SERVICE}/${RESOURCE}" |\ 
+        while read ID TIMESTAMP VALUE; do
+            case $LINE in subject,attribute,cf,timestamp,value) continue;; esac
+            echo ${LINE}
     done
 }
