@@ -164,10 +164,7 @@ class Tsar(RESTClient):
     def __init__(self, service="http://tsar.hep.wisc.edu/records"):
         super(Tsar, self).__init__(service)
 
-    def decodeid(self, id):
-        return tuple(unquote(id.encode("utf8")).split('/'))
-
-    def encodeid(self, subject, attribute, cf):
+    def resource(self, subject, attribute, cf):
         return quote(u'/'.join((subject, attribute, cf)))
 
     def record(self, subject, attribute, time, value, cf="last"):
@@ -188,10 +185,11 @@ class Tsar(RESTClient):
         return True
 
     def bulk(self, data):
-        postdata = ["id,timestamp,value"]
+        buffer = csv.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow("subject attribute cf timestamp value".split())
         for s, a, c, t, v in data:
-            id = self.encodeid(s, a, c)
-            postdata.append("%s,%d,%s" % (id, timetostamp(t), v))
+            writer.writerows((s, a, c, timetostamp(t), v))
         response = self.request(self.service, method="POST", 
             data='\n'.join(postdata), 
             headers={"Content-Type": self.mediatype + "+csv"})
@@ -211,7 +209,7 @@ class Tsar(RESTClient):
 
         Returns an iterable yielding (time, value) tuples.
         """
-        rid = self.encodeid(subject, attribute, cf)
+        rid = self.resource(subject, attribute, cf)
         resource = '/'.join((self.service, rid))
         query = {}
         if start is not None:
@@ -233,8 +231,7 @@ class Tsar(RESTClient):
         reader = csv.reader(iter(body.splitlines()))
         # Discard headers.
         _ = reader.next()
-        for i, t, v in reader:
-            s, a, c = self.decodeid(i)
+        for s, a, c, t, v in reader:
             t = stamptotime(int(t))
             if v == "None":
                 v = None
