@@ -42,43 +42,43 @@ class TestRecordsPost(RecordsTest):
 
     def test_post(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
-            body=json.dumps({"data": [self.data[-1]]}))
+            body=json.dumps({"foo/bar/last": [self.data[-1]]}))
         self.assertEqual(response.status_int, 204)
 
     def test_post_bulk(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
-            body=json.dumps({"data": self.data}))
+            body=json.dumps({"foo/bar/last": self.data}))
         self.assertEqual(response.status_int, 204)
 
     def test_post_bulk_csv(self):
-        data = "timestamp,value\n"
-        data += '\n'.join("%s,%s" % (t, v) for t, v in self.data)
+        data = "id,timestamp,value\n"
+        data += '\n'.join("%s,%s,%s" % (
+            "foo/bar/last", t, v) for t, v in self.data)
         response = self.post("/records/foo/bar/last", content_type="text/csv",
             body=data)
-        print response.body
         self.assertEqual(response.status_int, 204)
     
     def test_post_badkey(self):
         response = self.post("/records/foo!/bar/last", content_type="application/json",
-            body=json.dumps({"data": [self.data[-1]]}))
+            body=json.dumps({"foo!/bar/last": [self.data[-1]]}))
         self.assertEqual(response.status_int, 400)
     
     def test_post_badtime(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
-            body=json.dumps({"data": [("foo", 10)]}))
+            body=json.dumps({"foo/bar/last": [("foo", 10)]}))
         self.assertEqual(response.status_int, 400)
     
     def test_post_badvalue(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
-            body=json.dumps({"data": [(self.first, "ten")]}))
+            body=json.dumps({"foo/bar/last": [(self.first, "ten")]}))
         self.assertEqual(response.status_int, 400)
 
     def test_post_doublepost(self):
         response = self.post("/records/dblfoo/bar/last", content_type="application/json",
-            body=json.dumps({"data": [self.data[-1]]}))
+            body=json.dumps({"dblfoo/bar/last": [self.data[-1]]}))
         self.assertEqual(response.status_int, 204)
         response = self.post("/records/dblfoo/bar/last", content_type="application/json",
-            body=json.dumps({"data": [self.data[-2]]}))
+            body=json.dumps({"dblfoo/bar/last": [self.data[-2]]}))
         self.assertEqual(response.status_int, 409)
 
 class TestRecordsGet(RecordsTest):
@@ -98,14 +98,14 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(body["data"], [])
+        self.assertEqual(body["foo/bar/last"], [])
 
     def test_get_full(self):
         response = self.get("/records/fullfoo/bar/last", accept="application/json")
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(body["data"], 
+        self.assertEqual(body["fullfoo/bar/last"], 
             [[1278028800, -69], [1278115200, -94], 
             [1278201600, -64], [1278288000, 99]])
 
@@ -116,9 +116,10 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(len(body["data"]), 49)
-        self.assertEqual(body["data"][0], [1278028800, -96])
-        self.assertEqual(body["data"][-1], [1278201600, -98])
+        data = body["fullfoo/bar/last"]
+        self.assertEqual(len(data), 49)
+        self.assertEqual(data[0], [1278028800, -96])
+        self.assertEqual(data[-1], [1278201600, -98])
 
     def test_get_params_startstop(self):
         start, stop = 1278115200, 1278201600
@@ -127,7 +128,7 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.content_type, "application/json")
         body = json.loads(response.body)
-        self.assertEqual(len(body["data"]), 25)
+        self.assertEqual(len(body["fullfoo/bar/last"]), 25)
 
     def test_get_csv(self):
         response = self.get("/records/fullfoo/bar/last", accept="text/csv")
@@ -135,8 +136,8 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(response.content_type, "text/csv")
         reader = csv.reader(iter(response.body.splitlines()))
         self.assertEqual(list(reader), 
-            [['timestamp', 'value'],
-            ['1278028800', '-69'],
-            ['1278115200', '-94'],
-            ['1278201600', '-64'],
-            ['1278288000', '99']] )
+            [['id', 'timestamp', 'value'],
+            ['fullfoo/bar/last', '1278028800', '-69'],
+            ['fullfoo/bar/last', '1278115200', '-94'],
+            ['fullfoo/bar/last', '1278201600', '-64'],
+            ['fullfoo/bar/last', '1278288000', '99']] )
