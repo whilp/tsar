@@ -17,7 +17,7 @@ def logger(cls): # pragma: nocover
 # Media types.
 v = "application/vnd.tsar";
 mediatypes = {
-    "records": v + ".records.v1",
+    "records": v + ".records.v2",
 }
 
 class getmethod(Decorator):
