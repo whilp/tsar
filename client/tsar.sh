@@ -4,8 +4,7 @@ TSAR_SERVICE=http://tsar.hep.wisc.edu/records
 TSAR_MEDIA=application/vnd.tsar.records.v2
 TSAR_AGENT=
 TSAR_CURL="curl -s -A '${TSAR_AGENT}'"
-local CSVIFS=",
-"
+TSAR_HEADERS="subject,attribute,cf,timestamp,value"
 
 # Record a new observation. 'timestamp' is an integer representing seconds since
 # the Unix Epoch, UTC (ie `date '+%s'`). 'subject' is a string indicating the
@@ -52,9 +51,9 @@ tsar_record () {
 #
 tsar_bulk () {
     local LINE
-    (echo "subject,attribute,cf,timestamp,value"; \
+    (echo ${TSAR_HEADERS}; \
         while read LINE; do  \
-            case $LINE in id,timestamp,value) continue; esac
+            case $LINE in ${TSAR_HEADERS}) continue; esac
             echo $LINE
         done) |\
         ${TSAR_CURL} --data-binary @- -H "Content-Type: ${TSAR_MEDIA}+csv" \
@@ -98,9 +97,9 @@ tsar_query () {
         CMD="${CMD} -d now=${NOW}"
     fi
 
-    ${CMD} "${TSAR_SERVICE}/${RESOURCE}" |\ 
-        while read ID TIMESTAMP VALUE; do
-            case $LINE in subject,attribute,cf,timestamp,value) continue;; esac
+    ${CMD} "${TSAR_SERVICE}/${RESOURCE}" |\
+        while read LINE; do
+            case $LINE in ${TSAR_HEADERS}*) continue;; esac
             echo ${LINE}
-    done
+        done
 }
