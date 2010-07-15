@@ -1,5 +1,6 @@
 import csv
 
+from itertools import chain
 from math import cos
 
 from tsar import model
@@ -13,7 +14,8 @@ model.db = model.connect(db=15)
 class RecordsTest(AppTest):
     first = 1278007837
     cls = Records
-    
+    columns = u"subject attribute cf timestamp value".split()
+
     def setUp(self):
         super(RecordsTest, self).setUp()
         self.db = model.db
@@ -62,7 +64,7 @@ class TestAllRecords(RecordsTest):
             spam eggs last 1278028880 110
             foo bar last 1278028960 8
             spam eggs last 1278028960 120
-        """.splitlines()]
+        """.splitlines() if l]
 
     def test_get(self):
         response = self.get("/records", accept="*/*")
@@ -81,7 +83,7 @@ class TestRecordsPost(RecordsTest):
         self.assertEqual(response.status_int, 204)
 
     def test_post_bulk_csv(self):
-        data = [u"subject attribute cf timestamp value".split()]
+        data = [self.columns]
         for t, v in self.data:
             data.append(("foo", "bar", "last", t, v))
         body = self.datatocsvf(data).read()
