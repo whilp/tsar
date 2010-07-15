@@ -104,12 +104,15 @@ class AllRecords(neat.Resource):
         data = {}
         reader = csv.reader(iter(self.req.body.splitlines()))
         for row in reader:
+            if not row:
+                continue
             if row == ["subject", "attribute", "cf", "timestamp", "value"]:
                 continue
             try:
                 subject, attribute, cf, timestamp, value = row
             except ValueError:
-                raise errors.HTTPBadRequest("Too few fields in CSV")
+                raise errors.HTTPBadRequest("Too few fields in CSV: %r" % 
+                    ','.join(row))
             key = (subject, attribute, cf)
             data.setdefault(key, [])
             data[key].append((timestamp, value))
