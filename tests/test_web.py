@@ -3,7 +3,7 @@ import csv
 from math import cos
 
 from tsar import model
-from tsar.web import Records
+from tsar.web import AllRecords, Records
 from tsar.util import json
 
 from tests import AppTest, BaseTest, log, unittest
@@ -49,6 +49,24 @@ class RecordsTest(AppTest):
         writer.writerows(data)
         buffer.seek(0)
         return buffer
+
+class TestAllRecords(RecordsTest):
+    cls = AllRecords
+
+    def setUp(self):
+        super(TestAllRecords, self).setUp()
+        self.data = [l.strip().split() for l in """\
+            foo bar last 1278028800 10
+            spam eggs last 1278028800 100
+            foo bar last 1278028880 9
+            spam eggs last 1278028880 110
+            foo bar last 1278028960 8
+            spam eggs last 1278028960 120
+        """.splitlines()]
+
+    def test_get(self):
+        response = self.get("/records", accept="*/*")
+        self.assertEquals(response.status_int, 415)
 
 class TestRecordsPost(RecordsTest):
     def test_post(self):
