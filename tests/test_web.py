@@ -56,6 +56,7 @@ class TestRecordsPost(RecordsTest):
         writer.writerow(u"subject attribute cf timestamp value".split())
         for t, v in self.data:
             writer.writerow(("foo", "bar", "last", t, v))
+        buffer.seek(0)
         response = self.post("/records/foo/bar/last", content_type="text/csv",
             body=buffer.read())
         self.assertEqual(response.status_int, 204)
