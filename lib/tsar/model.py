@@ -121,17 +121,13 @@ class Records(object):
     interval.
     """
     cfs = {
-        # XXX: This should be implemented as a cumulative moving average, but to
-        # do that we need to know how many points have already been consolidated
-        # into the latest data point. This will require some more bookkeeping in
-        # the server.
-        #"average": None,
-        "min": min,
-        "max": max,
-        "first": lambda x, y: x,
-        "last": lambda x, y: y,
-        "add": operator.add,
-        "sub": operator.sub,
+        "ave": cma,
+        "min": lambda x, y, i: min(x, y),
+        "max": lambda x, y, i: max(x, y),
+        "first": lambda x, y, i: x,
+        "last": lambda x, y, i: y,
+        "add": lambda x, y, i: operator.add(x, y),
+        "sub": lambda x, y, i: operator.sub(x, y),
     }
     """Supported consolidation functions."""
     
@@ -152,7 +148,7 @@ class Records(object):
         return self.tokey(self.namespace, \
             self.subject, self.attribute, self.cf, *chunks)
 
-    def consolidate(self, data, interval, cfunc, missing=None):
+    def consolidate(self, data, interval, cfunc, i=0, missing=None):
         """Consolidate a data in a time series.
 
         *data* is an iterable consisting of two-tuples (timestamp, value), where
@@ -176,24 +172,26 @@ class Records(object):
 
             # Fill in any missing values.
             while lasttime is not None and ((timestamp - lasttime) > interval):
-                yield (lasttime, lastval)
-                lasttime += interval; lastval = missing
+                yield (lasttime, lastval, i)
+                lasttime += interval; lastval = missing; i = 0
 
             if timestamp != lasttime:
                 # We've entered a new interval, so dump whatever we were working
                 # on and start over.
                 if lasttime is not None:
-                    yield (lasttime, lastval)
+                    yield (lasttime, lastval, i)
                 lasttime = timestamp
                 lastval = value
+                i = 0
             else:
                 # This record belongs in the current bin, so consolidate it.
-                lastval = cfunc(lastval, value)
+                lastval = cfunc(lastval, value, i)
+                i += 1
 
         # We've reached the end of the series. If we're in the middle of
         # something, yield it.
         if lasttime is not None:
-            yield (lasttime, lastval)
+            yield (lasttime, lastval, i)
 
     def fromkey(self, key):
         return key.split(self.types.keydelim)
@@ -303,20 +301,20 @@ class Records(object):
             ikey = self.subkey(interval)
             lkey = lkeys[i]
 
-            lasttime, lastval = None, None
+            lasttime, lastval, lasti = None, None, 0
             if last is not None:
-                lasttime, lastval = last.split()
+                lasttime, lastval, lasti = last.split()
 
             idata = iter(data)
             if lasttime is not None:
                 idata = chain([(lasttime, lastval)], data)
             idata = ((self.types.Time(t), self.types.Value(v)) for t, v in idata)
-            idata = self.consolidate(idata, interval, cfunc)
+            idata = self.consolidate(idata, interval, cfunc, lasti)
 
             # Only remove the possibly redundant first entry if we're actually
             # going to write new data.
             needspop = True
-            for timestamp, value in idata:
+            for timestamp, value, points in idata:
                 if needspop:
                     log.debug("LPOP %s", ikey)
                     pipeline.lpop(ikey)
@@ -326,7 +324,8 @@ class Records(object):
 
             if not needspop:
                 dirty.setdefault("last", [])
-                dirty["last"].append((lkey, ' '.join(str(x) for x in (timestamp, value))))
+                dirty["last"].append((lkey,
+                    ' '.join(str(x) for x in (timestamp, value, points))))
                 # Don't trim the last interval, letting it grow.
                 if i < lasti:
                     log.debug("LTRIM %s %r %r", ikey, 0, samples)

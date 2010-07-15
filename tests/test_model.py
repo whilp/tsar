@@ -120,19 +120,19 @@ class TestRecords(BaseTest):
         data = [(t + i*80, i) for i in range(10)]
         result = list(self.records.consolidate(data, 60, lambda x, y: y))
         self.assertEquals(result,
-            [(1279004400, 0),
-             (1279004460, None),
-             (1279004520, 1),
-             (1279004580, 2),
-             (1279004640, 3),
-             (1279004700, None),
-             (1279004760, 4),
-             (1279004820, 5),
-             (1279004880, 6),
-             (1279004940, None),
-             (1279005000, 7),
-             (1279005060, 8),
-             (1279005120, 9)])
+            [(1279004400, 0, 0),
+             (1279004460, None, 0),
+             (1279004520, 1, 0),
+             (1279004580, 2, 0),
+             (1279004640, 3, 0),
+             (1279004700, None, 0),
+             (1279004760, 4, 0),
+             (1279004820, 5, 0),
+             (1279004880, 6, 0),
+             (1279004940, None, 0),
+             (1279005000, 7, 0),
+             (1279005060, 8, 0),
+             (1279005120, 9, 0)])
 
     def test_consolidate_min(self):
         t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
@@ -151,3 +151,14 @@ class TestRecords(BaseTest):
         self.assertEqual(data,
             [(1278028800, 100), (1278115200, 99), 
             (1278201600, 99), (1278288000, 99)])
+
+    def test_consolidate_ave(self):
+        t1, t2 = self.data[0][0], (self.data[-1][0] * 2)
+        self.records.cf = "ave"
+        self.records.extend(self.data)
+        data = list(self.records.query(t1, t2))
+        print data
+        self.assertEqual(data,
+            [(1278028800, -0.71999999999999997), (1278115200, -0.01),
+            (1278201600, 0.01), (1278288000, 0.48999999999999999)]
+
