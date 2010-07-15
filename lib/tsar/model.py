@@ -23,6 +23,14 @@ def connect(**kwargs):
     import redis
     return redis.Redis(**kwargs)
 
+def cma(last, next, i):
+    """Calculate the moving average of two items in a larger series.
+
+    *last* and *next* are adjacent items in a series at indices *i* - 1 and *i*,
+    respectively.
+    """
+    return last + float(next - last)/(i + 1)
+
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
     distance = value % interval
