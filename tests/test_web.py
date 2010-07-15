@@ -69,6 +69,7 @@ class TestAllRecords(RecordsTest):
         self.assertEquals(response.status_int, 415)
 
 class TestRecordsPost(RecordsTest):
+
     def test_post(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"foo/bar/last": [self.data[-1]]}))
