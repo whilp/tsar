@@ -179,13 +179,11 @@ class Records(object):
                 yield (lasttime, lastval)
                 lasttime += interval; lastval = missing
 
-            if lasttime is None:
-                lasttime = timestamp
-                lastval = value
-            elif timestamp != lasttime:
+            if timestamp != lasttime:
                 # We've entered a new interval, so dump whatever we were working
                 # on and start over.
-                yield (lasttime, lastval)
+                if lasttime is not None:
+                    yield (lasttime, lastval)
                 lasttime = timestamp
                 lastval = value
             else:
