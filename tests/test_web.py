@@ -12,12 +12,13 @@ model.db = model.connect(db=15)
 
 class RecordsTest(AppTest):
     first = 1278007837
+    cls = Records
     
     def setUp(self):
         super(RecordsTest, self).setUp()
         self.db = model.db
         self.db.flushdb()
-        self.application = Records()
+        self.application = self.cls()
 
         interval = 300
         self.data = []
@@ -31,8 +32,6 @@ class RecordsTest(AppTest):
         super(RecordsTest, self).tearDown()
         self.db.flushdb()
 
-class TestRecordsPost(RecordsTest):
-
     def post(self, path, body, content_type):
         req = self.req(path, method="POST")
         req.content_type = content_type
@@ -40,6 +39,18 @@ class TestRecordsPost(RecordsTest):
 
         return req.get_response(self.application)
 
+    def get(self, path, accept):
+        req = self.req(path, headers=dict(accept=accept), method="GET")
+        return req.get_response(self.application)
+
+    def datatocsvf(self, data):
+        buffer = csv.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerows(data)
+        buffer.seek(0)
+        return buffer
+
+class TestRecordsPost(RecordsTest):
     def test_post(self):
         response = self.post("/records/foo/bar/last", content_type="application/json",
             body=json.dumps({"foo/bar/last": [self.data[-1]]}))
@@ -51,14 +62,12 @@ class TestRecordsPost(RecordsTest):
         self.assertEqual(response.status_int, 204)
 
     def test_post_bulk_csv(self):
-        buffer = csv.StringIO()
-        writer = csv.writer(buffer)
-        writer.writerow(u"subject attribute cf timestamp value".split())
+        data = [u"subject attribute cf timestamp value".split()]
         for t, v in self.data:
-            writer.writerow(("foo", "bar", "last", t, v))
-        buffer.seek(0)
+            data.append(("foo", "bar", "last", t, v))
+        body = self.datatocsvf(data).read()
         response = self.post("/records/foo/bar/last", content_type="text/csv",
-            body=buffer.read())
+            body=body)
         self.assertEqual(response.status_int, 204)
     
     def test_post_badkey(self):
@@ -91,10 +100,6 @@ class TestRecordsGet(RecordsTest):
 
         full = model.Records("fullfoo", "bar", "last")
         full.extend(self.data)
-
-    def get(self, path, accept):
-        req = self.req(path, headers=dict(accept=accept), method="GET")
-        return req.get_response(self.application)
 
     def test_get(self):
         response = self.get("/records/foo/bar/last", accept="application/json")
