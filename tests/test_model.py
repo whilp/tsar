@@ -162,3 +162,17 @@ class TestRecords(BaseTest):
             (1278115200, 0.070000000000000007),
             (1278201600, -0.080000000000000002),
             (1278288000, 0.60999999999999999)])
+
+    def test_consolidate_avedirect(self):
+        ave = self.records.cfs["ave"]
+        data = self.data[:15]
+        result = list(self.records.consolidate(data, 3600, ave))
+        bins = {}
+        for t, v in data:
+            t = model.nearest(t, 3600)
+            bins.setdefault(t, [])
+            bins[t].append(v)
+        for k, v in bins.items():
+            bins[k] = float(sum(v))/len(v)
+        for t, v, i in result:
+            self.assertEqual(bins[t], v)
