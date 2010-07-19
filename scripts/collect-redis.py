@@ -6,8 +6,9 @@ import sys
 import time
 
 import cli
-import tsar
 import redis
+
+from tsar.client import Tsar
 
 now = lambda: int(time.time())
 
