@@ -87,3 +87,23 @@ class log(Decorator):
             self.stream.write(">>> end log for %s\n" % funcname)
 
         return result
+
+def parsedsn(dsnstring, **defaults):
+    "<driver>://<username>:<password>@<host>:<port>/<database>"
+    dsn = dict((x, None) for x in "driver username password host port database".split())
+    dsn.update(defaults)
+    dsn["driver"], _, rest = dsnstring.partition("://")
+    if '@' in rest:
+        user, _, rest = rest.partition('@')
+        if ':' in user:
+            user, _, dsn["password"] = user.partition(':')
+        dsn["user"] = user
+    if '/' in rest:
+        host, _, dsn["database"] = rest.partition('/')
+    if ':' in host:
+        host, _, dsn["port"] = host.partition(':')
+    dsn["host"] = host
+    if dsn["port"] is not None:
+        dsn["port"] = int(dsn["port"])
+
+    return dsn
