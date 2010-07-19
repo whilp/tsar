@@ -118,7 +118,7 @@ class TestRecords(BaseTest):
     def test_consolidate(self):
         t = 1279004415
         data = [(t + i*80, i) for i in range(10)]
-        result = list(self.records.consolidate(data, 60, lambda x, y: y))
+        result = list(self.records.consolidate(data, 60, self.records.cfs["last"]))
         self.assertEquals(result,
             [(1279004400, 0, 0),
              (1279004460, None, 0),
