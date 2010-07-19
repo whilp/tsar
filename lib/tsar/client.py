@@ -137,7 +137,7 @@ class RESTClient(object):
         for handler in self.opener.handlers:
             handler._debuglevel = self.debuglevel
 
-    def request(self, url, method="GET", data=None, headers={}):
+    def request(self, url, method="GET", data=None, headers={}, timeout=30):
         """Send a request to the service, returning its response.
 
         The response is a httplib.HTTPResponse instance.
@@ -147,7 +147,7 @@ class RESTClient(object):
 
         req = self.requestfactory(url, data, _headers)
         req.get_method = lambda : method
-        response = self.opener.open(req)
+        response = self.opener.open(req, timeout=timeout)
 
         return response
 
