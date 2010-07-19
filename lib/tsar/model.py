@@ -29,7 +29,9 @@ def cma(last, next, i):
     *last* and *next* are adjacent items in a series at indices *i* - 1 and *i*,
     respectively.
     """
-    return last + float(next - last)/(i + 1)
+    if i == 0:
+        i += 1
+    return (i, last + float(next - last)/(i + 1))
 
 def nearest(value, interval):
     """Round *value* to the nearest value evenly divisible by *interval*."""
@@ -122,12 +124,12 @@ class Records(object):
     """
     cfs = {
         "ave": cma,
-        "min": lambda x, y, i: min(x, y),
-        "max": lambda x, y, i: max(x, y),
-        "first": lambda x, y, i: x,
-        "last": lambda x, y, i: y,
-        "add": lambda x, y, i: operator.add(x, y),
-        "sub": lambda x, y, i: operator.sub(x, y),
+        "min": lambda x, y, i: (i, min(x, y)),
+        "max": lambda x, y, i: (i, max(x, y)),
+        "first": lambda x, y, i: (i, x),
+        "last": lambda x, y, i: (i, y),
+        "add": lambda x, y, i: (i, operator.add(x, y)),
+        "sub": lambda x, y, i: (i, operator.sub(x, y)),
     }
     """Supported consolidation functions."""
     
@@ -185,7 +187,7 @@ class Records(object):
                 i = 0
             else:
                 # This record belongs in the current bin, so consolidate it.
-                lastval = cfunc(lastval, value, i)
+                i, lastval = cfunc(lastval, value, i)
                 i += 1
 
         # We've reached the end of the series. If we're in the middle of
