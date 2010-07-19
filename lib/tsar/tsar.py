@@ -11,6 +11,9 @@ def server(app):
     if not port:
         port = 8000
     dsn = parsedsn(app.params.dsn)
+    del(dsn["username"])
+    del(dsn["driver"])
+    dsn["db"] = dsn.pop("database")
     model.db = model.connect(**dsn)
 
     app.log.info("Starting server at http://%s:%s/", host, port)
