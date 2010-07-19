@@ -165,7 +165,7 @@ class Records(object):
         """
         log = logger(self)
         lasttime = None
-        lastval = None
+        lastval = 0
         for timestamp, value in data:
             timestamp = nearest(timestamp, interval)
             if lasttime is not None and lasttime > timestamp:
@@ -306,6 +306,7 @@ class Records(object):
             lasttime, lastval, lasti = None, None, 0
             if last is not None:
                 lasttime, lastval, lasti = last.split()
+                lasti = self.types.Number(lasti)
 
             idata = iter(data)
             if lasttime is not None:
