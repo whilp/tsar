@@ -4,12 +4,14 @@ from .util import parsedsn
 
 @cli.DaemonizingApp(name="tsar-server")
 def server(app):
+    from . import model
     from .web import Server
 
     host, _, port = app.params.server.partition(':')
     if not port:
         port = 8000
     dsn = parsedsn(app.params.dsn)
+    model.db = connect(**dsn)
 
     app.log.info("Starting server at http://%s:%s/", host, port)
     server = Server(host, int(port))
