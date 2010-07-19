@@ -157,7 +157,6 @@ class TestRecords(BaseTest):
         self.records.cf = "ave"
         self.records.extend(self.data)
         data = list(self.records.query(t1, t2))
-        print data
         self.assertEqual(data,
             [(1278028800, -0.71999999999999997), (1278115200, -0.01),
             (1278201600, 0.01), (1278288000, 0.48999999999999999)])
