@@ -34,7 +34,7 @@ def redis(app):
 
     statdata = dict(zip(statcols, statvals.split()))
     for key in statkeys:
-        data.append((name, "redis_stat_%s" % key, t, statdata[key]))
+        data.append((app.hostname, "redis_stat_%s" % key, t, statdata[key]))
 
     data = prepare(data, "min max ave".split())
     app.tsar.bulk(data)
