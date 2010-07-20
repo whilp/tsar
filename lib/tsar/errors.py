@@ -5,3 +5,6 @@ class Error(Exception):
 
 class RecordError(Error):
     pass
+
+class TimeoutError(Error):
+    pass
