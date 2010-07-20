@@ -18,6 +18,7 @@ class Collector(cli.LoggingApp):
             help="service URL (default: %s)" % self.service)
 
     def pre_run(self):
+        super(Collector, self).pre_run()
         self.tsar = Tsar(self.params.service)
 
     now = property(lambda s: int(time.time()))
