@@ -20,20 +20,9 @@ from urllib import urlencode
 from urllib2 import HTTPError, HTTPRedirectHandler, Request, build_opener
 from urllib2 import quote, unquote
 
-__all__ = ["Tsar", "TsarError"]
+from . import errors
 
-class TsarError(Exception):
-    pass
-
-class APIError(TsarError):
-    """Raised when the server rejects the client's API call."""
-    
-    def __init__(self, message, response):
-        self.response = response
-
-        message = message + " (HTTP status: %d)" % self.response.getcode()
-
-        super(RecordError, self).__init__(message)
+__all__ = ["Tsar"]
 
 def timetostamp(time, now=None):
     """Convert a time representation to an integer.
@@ -190,7 +179,7 @@ class Tsar(RESTClient):
             data=body, headers={"Content-Type": self.mediatype + "+csv"})
 
         if response.getcode() != 204:
-            raise APIError("failed to create records", response)
+            raise errors.APIError("failed to create records", response)
 
         return True
 
@@ -220,7 +209,7 @@ class Tsar(RESTClient):
             headers={"Accept": self.mediatype + "+csv"})
 
         if response.getcode() != 200:
-            raise APIError("query failed", response)
+            raise errors.APIError("query failed", response)
 
         body = response.read()
         reader = csv.reader(iter(body.splitlines()))
