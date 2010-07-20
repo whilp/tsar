@@ -8,7 +8,10 @@ from tsar.client import Tsar
 
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
-    timeout = 30
+
+    def __init__(self, main=None, timeout=30, **kwargs):
+        self.timeout = timeout
+        super(Collector, self).__init__(self, main, **kwargs)
 
     @property
     def name(self):
