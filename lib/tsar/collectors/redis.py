@@ -14,6 +14,9 @@ from ..util import parsedsn
 @Collector
 def redis(app):
     dsn = parsedsn(app.params.dsn)
+    del(dsn["username"])
+    del(dsn["driver"])
+    dsn["db"] = dsn.pop("database")
     db = Redis(**dsn)
 
     statkeys = "size resident share".split()
