@@ -20,11 +20,6 @@ from urllib import urlencode
 from urllib2 import HTTPError, HTTPRedirectHandler, Request, build_opener
 from urllib2 import quote, unquote
 
-try:
-    from mimeparse import best_match
-except ImportError:
-    best_match = False
-
 __all__ = ["Tsar", "TsarError"]
 
 class TsarError(Exception):
