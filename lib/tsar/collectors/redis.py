@@ -36,7 +36,7 @@ def redis(app):
     for key in statkeys:
         data.append((app.hostname, "redis_stat_%s" % key, t, statdata[key]))
 
-    data = prepare(data, "min max ave".split())
+    data = app.prepare(data)
     app.tsar.bulk(data)
 
 default_dsn = "redis://localhost:6379/0"
