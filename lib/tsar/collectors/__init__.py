@@ -26,4 +26,4 @@ class Collector(cli.LoggingApp):
     def prepare(self, data, cfs=["min", "max", "ave"]):
         for record in data:
             for cf in cfs:
-				yield record[:2] + (cf,) + record[2:]
+                yield record[:2] + (cf,) + record[2:]
