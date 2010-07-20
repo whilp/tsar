@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+
+import sys
+
 import os
 
 from redis import Redis
@@ -33,7 +37,7 @@ def redis(app):
     app.tsar.bulk(data)
 
 default_dsn = "redis://localhost:6379/0"
-server.add_param("-D", "--dsn", default=default_dsn,
+redis.add_param("-D", "--dsn", default=default_dsn,
     help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
 
 if __name__ == "__main__":

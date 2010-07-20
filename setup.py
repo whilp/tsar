@@ -31,7 +31,7 @@ setup_options = {
     "entry_points": {
         "console_scripts": [
             "tsar-server = tsar.tsar:server.run",
-            "tsar-collect-redis = tsar.collectors.redis:collect_redis.run",
+            "tsar-collect-redis = tsar.collectors.redis:redis.run",
         ],
     },
     "test_suite": "tests",
