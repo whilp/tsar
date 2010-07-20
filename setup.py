@@ -32,6 +32,7 @@ setup_options = {
         "console_scripts": [
             "tsar-server = tsar.tsar:server.run",
             "tsar-collect-redis = tsar.collectors.redis:redis.run",
+            "tsar-collect-condor-queue = tsar.collectors.condor_queue:condor_queue.run",
         ],
     },
     "test_suite": "tests",
