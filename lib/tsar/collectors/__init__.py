@@ -8,9 +8,9 @@ from tsar.client import Tsar
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
 
-    def __init__(self, *args, **kwargs):
-        super(Collector, self).__init__(*args, **kwargs)
-        self._name = "tsar-collector-%s" % self._name
+    @property
+    def name(self):
+        return "tsar-collect-%s" % super(Collector, self).name
 
     def setup(self):
         super(Collector, self).setup()
