@@ -23,7 +23,7 @@ def timecp(proto, src, dst):
     copier = copiers[proto]
 
     start = time.time()
-    process = copier(src, dst)
+    process = run(copier % (src, dst))
     result = process.wait()
     stop = time.time()
 
