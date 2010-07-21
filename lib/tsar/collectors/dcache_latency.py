@@ -68,8 +68,9 @@ def dcache_latency(app):
         else:
             app.log.warn("%s read transfer failed", proto)
 
-    data = app.prepare(data)
-    app.tsar.bulk(data)
+    if data:
+        data = app.prepare(data)
+        app.tsar.bulk(data)
 
 default_testfile = "/pnfs/hep.wisc.edu/cmsprod/latency-test/testfile"
 default_destination = "/pnfs/hep.wisc.edu/cmsprod/latency-test"
