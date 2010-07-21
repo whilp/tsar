@@ -51,7 +51,10 @@ def dcache_latency(app):
             prefix = getattr(app.params, proto)
             result, duration = timecp(proto, localprefix(proto, src), 
                 "%s%s.%s" % (prefix, dst, proto))
-            data.append(("dcache", "%s_write_latency", t, duration))
+            if result == 0:
+                data.append(("dcache", "%s_write_latency", t, duration))
+            else:
+                app.log.warn("%s write transfer failed", proto)
     finally:
         os.remove(src)
 
@@ -60,7 +63,10 @@ def dcache_latency(app):
         prefix = getattr(app.params, proto)
         result, duration = timecp(proto, "%s%s" % (prefix, app.params.test_file),
             localprefix(proto, os.devnull))
-        data.append(("dcache", "%s_read_latency", t, duration))
+        if result == 0:
+            data.append(("dcache", "%s_read_latency", t, duration))
+        else:
+            app.log.warn("%s read transfer failed", proto)
 
     data = app.prepare(data)
     app.tsar.bulk(data)
