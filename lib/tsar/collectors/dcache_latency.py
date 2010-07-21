@@ -69,7 +69,7 @@ default_srm = "srm://cmssrm.hep.wisc.edu:8443/srm/managerv2?SFN="
 default_dcap = "dcap://cmsdcap.hep.wisc.edu:22125"
 default_gsiftp = "gsiftp://cmsgridftp.hep.wisc.edu:2811"
 
-dcache_latency.add_param("-t", "--test-file", default=default_testfile,
+dcache_latency.add_param("-T", "--test-file", default=default_testfile,
     help="Remote test file (default: %s)" % default_testfile)
 dcache_latency.add_param("-d", "--destination", default=default_destination,
     help="Destination directory (default: %s)" % default_destination)
