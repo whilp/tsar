@@ -11,7 +11,7 @@ class Collector(cli.LoggingApp):
 
     def __init__(self, main=None, timeout=30, **kwargs):
         self.timeout = timeout
-        super(Collector, self).__init__(self, main, **kwargs)
+        super(Collector, self).__init__(main, **kwargs)
 
     @property
     def name(self):
