@@ -32,7 +32,7 @@ def timecp(proto, src, dst):
 
 def localprefix(proto, path):
     if proto in ("srm", "gsiftp"):
-        path = "file://%s" % path
+        path = "file:///%s" % path
 
     return path
 
