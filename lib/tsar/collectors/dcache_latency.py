@@ -9,7 +9,8 @@ from tempfile import mktemp, mkstemp
 from . import Collector
 
 def run(cmd):
-    return subprocess.Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    return subprocess.Popen(cmd, shell=True, 
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 copiers = {
     "dcap": "dccp %s %s",
