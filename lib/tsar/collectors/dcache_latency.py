@@ -31,7 +31,7 @@ def timecp(proto, src, dst):
 
 def localprefix(proto, path):
     if proto in ("srm", "gsiftp"):
-        path = "file:///%s" % path
+        path = "file://%s" % path
 
     return path
 
@@ -49,14 +49,15 @@ def dcache_latency(app):
             t = app.now
             prefix = getattr(app.params, proto)
             result, duration = timecp(proto, localprefix(proto, src), 
-                "%s/%s.%s" % (prefix, dst, proto))
+                "%s%s.%s" % (prefix, dst, proto))
             data.append(("dcache", "%s_write_latency", t, duration))
     finally:
         os.remove(src)
 
     for proto in app.params.protos:
         t = app.now
-        result, duration = timecp(proto, app.params.test_file, 
+        prefix = getattr(app.params, proto)
+        result, duration = timecp(proto, "%s%s" % (prefix, app.params.test_file),
             localprefix(proto, os.devnull))
         data.append(("dcache", "%s_read_latency", t, duration))
 
