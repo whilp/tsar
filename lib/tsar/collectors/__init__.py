@@ -1,3 +1,4 @@
+import os
 import socket
 import time
 
@@ -36,7 +37,9 @@ class Collector(cli.LoggingApp):
         timeout = self.params.timeout > 0
         oldhandler = None
         if timeout:
+            import atexit
             import signal
+            atexit.register(lambda: os.killpg(os.getpgid(os.getpid()), signal.SIGKILL))
             def handle_timeout(signum, frame):
                 raise errors.TimeoutError("main() exceeded timeout %s", self.params.timeout)
             oldhandler = signal.signal(signal.SIGALRM, handle_timeout)
@@ -50,6 +53,7 @@ class Collector(cli.LoggingApp):
 
         if timeout:
             signal.alarm(0)
+            atexit._exithandlers.pop()
 
         return self.post_run(returned)
 
