@@ -38,7 +38,7 @@ def localprefix(proto, path):
 @Collector(timeout=300)
 def dcache_latency(app):
     srcfd, src = mkstemp(prefix="dcache-latency-testfile.")
-    srcfile = os.fdopen(srcfd)
+    srcfile = os.fdopen(srcfd, 'a')
     srcfile.write("dcache-latency-testfile\n")
     srcfile.close()
 
