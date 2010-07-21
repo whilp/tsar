@@ -73,11 +73,11 @@ dcache_latency.add_param("-T", "--test-file", default=default_testfile,
     help="Remote test file (default: %s)" % default_testfile)
 dcache_latency.add_param("-d", "--destination", default=default_destination,
     help="Destination directory (default: %s)" % default_destination)
-dcache_latency.add_param("-S", "--srm", default=default_srm,
+dcache_latency.add_param("--srm", default=default_srm,
     help="SRM base URL (default: %s)" % default_srm)
-dcache_latency.add_param("-D", "--dcap", default=default_dcap,
+dcache_latency.add_param("--dcap", default=default_dcap,
     help="dcap base URL (default: %s)" % default_dcap)
-dcache_latency.add_param("-G", "--gsiftp", default=default_gsiftp,
+dcache_latency.add_param("--gsiftp", default=default_gsiftp,
     help="gsiftp base URL (default: %s)" % default_gsiftp)
 dcache_latency.add_param("protos", nargs="+", default=[],
     choices=copiers.keys(), help="Protocols to test (default: none)")
