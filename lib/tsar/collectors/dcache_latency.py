@@ -9,7 +9,6 @@ from tempfile import mktemp, mkstemp
 from . import Collector
 
 def run(cmd):
-    cmd = "source /afs/hep.wisc.edu/cms/setup/bashrc %s" % cmd
     return subprocess.Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
 copiers = {
