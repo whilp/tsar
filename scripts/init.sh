@@ -19,7 +19,7 @@ start ()
     echo -n "Starting $prog:"
     # XXX: --check?
     daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar-server \
-        -d \
+        -dv \
         -l "${LOGFILE}" \
         -p "${PIDFILE}" \
         -D redis://localhost:6379/0 \
