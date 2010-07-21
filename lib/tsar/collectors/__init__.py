@@ -9,13 +9,16 @@ from tsar.client import Tsar
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
 
-    def __init__(self, main=None, timeout=30, **kwargs):
+    def __init__(self, main=None, timeout=30, name=None, **kwargs):
         self.timeout = timeout
         super(Collector, self).__init__(self, main, **kwargs)
 
     @property
     def name(self):
-        return "tsar-collect-%s" % super(Collector, self).name
+        name = self._name
+        if name is None:
+            name = getattr(self.main, 'func_name', self.main.__name__)
+        return "tsar-collect-%s" % name
 
     def setup(self):
         super(Collector, self).setup()
