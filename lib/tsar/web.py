@@ -86,7 +86,7 @@ class AllRecords(neat.Resource):
                 raise errors.HTTPBadRequest("Invalid resource id")
             self.extend(records, data)
 
-        self.response.status_int = 204 # No Content
+        raise errors.HTTPNoContent("Records created")
 
     def handle_json(self):
         try:
