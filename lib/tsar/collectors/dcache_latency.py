@@ -52,7 +52,7 @@ def dcache_latency(app):
             result, duration = timecp(proto, localprefix(proto, src), 
                 "%s%s.%s" % (prefix, dst, proto))
             if result == 0:
-                data.append(("dcache", "%s_write_latency", t, duration))
+                data.append(("dcache", "%s_write_latency" % proto, t, duration))
             else:
                 app.log.warn("%s write transfer failed", proto)
     finally:
@@ -64,7 +64,7 @@ def dcache_latency(app):
         result, duration = timecp(proto, "%s%s" % (prefix, app.params.test_file),
             localprefix(proto, os.devnull))
         if result == 0:
-            data.append(("dcache", "%s_read_latency", t, duration))
+            data.append(("dcache", "%s_read_latency" % proto, t, duration))
         else:
             app.log.warn("%s read transfer failed", proto)
 
