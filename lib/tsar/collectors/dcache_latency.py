@@ -24,11 +24,11 @@ def timecp(proto, src, dst):
 
     start = time.time()
     process = run(copier % (src, dst))
-    result = process.wait()
+    process.wait()
     stop = time.time()
 
     duration = stop - start
-    return result, duration
+    return process, duration
 
 def localprefix(proto, path):
     if proto in ("srm", "gsiftp"):
@@ -49,9 +49,9 @@ def dcache_latency(app):
         for proto in app.params.protos:
             t = app.now
             prefix = getattr(app.params, proto)
-            result, duration = timecp(proto, localprefix(proto, src), 
+            process, duration = timecp(proto, localprefix(proto, src), 
                 "%s%s.%s" % (prefix, dst, proto))
-            if result == 0:
+            if process.returncode == 0:
                 data.append(("dcache", "%s_write_latency" % proto, t, duration))
             else:
                 app.log.warn("%s write transfer failed", proto)
@@ -61,9 +61,9 @@ def dcache_latency(app):
     for proto in app.params.protos:
         t = app.now
         prefix = getattr(app.params, proto)
-        result, duration = timecp(proto, "%s%s" % (prefix, app.params.test_file),
+        process, duration = timecp(proto, "%s%s" % (prefix, app.params.test_file),
             localprefix(proto, os.devnull))
-        if result == 0:
+        if process.returncode == 0:
             data.append(("dcache", "%s_read_latency" % proto, t, duration))
         else:
             app.log.warn("%s read transfer failed", proto)
