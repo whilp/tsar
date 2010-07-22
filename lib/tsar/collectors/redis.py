@@ -26,6 +26,7 @@ def redis(app):
     info = db.info()
     pid = info["process_id"]
     data.append((app.hostname, "redis_used_memory", t, info["used_memory"]))
+    data.append((app.hostname, "redis_keys", t, info.get("db0", {}).get("keys", 0)))
 
     t = app.now
     statcols = "size resident share text lib data dt".split()
