@@ -19,7 +19,7 @@ jobstatusmap = {
     5: "held",
 }
 
-@Collector(timeout=60)
+@Collector(timeout=120)
 def condor_queue(app):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
          JobStartDate JobStatus GlobalJobId""".split()
