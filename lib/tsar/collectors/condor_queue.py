@@ -25,8 +25,8 @@ def condor_queue(app):
     t = app.now
     process = run(cmd)
     if process.returncode != 0:
-        app.log.warn("Failed to run condor_q (%d): %r", process.returncode, '
-            '.join(cmd))
+        app.log.warn("Failed to run condor_q (%d): %r", process.returncode, 
+            ' '.join(cmd))
         return 1
 
     cqdata = {}
