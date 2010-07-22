@@ -21,18 +21,17 @@ jobstatusmap = {
 
 @Collector(timeout=60)
 def condor_queue(app):
-    attributes = """Owner RemoteWallClockTime User ServerTime x509userproxysubject
-         OSG_VO JobStartDate JobStatus GlobalJobId""".split()
+    attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
+         JobStartDate JobStatus GlobalJobId""".split()
 
-    cmd = ["condor_q", "-global",
+    cmd = ["/condor/bin/condor_q", "-global", "-pool", "glow.cs.wisc.edu",
         "-attributes", ','.join(attributes),
-        "-format", "\n\nruntime=%d\n", "RemoteWallClockTime + (ServerTime - JobStartDate)",
+        "-format", "runtime=%d\n", "RemoteWallClockTime + (CurrentTime - EnteredCurrentStatus)",
         "-format", "jobstatus=%d\n", "JobStatus",
-        "-format", "owner=%s\n", "Owner",
-        "-format", "user=%s\n", "User",
-        "-format", "x509userproxysubject=%s\n", "x509userproxysubject",
-        "-format", "osgvo=%s\n", "OSG_VO",
-        "-format", "globaljobid=%s\n", "GlobalJobId",
+        "-format", "user=%s", "Owner",
+        "-format", "|%s", "x509userproxysubject",
+        "-format", "\n", "Owner",
+        "-format", "globaljobid=%s\n\n", "GlobalJobId",
     ]
     t = app.now
     process = run(cmd)
