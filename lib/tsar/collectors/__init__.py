@@ -10,8 +10,9 @@ from tsar.client import Tsar
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
 
-    def __init__(self, main=None, timeout=30, **kwargs):
+    def __init__(self, main=None, timeout=30, killpg=True, **kwargs):
         self.timeout = timeout
+        self.killpg = killpg
         super(Collector, self).__init__(main, **kwargs)
 
     @property
@@ -35,11 +36,16 @@ class Collector(cli.LoggingApp):
         # Set a signal in case main() takes too long.
         self.params.timeout = int(self.params.timeout)
         timeout = self.params.timeout > 0
-        oldhandler = None
-        if timeout:
+
+        cleanup = None
+        if self.killpg:
             import atexit
             import signal
-            atexit.register(lambda: os.killpg(os.getpgid(os.getpid()), signal.SIGKILL))
+            cleanup = atexit.register(lambda: os.killpg(os.getpgid(os.getpid()), signal.SIGKILL))
+
+        oldhandler = None
+        if timeout:
+            import signal
             def handle_timeout(signum, frame):
                 raise errors.TimeoutError("main() exceeded timeout %s", self.params.timeout)
             oldhandler = signal.signal(signal.SIGALRM, handle_timeout)
@@ -53,7 +59,9 @@ class Collector(cli.LoggingApp):
 
         if timeout:
             signal.alarm(0)
-            atexit._exithandlers.pop()
+
+        if self.killpg:
+            atexit._exithandlers.remove((cleanup, (), {}))
 
         return self.post_run(returned)
 
