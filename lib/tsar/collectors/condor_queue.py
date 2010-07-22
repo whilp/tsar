@@ -10,7 +10,16 @@ incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
 def run(cmd):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-@Collector
+jobstatusmap = {
+    0: "unexpanded",
+    1: "idle",
+    2: "running",
+    3: "removed",
+    4: "completed",
+    5: "held",
+}
+
+@Collector(timeout=60)
 def condor_queue(app):
     attributes = """Owner RemoteWallClockTime User ServerTime x509userproxysubject
          OSG_VO JobStartDate JobStatus GlobalJobId""".split()
