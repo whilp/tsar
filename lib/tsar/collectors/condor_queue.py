@@ -24,7 +24,8 @@ def condor_queue(app):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
          JobStartDate JobStatus GlobalJobId""".split()
 
-    cmd = ["/condor/bin/condor_q", "-global", "-pool", "glow.cs.wisc.edu",
+    pool = app.params.pool[0]
+    cmd = ["/condor/bin/condor_q", "-global", "-pool", pool,
         "-attributes", ','.join(attributes),
         "-format", "runtime=%d\n", "RemoteWallClockTime + (CurrentTime - EnteredCurrentStatus)",
         "-format", "jobstatus=%d\n", "JobStatus",
@@ -65,7 +66,7 @@ def condor_queue(app):
             incrkey(cqdata, key)
 
     data = []
-    subject = "condor"
+    subject = pool
     runtimes = cqdata.pop("runtime", None)
     if runtimes:
         data.append((subject, "max_job_runtime", t, max(runtimes)))
@@ -80,6 +81,8 @@ def condor_queue(app):
     if data:
         data = app.prepare(data)
         app.tsar.bulk(data)
+
+condor_queue.add_param("pool", nargs=1, help="Condor pool to query")
 
 if __name__ == "__main__":
     condor_queue.run()
