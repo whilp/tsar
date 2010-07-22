@@ -65,10 +65,21 @@ def condor_queue(app):
             incrkey(cqdata, key)
 
     data = []
-    runtimes = cqdata.pop("runtime")
-    data.append(("condor", "max_job_runtime", t, max(runtimes)))
-    data.append(("condor", "ave_job_runtime", t, (1.0 * sum(runtimes))/len(runtimes)))
-    data.append(("condor", "users", t, len(cqdata["user"])))
+    subject = "condor"
+    runtimes = cqdata.pop("runtime", None)
+    if runtimes:
+        data.append((subject, "max_job_runtime", t, max(runtimes)))
+        data.append((subject, "median_job_runtime", t, sorted(runtimes)[len(runtimes)/2]))
+    users = cqdata.pop("users", None)
+    if users:
+        data.append((subject, "users", t, len(users)))
+
+    for k, v in cqdata.items():
+        data.append((subject, k, t, v))
+
+    if data:
+        data = app.prepare(data)
+        app.tsar.bulk(data)
 
 if __name__ == "__main__":
     condor_queue.run()
