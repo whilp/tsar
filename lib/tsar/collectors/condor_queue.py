@@ -53,7 +53,7 @@ def condor_queue(app):
             runtimes = cqdata.setdefault("runtime", [])
             runtimes.append(int(v))
         elif k == "user":
-            users = cqdata.setdefault("users", set())
+            users = cqdata.setdefault("condor_users", set())
             users.add(v)
         elif k == "globaljobid":
             key = "total_jobs"
@@ -71,7 +71,7 @@ def condor_queue(app):
     if runtimes:
         data.append((subject, "max_job_runtime", t, max(runtimes)))
         data.append((subject, "median_job_runtime", t, sorted(runtimes)[len(runtimes)/2]))
-    users = cqdata.pop("users", None)
+    users = cqdata.pop("condor_users", None)
     if users:
         data.append((subject, "users", t, len(users)))
 
