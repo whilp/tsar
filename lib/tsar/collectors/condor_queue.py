@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+import operator
 import subprocess
 
 from . import Collector
 
-def run(*cmd):
+incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
+
+def run(cmd):
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 @Collector
