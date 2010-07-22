@@ -43,12 +43,26 @@ def condor_queue(app):
 
     cqdata = {}
     for line in stdout.splitlines():
+        if not line:
+            continue
+
+        key = None
         k, v = line.split('=', 1)
         if k == "runtime":
-            cqdata["runtime"].append(int(v))
-        kdata = cqdata.setdefault(k, {})
-        kdata.setdefault(v, 0)
-        kdata[v] += 1
+            runtimes = cqdata.setdefault("runtime", [])
+            runtimes.append(int(v))
+        elif k == "user":
+            users = cqdata.setdefault("users", set())
+            users.add(v)
+        elif k == "globaljobid":
+            key = "total_jobs"
+        elif k == "jobstatus":
+            status = jobstatusmap[int(v)]
+            if status in ("running", "held", "idle"):
+                key = "%s_jobs" % status
+            
+        if key is not None:
+            incrkey(cqdata, key)
 
     data = []
     runtimes = cqdata.pop("runtime")
