@@ -35,13 +35,13 @@ def condor_queue(app):
     ]
     t = app.now
     process = run(cmd)
+    stdout, stderr = process.communicate()
     if process.returncode != 0:
         app.log.warn("Failed to run condor_q (%d): %r", process.returncode, 
             ' '.join(cmd))
         return 1
 
     cqdata = {}
-    stdout, stderr = process.communicate()
     for line in stdout.splitlines():
         k, v = line.split('=', 1)
         if k == "runtime":
