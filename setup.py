@@ -34,6 +34,8 @@ setup_options = {
             "tsar-collect-redis = tsar.collectors.redis:redis.run",
             "tsar-collect-condor-queue = tsar.collectors.condor_queue:condor_queue.run",
             "tsar-collect-dcache-latency = tsar.collectors.dcache_latency:dcache_latency.run",
+            "tsar-collect-dcache-transfers = tsar.collectors.dcache_transfers:dcache_transfers.run",
+            "tsar-collect-afs-server = tsar.collectors.afs_server:afs_server.run",
         ],
     },
     "test_suite": "tests",
