@@ -30,12 +30,12 @@ setup_options = {
     "install_requires": pkg.__requires__,
     "entry_points": {
         "console_scripts": [
-            "tsar-server = tsar.tsar:server.run",
-            "tsar-collect-redis = tsar.collectors.redis:redis.run",
+            "tsar-collect-afs-server = tsar.collectors.afs_server:afs_server.run",
             "tsar-collect-condor-queue = tsar.collectors.condor_queue:condor_queue.run",
             "tsar-collect-dcache-latency = tsar.collectors.dcache_latency:dcache_latency.run",
             "tsar-collect-dcache-transfers = tsar.collectors.dcache_transfers:dcache_transfers.run",
-            "tsar-collect-afs-server = tsar.collectors.afs_server:afs_server.run",
+            "tsar-collect-redis = tsar.collectors.redis:redis.run",
+            "tsar-server = tsar.tsar:server.run",
         ],
     },
     "test_suite": "tests",
