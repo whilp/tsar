@@ -78,6 +78,7 @@ def condor_queue(app):
     data = list(app.prepare(data))
 
     if runtimes:
+        runtimes = [float(x) for x in runtimes]
         data.append((subject, "job_runtime", "max", t, max(runtimes)))
         data.append((subject, "job_runtime", "min", t, max(runtimes)))
         data.append((subject, "job_runtime", "ave", t, 
