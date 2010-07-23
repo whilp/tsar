@@ -166,6 +166,14 @@ class TestRecordsGet(RecordsTest):
         body = json.loads(response.body)
         self.assertEqual(len(body["fullfoo/bar/last"]), 25)
 
+    def test_get_jsonp(self):
+        response = self.get("/records/fullfoo/bar/last?callback=foo", 
+            accept="application/json")
+        print response.body
+        self.assertEqual(response.status_int, 200)
+        self.assertTrue(response.body.startswith("foo("))
+        self.assertTrue(response.body.endswith(")"))
+
     def test_get_csv(self):
         response = self.get("/records/fullfoo/bar/last", accept="text/csv")
         self.assertEqual(response.status_int, 200)

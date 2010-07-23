@@ -130,6 +130,9 @@ class Records(AllRecords):
 
         self.response.status_int = 200
         self.response.body = json.dumps(data)
+        callback = self.req.params.get("callback", None)
+        if callback is not None:
+            self.response.body = "%s(%s)" % (callback, self.response.body)
 
     @getmethod
     def get_csv(self, records, start, stop):
