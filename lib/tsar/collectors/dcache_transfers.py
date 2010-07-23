@@ -17,7 +17,7 @@ fieldkeys = {
     18: (sharedkeys + "_ mover direction since s _ transferred speed _").split(),
 }
 
-incrkey = lambda d, k, i=i: operator.setitem(d, k, d.setdefault(k, 0) + i)
+incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
 
 @Collector
 def dcache_transfers(app):
@@ -31,7 +31,7 @@ def dcache_transfers(app):
 
         incrkey(txdata, "active_transfers")
         fields = line.split()
-        keys = fieldmap.get(len(fields), None)
+        keys = fieldkeys.get(len(fields), None)
         if not keys:
             continue
 
