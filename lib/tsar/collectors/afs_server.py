@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import operator
 import subprocess
 
 from . import Collector
