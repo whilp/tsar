@@ -338,6 +338,8 @@ class Records(object):
             last = dict(last)
             log.debug("MSET %r", last)
             pipeline.mset(last)
+            pipeline.sadd(self.namespace, "%s %s %s" % (
+                self.subject, self.attribute, self.cf))
 
     def extend(self, iterable):
         """Atomically extend the series with new values from *iterable*.
