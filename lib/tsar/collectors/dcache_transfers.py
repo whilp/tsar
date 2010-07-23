@@ -68,12 +68,14 @@ def dcache_transfers(app):
     duration = txdata.pop("duration", None)
 
     if duration:
+        duration = [float(x) for x in duration]
         data.append((subject, "transfer_duration", "max", t, max(duration)))
         data.append((subject, "transfer_duration", "min", t, min(duration)))
         data.append((subject, "transfer_duration", "ave", t, 
             sorted(duration)[len(duration)/2]))
 
     if speed:
+        speed = [float(x) for x in speed]
         data.append((subject, "transfer_speed", "max", t, max(speed)))
         data.append((subject, "transfer_speed", "min", t, min(speed)))
         data.append((subject, "transfer_speed", "ave", t, 
