@@ -37,9 +37,13 @@ class getmethod(Decorator):
             records = model.Records(*rid, exception=errors.HTTPBadRequest)
         except TypeError:
             raise errors.HTTPBadRequest("Invalid resource id")
-        records.types.now = req.content.get("now", None)
-        start = req.content.get("start", 0)
-        stop = req.content.get("stop", -1)
+
+        start, stop, now = 0, -1, None
+        if req.content is not None:
+            now = req.content.get("now", None)
+            start = req.content.get("start", 0)
+            stop = req.content.get("stop", -1)
+        records.types.now = now
 
         log.debug("Handling GET, start=%s, stop=%s, now=%s", 
             start, stop, records.types.now)
@@ -89,6 +93,8 @@ class AllRecords(neat.Resource):
         raise errors.HTTPNoContent("Records created")
 
     def handle_json(self):
+        if not self.req.body:
+            return
         try:
             data = json.loads(self.req.body)
         except ValueError:
