@@ -58,6 +58,10 @@ class AllRecords(neat.Resource):
         mediatypes["records"] + "+csv": "csv",
         "text/csv": "csv",
     }
+    extensions = {
+        ".json": "application/json",
+        ".csv": "text/csv",
+    }
 
     def decodeid(self, id):
         return tuple(unquote(id.encode("utf8")).split('/'))
