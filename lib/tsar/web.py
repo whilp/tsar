@@ -40,11 +40,12 @@ class getmethod(Decorator):
         records.types.now = req.content.get("now", None)
         start = req.content.get("start", 0)
         stop = req.content.get("stop", -1)
+        interval = req.content.get("interval", None)
 
         log.debug("Handling GET, start=%s, stop=%s, now=%s", 
             start, stop, records.types.now)
 
-        return func(instance, records, start, stop)
+        return func(instance, records, start, stop, interval)
 
 class AllRecords(neat.Resource):
     prefix = "/records"
@@ -123,9 +124,9 @@ class Records(AllRecords):
     prefix = "/records/"
 
     @getmethod
-    def get_json(self, records, start, stop):
+    def get_json(self, records, start, stop, interval):
         data = {
-            self.encodeid(records): list(records.query(start, stop)),
+            self.encodeid(records): list(records.query(start, stop, interval)),
         }
 
         self.response.status_int = 200
@@ -135,10 +136,10 @@ class Records(AllRecords):
             self.response.body = "%s(%s)" % (callback, self.response.body)
 
     @getmethod
-    def get_csv(self, records, start, stop):
+    def get_csv(self, records, start, stop, interval):
         writer = csv.writer(self.response.body_file)
         writer.writerow("subject attribute cf timestamp value".split())
-        for t, v in records.query(start, stop):
+        for t, v in records.query(start, stop, interval):
             writer.writerow((records.subject, records.attribute, records.cf, t, v))
 
         self.response.status_int = 200
