@@ -241,6 +241,7 @@ class Records(object):
         # Shortcut: if we know the desired interval, we don't need to do all that
         # guessing (see below).
         if interval is not None:
+            interval = int(interval)
             samples = None
             for i, s in self.intervals:
                 if i == interval:
