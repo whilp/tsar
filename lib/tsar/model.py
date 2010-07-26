@@ -235,6 +235,7 @@ class Records(object):
         Returns an iterator.
         """
         log = logger(self)
+        empty = (x for x in [])
         start, stop = self.types.Time(start), self.types.Time(stop)
         lasti = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
@@ -247,7 +248,7 @@ class Records(object):
 
             # Bail if we don't have any data yet.
             if last is None:
-                raise StopIteration
+                return empty
 
             # Choose the first interval that might encompass the requested
             # range. If we're on the last interval, just use that (it's the best
@@ -262,7 +263,7 @@ class Records(object):
 
         # Bail if we didn't find a suitable interval.
         if ikey is None:
-            raise StopIteration
+            return empty
 
         return self.select(start, stop, interval, lasttime)
 
