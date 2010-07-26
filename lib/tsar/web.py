@@ -37,10 +37,14 @@ class getmethod(Decorator):
             records = model.Records(*rid, exception=errors.HTTPBadRequest)
         except TypeError:
             raise errors.HTTPBadRequest("Invalid resource id")
-        records.types.now = req.content.get("now", None)
-        start = req.content.get("start", 0)
-        stop = req.content.get("stop", -1)
-        interval = req.content.get("interval", None)
+
+        start, stop, now, interval = 0, -1, None, None
+        if req.content is not None:
+            now = req.content.get("now", None)
+            start = req.content.get("start", 0)
+            stop = req.content.get("stop", -1)
+            interval = req.content.get("interval", None)
+        records.types.now = now
 
         log.debug("Handling GET, start=%s, stop=%s, now=%s", 
             start, stop, records.types.now)
@@ -54,6 +58,10 @@ class AllRecords(neat.Resource):
         "application/json": "json",
         mediatypes["records"] + "+csv": "csv",
         "text/csv": "csv",
+    }
+    extensions = {
+        ".json": "application/json",
+        ".csv": "text/csv",
     }
 
     def decodeid(self, id):
@@ -90,6 +98,8 @@ class AllRecords(neat.Resource):
         raise errors.HTTPNoContent("Records created")
 
     def handle_json(self):
+        if not self.req.body:
+            return
         try:
             data = json.loads(self.req.body)
         except ValueError:
