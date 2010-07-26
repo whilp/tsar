@@ -257,6 +257,15 @@ class Records(object):
         if ikey is None:
             raise StopIteration
 
+        for value in self.select(start, stop, interval, lasttime):
+            yield value
+
+    def select(self, start, stop, interval, lasttime):
+        log = logger(self)
+        start, stop = self.types.Time(start), self.types.Time(stop)
+        istart, istop = nearest(start, interval), nearest(stop, interval)
+        ikey = self.subkey(interval)
+
         # Convert start and stop to indexes on the series. Since the series is
         # stored from most recent to oldest in the database, we flip the order
         # here.
