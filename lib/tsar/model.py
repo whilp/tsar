@@ -201,6 +201,13 @@ class Records(object):
     def tokey(self, *chunks):
         return self.types.keydelim.join(self.types.Key(c) for c in chunks)
 
+    def fromlast(self, last):
+        timestamp, value, points = last.split()
+        return self.types.Time(timestamp), self.types.Value(value), int(points)
+
+    def tolast(self, timestamp, value, points):
+        return "%d %r %d" % (timestamp, value, points)
+
     class Lock(object):
 
         def __call__(self, db, key, expire):
@@ -245,7 +252,7 @@ class Records(object):
             # Choose the first interval that might encompass the requested
             # range. If we're on the last interval, just use that (it's the best
             # we'll be able to do).
-            lasttime = self.types.Time(last.split()[0])
+            lasttime = self.fromlast(last)[0]
             earliest = lasttime - (interval * samples)
 
             inrange = (start > (earliest - interval)) and (stop < (lasttime + interval))
@@ -267,7 +274,7 @@ class Records(object):
 
         if lasttime is None:
             last = self.db.get(self.subkey, interval, "last")
-            lasttime = self.types.Time(last.split()[0])
+            lasttime = self.fromlast(last)[0]
 
         # Convert start and stop to indexes on the series. Since the series is
         # stored from most recent to oldest in the database, we flip the order
@@ -339,8 +346,7 @@ class Records(object):
 
             if not needspop:
                 dirty.setdefault("last", [])
-                dirty["last"].append((lkey,
-                    ' '.join(str(x) for x in (timestamp, value, points))))
+                dirty["last"].append((lkey, self.tolast(timestamp, value, points)))
                 # Don't trim the last interval, letting it grow.
                 if i < lasti:
                     log.debug("LTRIM %s %r %r", ikey, 0, samples)
