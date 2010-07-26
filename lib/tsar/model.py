@@ -257,8 +257,7 @@ class Records(object):
         if ikey is None:
             raise StopIteration
 
-        for value in self.select(start, stop, interval, lasttime):
-            yield value
+        return self.select(start, stop, interval, lasttime)
 
     def select(self, start, stop, interval, lasttime):
         log = logger(self)
