@@ -246,8 +246,9 @@ class Records(object):
             for i, s in self.intervals:
                 if i == interval:
                     interval, samples = i, s
-                if samples is None:
-                    return empty
+                    break
+            if samples is None:
+                return empty
 
             return self.select(start, stop, interval)
 
