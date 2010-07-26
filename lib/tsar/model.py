@@ -224,7 +224,7 @@ class Records(object):
 
     lock = Lock()
 
-    def query(self, start=0, stop=-1):
+    def query(self, start=0, stop=-1, interval=None):
         """Select a range of data from the series.
 
         The range spans from Unix time stamps *start* to *stop*, inclusive. If
@@ -237,6 +237,21 @@ class Records(object):
         log = logger(self)
         empty = (x for x in [])
         start, stop = self.types.Time(start), self.types.Time(stop)
+
+        # Shortcut: if we know the desired interval, we don't need to do all that
+        # guessing (see below).
+        if interval is not None:
+            samples = None
+            for i, s in self.intervals:
+                if i == interval:
+                    interval, samples = i, s
+                if samples is None:
+                    return empty
+
+            return self.select(start, stop, interval)
+
+        # Choose the most appropriate consolidation interval to answer the
+        # query.
         lasti = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         ikey = None
