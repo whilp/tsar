@@ -169,7 +169,6 @@ class TestRecordsGet(RecordsTest):
     def test_get_jsonp(self):
         response = self.get("/records/fullfoo/bar/last?callback=foo", 
             accept="application/json")
-        print response.body
         self.assertEqual(response.status_int, 200)
         self.assertTrue(response.body.startswith("foo("))
         self.assertTrue(response.body.endswith(")"))
