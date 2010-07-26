@@ -136,8 +136,6 @@ class Records(AllRecords):
 
     @getmethod
     def get_csv(self, records, start, stop):
-        # XXX: We don't use a csv.writer here because it doesn't work well with
-        # unicode output across interpreter versions.
         writer = csv.writer(self.response.body_file)
         writer.writerow("subject attribute cf timestamp value".split())
         for t, v in records.query(start, stop):
