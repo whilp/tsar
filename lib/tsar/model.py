@@ -290,7 +290,7 @@ class Records(object):
         ikey = self.subkey(interval)
 
         if lasttime is None:
-            last = self.db.get(self.subkey, interval, "last")
+            last = self.db.get(self.subkey(interval, "last"))
             lasttime = self.fromlast(last)[0]
 
         # Convert start and stop to indexes on the series. Since the series is
