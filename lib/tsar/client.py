@@ -131,7 +131,7 @@ class RESTClient(object):
 
         req = self.requestfactory(url, data, _headers)
         req.get_method = lambda : method
-        response = self.opener.open(req, timeout=timeout)
+        response = self.opener.open(req)
 
         return response
 
@@ -178,8 +178,8 @@ class Tsar(RESTClient):
         response = self.request(self.service, method="POST", 
             data=body, headers={"Content-Type": self.mediatype + "+csv"})
 
-        if response.getcode() != 204:
-            raise errors.APIError("failed to create records", response)
+        #if response.getcode() != 204:
+        #    raise errors.APIError("failed to create records", response)
 
         return True
 
@@ -208,8 +208,8 @@ class Tsar(RESTClient):
         response = self.request(resource, method="GET",
             headers={"Accept": self.mediatype + "+csv"})
 
-        if response.getcode() != 200:
-            raise errors.APIError("query failed", response)
+        #if response.getcode() != 200:
+        #    raise errors.APIError("query failed", response)
 
         body = response.read()
         reader = csv.reader(iter(body.splitlines()))
