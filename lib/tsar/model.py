@@ -224,7 +224,7 @@ class Records(object):
 
     lock = Lock()
 
-    def query(self, start=0, stop=-1, interval=None):
+    def query(self, start=0, stop=-1, interval=None, **kwargs):
         """Select a range of data from the series.
 
         The range spans from Unix time stamps *start* to *stop*, inclusive. If

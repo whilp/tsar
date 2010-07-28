@@ -70,6 +70,21 @@ class TestAllRecords(RecordsTest):
         response = self.get("/records", accept="*/*")
         self.assertEquals(response.status_int, 415)
 
+    def test_get_json(self):
+        data = chain([self.columns], self.data)
+        body = self.datatocsvf(data).read()
+        response = self.post("/records", content_type="text/csv",
+            body=body)
+        self.assertEquals(response.status_int, 204)
+
+        response = self.get("/records?subject=foo&attribute=bar&cf=last"
+            "&subject=spam&attribute=eggs&cf=last", 
+            accept="application/json")
+        self.assertEquals(response.status_int, 200)
+        body = json.loads(response.body)
+        self.assertTrue(body.get("foo/bar/last", []) is not [])
+        self.assertTrue(body.get("spam/eggs/last", []) is not [])
+
     def test_post(self):
         data = chain([self.columns], self.data)
         body = self.datatocsvf(data).read()

@@ -97,6 +97,41 @@ class AllRecords(neat.Resource):
 
         raise errors.HTTPNoContent("Records created")
 
+    def _get(self):
+        queries = []
+        query = {}
+        for k, v in self.req.params.items():
+            if k == "subject":
+                if query:
+                    queries.append(query)
+                    query = {}
+                query = {k: v}
+            elif not query:
+                raise errors.HTTPBadRequest("%r parameter must follow subject", k)
+            else:
+                query[k] = v
+        if query:
+            queries.append(query)
+
+        data = {}
+        for query in queries:
+            rid = [query.pop(x, None) for x in "subject attribute cf".split()]
+            records = model.Records(*rid, exception=errors.HTTPBadRequest)
+            records.types.now = query.pop("now", None)
+            result = records.query(**query)
+            data[self.encodeid(records)] = list(result)
+
+        return data
+
+    def get_json(self):
+        data = self._get()
+
+        self.response.status_int = 200
+        self.response.body = json.dumps(data)
+        callback = self.req.params.get("callback", None)
+        if callback is not None:
+            self.response.body = "%s(%s)" % (callback, self.response.body)
+
     def handle_json(self):
         if not self.req.body:
             return
