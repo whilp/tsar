@@ -254,7 +254,7 @@ class Records(object):
 
         # Choose the most appropriate consolidation interval to answer the
         # query.
-        lasti = len(self.intervals) - 1
+        nintervals = len(self.intervals) - 1
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
         ikey = None
         log.debug("MGET %r", lkeys)
@@ -274,7 +274,7 @@ class Records(object):
             earliest = lasttime - (interval * samples)
 
             inrange = (start > (earliest - interval)) and (stop < (lasttime + interval))
-            if inrange or (i >= lasti):
+            if inrange or (i >= nintervals):
                 ikey = self.subkey(interval)
                 break
 
@@ -330,7 +330,7 @@ class Records(object):
             return
         log = logger(self)
 
-        lasti = len(self.intervals) - 1
+        nintervals = len(self.intervals) - 1
         cfunc = self.cfs[self.cf]
         dirty = {}
         lkeys = [self.subkey(i, "last") for i, s in self.intervals]
@@ -366,7 +366,7 @@ class Records(object):
                 dirty.setdefault("last", [])
                 dirty["last"].append((lkey, self.tolast(timestamp, value, points)))
                 # Don't trim the last interval, letting it grow.
-                if i < lasti:
+                if i < nintervals:
                     log.debug("LTRIM %s %r %r", ikey, 0, samples)
                     pipeline.ltrim(ikey, 0, samples)
         last = dirty.get("last", [])

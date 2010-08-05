@@ -83,6 +83,14 @@ class TestRecords(BaseTest):
         self.records.extend(self.data)
         self.assertRaises(errors.RecordError, self.records.extend, self.data)
 
+    def test_trimming(self):
+        self.records.extend(self.data)
+        result = self.records.query(0, -1, interval=60)
+        first = result.next()
+        self.assertTrue(first[0] - self.data[0][0] > 60)
+        self.assertTrue(len(list(result)) + 1, self.records.intervals[0][1])
+        #self.assertTrue(len(result) > 0)
+
     def test_query(self):
         t1, t2 = self.data[0][0], self.data[-1][0]
         self.records.extend(self.data)
@@ -176,3 +184,4 @@ class TestRecords(BaseTest):
             bins[k] = float(sum(v))/len(v)
         for t, v, i in result:
             self.assertEqual(bins[t], v)
+
