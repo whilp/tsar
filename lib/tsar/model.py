@@ -4,7 +4,7 @@ import time
 
 from calendar import timegm
 from datetime import datetime
-from itertools import chain
+from itertools import chain, dropwhile
 from string import digits, letters, punctuation
 
 from neat.util import validate, validator
@@ -345,10 +345,13 @@ class Records(object):
                 lasttime, lastval, lasti = last.split()
                 lasti = self.types.Number(lasti)
 
-            idata = iter(data)
+            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in data)
             if lasttime is not None:
-                idata = chain([(lasttime, lastval)], data)
-            idata = ((self.types.Time(t), self.types.Value(v)) for t, v in idata)
+                notrecent = lambda x: x[0] <= lasttime
+                lasttime = self.types.Time(lasttime)
+                lastval = self.types.Value(lastval)
+                idata = dropwhile(notrecent, idata)
+                idata = chain([(lasttime, lastval)], idata)
             idata = self.consolidate(idata, interval, cfunc, lasti)
 
             # Only remove the possibly redundant first entry if we're actually

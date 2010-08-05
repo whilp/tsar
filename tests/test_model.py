@@ -39,11 +39,6 @@ class TestRecords(BaseTest):
     def test_append_badval(self):
         self.assertRaises(TypeError, self.records.append, (1278508719, "foo"))
 
-    def test_append_oldtime(self):
-        t = 1278508719
-        self.records.append((t, 10))
-        self.assertRaises(errors.RecordError, self.records.append, (t-10000, 11))
-
     def test_append_repeated(self):
         t = 1278508719
         data = [(t + i*80, i) for i in range(10)]
@@ -78,10 +73,6 @@ class TestRecords(BaseTest):
 
     def test_extend(self):
         self.records.extend(self.data)
-
-    def test_extend_oldtime(self):
-        self.records.extend(self.data)
-        self.assertRaises(errors.RecordError, self.records.extend, self.data)
 
     def test_trimming(self):
         self.records.extend(self.data)

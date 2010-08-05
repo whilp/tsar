@@ -134,7 +134,7 @@ class TestRecordsPost(RecordsTest):
         self.assertEqual(response.status_int, 204)
         response = self.post("/records/dblfoo/bar/last", content_type="application/json",
             body=json.dumps({"dblfoo/bar/last": [self.data[-2]]}))
-        self.assertEqual(response.status_int, 409)
+        self.assertEqual(response.status_int, 204)
 
 class TestRecordsGet(RecordsTest):
 
