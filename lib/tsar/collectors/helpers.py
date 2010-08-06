@@ -35,24 +35,13 @@ def runcmd(cmd, **kwargs):
     return subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
 
-cfs = {
-	"min": min,
-	"max": max,
-    "ave": median,
-}
-def prepare(data, cfs=cfs):
-    expand = lambda r: (insert(r, 3, cf) for cf in cfs)
-    records = chain(*[len(r) == 5 and (r,) or expand(r) for r in data])
-
-    for record in records:
-        value = record[4]
-        if not isinstance(value, (int, float)):
-            record[4] = cfs[record[2]](value)
-
-        yield record
-
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
+    cfs = {
+        "min": min,
+        "max": max,
+        "ave": median,
+    }
 
     def __init__(self, main=None, timeout=30, killpg=True, **kwargs):
         self.timeout = timeout
@@ -108,6 +97,23 @@ class Collector(cli.LoggingApp):
             atexit._exithandlers.remove((cleanup, (), {}))
 
         return self.post_run(returned)
+
+    def prepare(data, cfs=None):
+        if cfs is None:
+            cfs = self.cfs
+
+        expand = lambda r: (insert(r, 3, cf) for cf in cfs)
+        records = chain(*[len(r) == 5 and (r,) or expand(r) for r in data])
+
+        for record in records:
+            value = record[4]
+            if not isinstance(value, (int, float)):
+                record[4] = cfs[record[2]](value)
+
+            yield record
+
+    def submit(self, data, cfs=None):
+        return self.tsar.bulk(self.prepare(data, cfs=cfs))
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())
