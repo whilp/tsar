@@ -2,7 +2,7 @@
 
 import subprocess
 
-from itertools import chain
+from itertools import chain, dropwhile
 from operator import itemgetter
 
 from . import Collector
@@ -81,17 +81,22 @@ def sar(app):
 
     keys = "subject attribute timestamp value".split()
     data = [tuple([r.get(k) for k in keys]) for r in chain(*records)]
+    data.sort(key=itemgetter(2))
 
-    if data:
-        data.sort(key=itemgetter(2))
-        data = app.prepare(data)
-        app.tsar.bulk(data)
+    if app.params.newer:
+        newer = int(app.params.newer)
+        old = lambda r: r[2] < newer
+        data = dropwhile(old, data)
+    data = app.prepare(data)
+    app.tsar.bulk(data)
 
 default_sadf = "/usr/bin/sadf -p <FILE> -- -c -n DEV -n EDEV -q -r -u -w"
 sar.add_param("-c", "--command", default=default_sadf,
     help="sadf command (default: %r)" % default_sadf)
 sar.add_param("-f", "--fields", default="",
     help="comma-separated list of fields to include (default: all fields)")
+sar.add_param("-n", "--newer", default=None,
+    help="only submit records newer than supplied UTC timestamp (default: all records)")
 sar.add_param("files", help="system activity files", nargs="*")
 
 if __name__ == "__main__":
