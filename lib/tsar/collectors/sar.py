@@ -63,10 +63,9 @@ def parsesadf(output, fieldmap={}):
 def sar(app):
     global fieldtoattr
 
-    fields = app.params.fields.split(',')
-    if fields:
+    if app.params.fields:
         fieldtoattr = dict((k, v) for k, v in fieldtoattr.items() if \
-            k not in fields and v not in fields)
+            k in fields or v in app.params.fields.split(','))
 
     cmd = app.params.command
     keys = "subject attribute timestamp value".split()
