@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 
-import operator
-import subprocess
-
-from .helpers import Collector
-
-incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
-
-def run(cmd):
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+from . import helpers
 
 jobstatusmap = {
     0: "unexpanded",
@@ -19,7 +11,7 @@ jobstatusmap = {
     5: "held",
 }
 
-@Collector(timeout=120)
+@helpers.Collector(timeout=120)
 def condor_queue(app):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
          JobStartDate JobStatus GlobalJobId""".split()
@@ -35,7 +27,7 @@ def condor_queue(app):
         "-format", "globaljobid=%s\n\n", "GlobalJobId",
     ]
     t = app.now
-    process = run(cmd)
+    process = helpers.runcmd(cmd)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
         app.log.warn("Failed to run condor_q (%d): %r", process.returncode, 
@@ -75,7 +67,7 @@ def condor_queue(app):
     for k, v in cqdata.items():
         data.append((subject, k, t, v))
 
-    data = list(app.prepare(data))
+    data = list(helpers.prepare(data))
 
     if runtimes:
         runtimes = [float(x) for x in runtimes]
