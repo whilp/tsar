@@ -88,8 +88,9 @@ def sar(app):
         newer = int(app.params.newer)
         old = lambda r: r[2] < newer
         data = dropwhile(old, data)
-    data = app.prepare(data)
-    app.tsar.bulk(data)
+    data = list(app.prepare(data))
+    if data:
+        app.tsar.bulk(data)
 
 default_sadf = "/usr/bin/sadf -p <FILE> -- -c -n DEV -n EDEV -q -r -u -w"
 sar.add_param("-c", "--command", default=default_sadf,
