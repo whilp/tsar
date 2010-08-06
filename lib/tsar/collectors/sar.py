@@ -64,8 +64,9 @@ def sar(app):
     global fieldtoattr
 
     if app.params.fields:
+        fields = app.params.fields.split(',')
         fieldtoattr = dict((k, v) for k, v in fieldtoattr.items() if \
-            k in fields or v in app.params.fields.split(','))
+            k in fields or v in fields)
 
     cmd = app.params.command
     records = []
