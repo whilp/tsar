@@ -1,33 +1,11 @@
 #!/usr/bin/env python
 
-import functools
-import operator
-
-from .helpers import Collector
+from . import helpers
 
 from dcache.admin import Admin
 from dcache.app import AdminApp
 
-median = lambda x: sorted(x)[len(x)/2]
-
-def trim(s, subs, reverse=False):
-    find = s.find
-    if reverse:
-        find = s.rfind
-    i = find(subs)
-
-    if i < 0:
-        start, end = 0, None
-    elif reverse:
-        start, end = 0, i
-    else:
-        start, end = len(subs), None
-
-    return s[start:end]
-
-rtrim = functools.partial(trim, reverse=True)
-
-class AdminCollector(AdminApp, Collector):
+class AdminCollector(AdminApp, helpers.Collector):
     pass
 
 @AdminCollector
@@ -91,7 +69,7 @@ def dcache_pnfsmanager(app):
     for msgtype, rate in failrates.items():
         data.append((subject, "failrate_%s" % msgtype, t, rate))
 
-    data = list(app.prepare(data))
+    data = list(helpers.prepare(data))
 
     depth = stats.pop("queue_depth", [])
     if not depth:
