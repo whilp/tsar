@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 
 import os
-import subprocess
 import time
 
 from tempfile import mktemp, mkstemp
 
-from .helpers import Collector
-
-def run(cmd):
-    return subprocess.Popen(cmd, shell=True, 
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+from . import helpers
 
 copiers = {
     "dcap": "dccp %s %s",
@@ -23,7 +18,7 @@ def timecp(proto, src, dst):
     copier = copiers[proto]
 
     start = time.time()
-    process = run(copier % (src, dst))
+    process = helpers.runcmd(copier % (src, dst), shell=True)
     process.wait()
     stop = time.time()
 
@@ -36,7 +31,7 @@ def localprefix(proto, path):
 
     return path
 
-@Collector(timeout=600)
+@helpers.Collector(timeout=600)
 def dcache_latency(app):
     srcfd, src = mkstemp(prefix="dcache-latency-testfile.")
     srcfile = os.fdopen(srcfd, 'a')
@@ -69,7 +64,7 @@ def dcache_latency(app):
             app.log.warn("%s read transfer failed", proto)
 
     if data:
-        data = app.prepare(data)
+        data = helpers.prepare(data)
         app.tsar.bulk(data)
 
 default_testfile = "/pnfs/hep.wisc.edu/cmsprod/latency-test/testfile"
