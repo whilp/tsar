@@ -3,7 +3,7 @@
 import operator
 import urllib2
 
-from .helpers import Collector
+from . import helpers
 
 protocols = {
     "dcap-3": "dcap",
@@ -17,9 +17,7 @@ fieldkeys = {
     18: (sharedkeys + "_ mover direction since s _ transferred speed _").split(),
 }
 
-incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
-
-@Collector
+@helpers.Collector
 def dcache_transfers(app):
     url = app.params.url[0]
 
@@ -62,7 +60,7 @@ def dcache_transfers(app):
         key = "%s_transfers" % protocol
         data.append((subject, key, t, txdata.get(key, 0)))
 
-    data = list(app.prepare(data))
+    data = list(helpers.prepare(data))
 
     speed = txdata.pop("speed", None)
     duration = txdata.pop("duration", None)
