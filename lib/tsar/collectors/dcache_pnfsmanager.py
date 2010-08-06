@@ -3,7 +3,7 @@
 import functools
 import operator
 
-from . import Collector
+from .helpers import Collector
 
 from dcache.admin import Admin
 from dcache.app import AdminApp

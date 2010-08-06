@@ -5,7 +5,7 @@ import subprocess
 from itertools import chain, dropwhile
 from operator import itemgetter
 
-from . import Collector
+from .helpers import Collector
 
 median = lambda x: sorted(x)[len(x)/2]
 

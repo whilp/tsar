@@ -8,7 +8,7 @@ import os
 
 from redis import Redis
 
-from . import Collector
+from .helpers import Collector
 from ..util import parsedsn
 
 @Collector

@@ -3,7 +3,7 @@
 import operator
 import subprocess
 
-from . import Collector
+from .helpers import Collector
 
 incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
 

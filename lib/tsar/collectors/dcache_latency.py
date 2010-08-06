@@ -6,7 +6,7 @@ import time
 
 from tempfile import mktemp, mkstemp
 
-from . import Collector
+from .helpers import Collector
 
 def run(cmd):
     return subprocess.Popen(cmd, shell=True, 

@@ -3,7 +3,7 @@
 import operator
 import urllib2
 
-from . import Collector
+from .helpers import Collector
 
 protocols = {
     "dcap-3": "dcap",
