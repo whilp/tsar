@@ -1,11 +1,24 @@
+import operator
 import os
 import socket
+import subprocess
 import time
 
 import cli
 
 from tsar import errors
 from tsar.client import Tsar
+
+incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
+
+def runcmd(cmd, **kwargs):
+    return subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+
+def prepare(data, cfs=["min", "max", "ave"]):
+    for record in data:
+        for cf in cfs:
+            yield record[:2] + (cf,) + record[2:]
 
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
@@ -67,8 +80,3 @@ class Collector(cli.LoggingApp):
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())
-
-    def prepare(self, data, cfs=["min", "max", "ave"]):
-        for record in data:
-            for cf in cfs:
-                yield record[:2] + (cf,) + record[2:]

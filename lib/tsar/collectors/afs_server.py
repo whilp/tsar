@@ -1,22 +1,14 @@
 #!/usr/bin/env python
 
-import operator
-import subprocess
+from . import helpers
 
-from .helpers import Collector
-
-incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
-
-def run(cmd):
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-@Collector
+@helpers.Collector
 def afs_server(app):
     server = app.params.server[0]
     cmd = ["/usr/sbin/rxdebug", server]
 
     t = app.now
-    process = run(cmd)
+    process = helpers.runcmd(cmd)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
         app.log.warn("Failed to run rxdebug (%d): %r", process.returncode,
@@ -25,9 +17,9 @@ def afs_server(app):
     rxdata = {}
     for line in stdout.splitlines():
         if line.startswith("Connection from"):
-            incrkey(rxdata, "afs_connections")
+            helpers.incrkey(rxdata, "afs_connections")
         elif "waiting_for_process" in line:
-            incrkey(rxdata, "blocked_afs_connections")
+            helpers.incrkey(rxdata, "blocked_afs_connections")
 
     data = []
     subject = server
@@ -35,7 +27,7 @@ def afs_server(app):
     data.append((subject, "blocked_afs_connections", t, 
         rxdata.get("blocked_afs_connections", 0)))
 
-    data = app.prepare(data)
+    data = helpers.prepare(data)
     app.tsar.bulk(data)
 
 afs_server.add_param("server", nargs=1, help="AFS server name")
