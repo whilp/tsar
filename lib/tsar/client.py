@@ -172,8 +172,12 @@ class Tsar(RESTClient):
         buffer = csv.StringIO()
         writer = csv.writer(buffer)
         writer.writerow("subject attribute cf timestamp value".split())
+        nodata = True
         for s, a, c, t, v in data:
+            nodata = False
             writer.writerow((s, a, c, timetostamp(t), v))
+        if nodata:
+            return
         buffer.seek(0); body = buffer.read()
         response = self.request(self.service, method="POST", 
             data=body, headers={"Content-Type": self.mediatype + "+csv"})
