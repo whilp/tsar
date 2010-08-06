@@ -79,8 +79,7 @@ def dcache_pnfsmanager(app):
     data.append((subject, "queue_depth", "min", t, min(depth)))
     data.append((subject, "queue_depth", "ave", t, median(depth)))
 
-    if data:
-        app.tsar.bulk(data)
+    app.tsar.bulk(data)
 
 if __name__ == "__main__":
     dcache_pnfsmanager.run()

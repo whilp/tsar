@@ -76,8 +76,7 @@ def condor_queue(app):
         data.append((subject, "job_runtime", "ave", t, 
             sorted(runtimes)[len(runtimes)/2]))
 
-    if data:
-        app.tsar.bulk(data)
+    app.tsar.bulk(data)
 
 condor_queue.add_param("pool", nargs=1, help="Condor pool to query")
 

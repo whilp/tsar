@@ -79,8 +79,7 @@ def dcache_transfers(app):
         data.append((subject, "transfer_speed", "ave", t, 
             sorted(speed)[len(speed)/2]))
 
-    if data:
-        app.tsar.bulk(data)
+    app.tsar.bulk(data)
 
 dcache_transfers.add_param("url", nargs=1, help="Active transfers text URL")
 
