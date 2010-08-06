@@ -36,8 +36,12 @@ def runcmd(cmd, **kwargs):
 
 def prepare(data, cfs=["min", "max", "ave"]):
     for record in data:
+        if len(record) == 5:
+            yield record
+            continue
+
         for cf in cfs:
-            yield record[:2] + (cf,) + record[2:]
+            yield tuple(record[:2]) + (cf,) + tuple(record[2:])
 
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
