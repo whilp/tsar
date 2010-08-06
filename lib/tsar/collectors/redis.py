@@ -8,10 +8,10 @@ import os
 
 from redis import Redis
 
-from .helpers import Collector
+from . import helpers
 from ..util import parsedsn
 
-@Collector
+@helpers.Collector
 def redis(app):
     dsn = parsedsn(app.params.dsn)
     del(dsn["username"])
@@ -37,7 +37,7 @@ def redis(app):
     for key in statkeys:
         data.append((app.hostname, "redis_stat_%s" % key, t, statdata[key]))
 
-    data = app.prepare(data)
+    data = helpers.prepare(data)
     app.tsar.bulk(data)
 
 default_dsn = "redis://localhost:6379/0"
