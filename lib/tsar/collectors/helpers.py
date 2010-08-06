@@ -10,6 +10,7 @@ import cli
 from tsar import errors
 from tsar.client import Tsar
 
+insert = lambda l, i, o: l[0:i] + [o] + l[i:]
 incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
 median = lambda x: sorted(x)[len(x)/2]
 
@@ -34,14 +35,21 @@ def runcmd(cmd, **kwargs):
     return subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
 
-def prepare(data, cfs=["min", "max", "ave"]):
-    for record in data:
-        if len(record) == 5:
-            yield record
-            continue
+cfs = {
+	"min": min,
+	"max": max,
+    "ave": median,
+}
+def prepare(data, cfs=cfs):
+    expand = lambda r: (insert(r, 3, cf) for cf in cfs)
+    records = chain(*[len(r) == 5 and (r,) or expand(r) for r in data])
 
-        for cf in cfs:
-            yield tuple(record[:2]) + (cf,) + tuple(record[2:])
+    for record in records:
+        value = record[4]
+        if not isinstance(value, (int, float)):
+            record[4] = cfs[record[2]](value)
+
+        yield record
 
 class Collector(cli.LoggingApp):
     service = "http://tsar.hep.wisc.edu/records"
