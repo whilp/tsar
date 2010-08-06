@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
-import subprocess
-
 from itertools import chain, dropwhile
 from operator import itemgetter
 
-from .helpers import Collector
-
-median = lambda x: sorted(x)[len(x)/2]
+from . import helpers
 
 fieldtoattr = {
     "%idle": "cpu_idle_pct",
@@ -40,10 +36,6 @@ fieldtoattr = {
     "txpck/s": "net_tx_packets/s",
 }
 
-def run(cmd, **kwargs):
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        **kwargs)
-
 def parsesadf(output, fieldmap={}):
     keys = "subject interval timestamp device field value".split()
     nkeys = len(keys)
@@ -59,7 +51,7 @@ def parsesadf(output, fieldmap={}):
         data["value"] = float(data["value"])
         yield data
 
-@Collector
+@helpers.Collector
 def sar(app):
     global fieldtoattr
 
@@ -71,7 +63,7 @@ def sar(app):
     cmd = app.params.command
     records = []
     for fname in app.params.files:
-        process = run(cmd.replace("<FILE>", fname), shell=True)
+        process = helpers.runcmd(cmd.replace("<FILE>", fname), shell=True)
         stdout, stderr = process.communicate()
 
         if process.returncode != 0:
@@ -88,7 +80,7 @@ def sar(app):
         newer = int(app.params.newer)
         old = lambda r: r[2] < newer
         data = dropwhile(old, data)
-    data = list(app.prepare(data))
+    data = list(helpers.prepare(data))
     if data:
         app.tsar.bulk(data)
 
