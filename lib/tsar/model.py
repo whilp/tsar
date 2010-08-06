@@ -111,10 +111,9 @@ class Records(object):
     """
     intervals = [
         # interval  samples     unit
-        (60,        720),     # minute, max 12 hours
-        (3600,      672),     # hour, max 28 days
-        (86400,     730),     # day, max 2 years (unbounded)
-        #(604800,   480),     # week, max 10 years
+        (60,        1440),    # minute, max 24 hours
+        (3600,      1344),    # hour, max 56 days (two months)
+        (86400,     1460),    # day, max 2 years (actually unbounded)
     ]
     """Consolidation intervals and sample limits.
 
