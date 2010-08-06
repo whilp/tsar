@@ -60,26 +60,12 @@ def dcache_transfers(app):
         key = "%s_transfers" % protocol
         data.append((subject, key, t, txdata.get(key, 0)))
 
-    data = list(helpers.prepare(data))
+    data.append((subject, "transfer_duration", t, 
+        [float(x) for x in txdata.pop("duration", [])]))
+    data.append((subject, "transfer_speed", t,
+        [float(x) for x in txdata.pop("speed", [])]))
 
-    speed = txdata.pop("speed", None)
-    duration = txdata.pop("duration", None)
-
-    if duration:
-        duration = [float(x) for x in duration]
-        data.append((subject, "transfer_duration", "max", t, max(duration)))
-        data.append((subject, "transfer_duration", "min", t, min(duration)))
-        data.append((subject, "transfer_duration", "ave", t, 
-            sorted(duration)[len(duration)/2]))
-
-    if speed:
-        speed = [float(x) for x in speed]
-        data.append((subject, "transfer_speed", "max", t, max(speed)))
-        data.append((subject, "transfer_speed", "min", t, min(speed)))
-        data.append((subject, "transfer_speed", "ave", t, 
-            sorted(speed)[len(speed)/2]))
-
-    app.tsar.bulk(data)
+    app.submit(data)
 
 dcache_transfers.add_param("url", nargs=1, help="Active transfers text URL")
 

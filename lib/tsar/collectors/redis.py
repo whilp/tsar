@@ -20,13 +20,15 @@ def redis(app):
     db = Redis(**dsn)
 
     statkeys = "size resident share".split()
-    data = []
 
     t = app.now
     info = db.info()
     pid = info["process_id"]
-    data.append((app.hostname, "redis_used_memory", t, info["used_memory"]))
-    data.append((app.hostname, "redis_keys", t, info.get("db0", {}).get("keys", 0)))
+
+    data = []
+    subject = app.hostname
+    data.append((subject, "redis_used_memory", t, info["used_memory"]))
+    data.append((subject, "redis_keys", t, info.get("db0", {}).get("keys", 0)))
 
     t = app.now
     statcols = "size resident share text lib data dt".split()
@@ -35,10 +37,9 @@ def redis(app):
 
     statdata = dict(zip(statcols, statvals.split()))
     for key in statkeys:
-        data.append((app.hostname, "redis_stat_%s" % key, t, statdata[key]))
+        data.append((subject, "redis_stat_%s" % key, t, statdata[key]))
 
-    data = helpers.prepare(data)
-    app.tsar.bulk(data)
+    app.submit(data)
 
 default_dsn = "redis://localhost:6379/0"
 redis.add_param("-D", "--dsn", default=default_dsn,

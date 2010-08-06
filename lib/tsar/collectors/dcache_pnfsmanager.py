@@ -44,7 +44,6 @@ def dcache_pnfsmanager(app):
                 state = ""
                 continue
             _, depth = line.split(None, 1)
-            depth = int(depth)
             stats.setdefault("queue_depth", []).append(depth)
         elif state == "stats":
             if not line or line.startswith("PnfsManagerV3"):
@@ -75,11 +74,9 @@ def dcache_pnfsmanager(app):
     if not depth:
         return 1
 
-    data.append((subject, "queue_depth", "max", t, max(depth)))
-    data.append((subject, "queue_depth", "min", t, min(depth)))
-    data.append((subject, "queue_depth", "ave", t, median(depth)))
+    data.append((subject, "queue_depth", t, [int(x) for x in depth])))
 
-    app.tsar.bulk(data)
+    app.submit(data)
 
 if __name__ == "__main__":
     dcache_pnfsmanager.run()

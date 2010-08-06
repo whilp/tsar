@@ -73,15 +73,14 @@ def sar(app):
         records.append(parsesadf(stdout, fieldmap=fieldtoattr))
 
     keys = "subject attribute timestamp value".split()
-    data = [tuple([r.get(k) for k in keys]) for r in chain(*records)]
+    data = [[r.get(k) for k in keys] for r in chain(*records)]
     data.sort(key=itemgetter(2))
 
     if app.params.newer:
         newer = int(app.params.newer)
         old = lambda r: r[2] < newer
         data = dropwhile(old, data)
-    data = helpers.prepare(data)
-    app.tsar.bulk(data)
+    app.submit(data)
 
 default_sadf = "/usr/bin/sadf -p <FILE> -- -c -n DEV -n EDEV -q -r -u -w"
 sar.add_param("-c", "--command", default=default_sadf,

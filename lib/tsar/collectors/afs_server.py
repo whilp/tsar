@@ -27,8 +27,7 @@ def afs_server(app):
     data.append((subject, "blocked_afs_connections", t, 
         rxdata.get("blocked_afs_connections", 0)))
 
-    data = helpers.prepare(data)
-    app.tsar.bulk(data)
+    app.submit(data)
 
 afs_server.add_param("server", nargs=1, help="AFS server name")
 

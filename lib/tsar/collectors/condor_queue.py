@@ -59,24 +59,16 @@ def condor_queue(app):
 
     data = []
     subject = pool
-    runtimes = cqdata.pop("runtime", None)
+
     users = cqdata.pop("condor_users", None)
     if users:
         data.append((subject, "users", t, len(users)))
 
-    for k, v in cqdata.items():
-        data.append((subject, k, t, v))
+    data.extend((subject, k, t, v) for k, v in cqdata.items())
+    data.append((subject, "job_runtime", t, 
+        [float(x) for x in runtimes]))
 
-    data = list(helpers.prepare(data))
-
-    if runtimes:
-        runtimes = [float(x) for x in runtimes]
-        data.append((subject, "job_runtime", "max", t, max(runtimes)))
-        data.append((subject, "job_runtime", "min", t, max(runtimes)))
-        data.append((subject, "job_runtime", "ave", t, 
-            sorted(runtimes)[len(runtimes)/2]))
-
-    app.tsar.bulk(data)
+    app.submit(data)
 
 condor_queue.add_param("pool", nargs=1, help="Condor pool to query")
 
