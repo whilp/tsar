@@ -68,7 +68,6 @@ def sar(app):
             k in fields or v in app.params.fields.split(','))
 
     cmd = app.params.command
-    keys = "subject attribute timestamp value".split()
     records = []
     for fname in app.params.files:
         process = run(cmd.replace("<FILE>", fname), shell=True)
@@ -80,6 +79,7 @@ def sar(app):
         stdout = iter(stdout.splitlines())
         records.append(parsesadf(stdout, fieldmap=fieldtoattr))
 
+    keys = "subject attribute timestamp value".split()
     data = [tuple([r.get(k) for k in keys]) for r in chain(*records)]
 
     if data:
