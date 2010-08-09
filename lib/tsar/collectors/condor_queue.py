@@ -55,7 +55,7 @@ def condor_queue(app):
                 key = "%s_jobs" % status
             
         if key is not None:
-            incrkey(cqdata, key)
+            helpers.incrkey(cqdata, key)
 
     data = []
     subject = pool
