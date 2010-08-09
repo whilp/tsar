@@ -51,8 +51,8 @@ def dcache_pnfsmanager(app):
             elif line.startswith("Total"):
                 state = ""
             msgtype, requests, failed = line.split(None, 2)
-            msgtype = rtrim(msgtype, "Message")
-            msgtype = trim(msgtype, "Pnfs")
+            msgtype = helpers.rtrim(msgtype, "Message")
+            msgtype = helpers.trim(msgtype, "Pnfs")
             msgtype = msgtype.lower()
             if msgtype not in stats["failrates"]: continue
 
@@ -67,8 +67,6 @@ def dcache_pnfsmanager(app):
     failrates = stats["failrates"]
     for msgtype, rate in failrates.items():
         data.append((subject, "failrate_%s" % msgtype, t, rate))
-
-    data = list(helpers.prepare(data))
 
     depth = stats.pop("queue_depth", [])
     if not depth:
