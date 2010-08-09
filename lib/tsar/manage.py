@@ -48,7 +48,7 @@ class SubApp(cli.LoggingApp):
 def last(app):
     now = time.time()
     last = lastkeys(app.db)
-    last.sort(key=lambda x:x[1][0])
+    last.sort(key=lambda x:x[1][0], reverse=app.params.reverse)
 
     app.stdout.write("===> Found %d records\n" % len(last))
     headers = ("AGE", "VALUE", "RECORD")
@@ -90,7 +90,10 @@ manage.add_param("-D", "--dsn", default=default_dsn,
     help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
 
 subparsers = manage.argparser.add_subparsers(dest="command")
-last.argparser = subparsers.add_parser("last", help="list database keys")
+last.argparser = subparsers.add_parser("last", 
+    help="list database keys from oldest to newest")
+last.add_param("-r", "--reverse", default=False, action="store_true",
+    help="reverse sort")
 clean.argparser = subparsers.add_parser("clean", help="remove keys")
 clean.add_param("-n", "--dryrun", default=False, action="store_true",
     help="don't actually remove records")
