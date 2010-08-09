@@ -7,6 +7,8 @@ import time
 
 import cli
 
+from itertools import chain
+
 from tsar import errors
 from tsar.client import Tsar
 
@@ -98,12 +100,12 @@ class Collector(cli.LoggingApp):
 
         return self.post_run(returned)
 
-    def prepare(data, cfs=None):
+    def prepare(self, data, cfs=None):
         if cfs is None:
             cfs = self.cfs
 
-        expand = lambda r: (insert(r, 3, cf) for cf in cfs)
-        records = chain(*[len(r) == 5 and (r,) or expand(r) for r in data])
+        expand = lambda r: (insert(r, 2, cf) for cf in cfs)
+        records = chain(*[len(r) == 5 and (r,) or expand(list(r)) for r in data])
 
         for record in records:
             value = record[4]
