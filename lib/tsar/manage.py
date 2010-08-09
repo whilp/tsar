@@ -47,7 +47,9 @@ class SubApp(cli.LoggingApp):
 @SubApp
 def last(app):
     now = time.time()
+    pattern = re.compile(app.params.pattern)
     last = lastkeys(app.db)
+    last = [(k, v) for k, v in last if pattern.match(k)]
     last.sort(key=lambda x:x[1][0], reverse=app.params.reverse)
 
     app.stdout.write("===> Found %d records\n" % len(last))
@@ -94,6 +96,9 @@ last.argparser = subparsers.add_parser("last",
     help="list database keys from oldest to newest")
 last.add_param("-r", "--reverse", default=False, action="store_true",
     help="reverse sort")
+last.add_param("pattern", nargs="?", default=".*", 
+    help="regular expression to match subkeys against")
+
 clean.argparser = subparsers.add_parser("clean", help="remove keys")
 clean.add_param("-n", "--dryrun", default=False, action="store_true",
     help="don't actually remove records")
