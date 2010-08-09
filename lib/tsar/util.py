@@ -107,3 +107,10 @@ def parsedsn(dsnstring, **defaults):
         dsn["port"] = int(dsn["port"])
 
     return dsn
+
+def nearest(value, interval):
+    """Round *value* to the nearest value evenly divisible by *interval*."""
+    distance = value % interval
+    if distance > (interval/2):
+        distance -= interval
+    return value - distance

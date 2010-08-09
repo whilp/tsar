@@ -10,6 +10,7 @@ from string import digits, letters, punctuation
 from neat.util import validate, validator
 
 from . import errors
+from .util import nearest
 
 __all__ = ["Records", "connect", "db"]
 
@@ -32,13 +33,6 @@ def cma(last, next, i):
     if i == 0:
         i += 1
     return (i, last + float(next - last)/(i + 1))
-
-def nearest(value, interval):
-    """Round *value* to the nearest value evenly divisible by *interval*."""
-    distance = value % interval
-    if distance > (interval/2):
-        distance -= interval
-    return value - distance
 
 class Types(validate):
     keylen = 128
