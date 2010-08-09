@@ -1,6 +1,9 @@
+import re
 import time
 
 import cli
+
+from itertools import chain
 
 from . import model
 from .util import nearest, parsedsn
@@ -36,9 +39,15 @@ def lastkeys(db):
     last = zip(records, [v.split() for v in db.mget(lkeys)])
     return [(k, [intorfloat(x) for x in v]) for k, v in last]
 
-def last(app, db):
+class SubApp(cli.LoggingApp):
+    
+    def pre_run(self):
+        pass
+
+@SubApp
+def last(app):
     now = time.time()
-    last = lastkeys(db)
+    last = lastkeys(app.db)
     last.sort(key=lambda x:x[1][0])
 
     app.stdout.write("===> Found %d records\n" % len(last))
@@ -48,7 +57,17 @@ def last(app, db):
     for key, val in last:
         lasttime, lastval, i = val
         app.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
-    
+
+@SubApp
+def clean(app):
+    pattern = re.compile(app.params.pattern[0])
+    for record in model.Records.all():
+        key = record.subkey("")
+        if pattern.match(key):
+            app.stdout.write("%s*\n" % key)
+            if not app.params.dryrun:
+                record.delete()
+
 @cli.LoggingApp
 def manage(app):
     dsn = parsedsn(app.params.dsn)
@@ -56,18 +75,26 @@ def manage(app):
     del(dsn["driver"])
     dsn["db"] = dsn.pop("database")
     model.db = model.connect(**dsn)
-
     cmd = app.commands[app.params.command]
-    return cmd(app, model.db)
+    cmd.db = model.db
+    cmd.params = app.params
+    cmd.run()
 
 manage.commands = {
     "last": last,
+    "clean": clean,
 }
 
 default_dsn = "redis://localhost:6379/0"
-manage.add_param("command", choices=manage.commands, help="subcommand")
 manage.add_param("-D", "--dsn", default=default_dsn,
     help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
+
+subparsers = manage.argparser.add_subparsers(dest="command")
+last.argparser = subparsers.add_parser("last", help="list database keys")
+clean.argparser = subparsers.add_parser("clean", help="remove keys")
+clean.add_param("-n", "--dryrun", default=False, action="store_true",
+    help="don't actually remove records")
+clean.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
 
 if __name__ == "__main__":
     manage.run()
