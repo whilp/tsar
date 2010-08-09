@@ -151,7 +151,7 @@ class Tsar(RESTClient):
     def resource(self, subject, attribute, cf):
         return quote(u'/'.join((subject, attribute, cf)))
 
-    def record(self, subject, attribute, time, value, cf="last"):
+    def record(self, subject, attribute, cf, time, value):
         """Record a new observation.
 
         *subject* and *attribute* are free-form string fields. *time* is
@@ -187,7 +187,7 @@ class Tsar(RESTClient):
 
         return True
 
-    def query(self, subject, attribute, cf="last", start=None, stop=None, now=None):
+    def query(self, subject, attribute, cf, start=None, stop=None, now=None):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may include
