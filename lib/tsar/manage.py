@@ -52,9 +52,8 @@ def last(app):
     last = [(k, v) for k, v in last if pattern.match(k)]
     last.sort(key=lambda x:x[1][0], reverse=app.params.reverse)
 
-    app.stdout.write("===> Found %d records\n" % len(last))
-    headers = ("AGE", "VALUE", "RECORD")
-    format = "%-8s %-12s %s\n"
+    headers = ("#AGE", "VALUE", "RECORD")
+    format = "%-12s %-12s %s\n"
     app.stdout.write(format % headers)
     for key, val in last:
         lasttime, lastval, i = val
