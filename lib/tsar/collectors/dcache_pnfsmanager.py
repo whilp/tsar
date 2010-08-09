@@ -74,7 +74,7 @@ def dcache_pnfsmanager(app):
     if not depth:
         return 1
 
-    data.append((subject, "queue_depth", t, [int(x) for x in depth])))
+    data.append((subject, "queue_depth", t, [int(x) for x in depth]))
 
     app.submit(data)
 
