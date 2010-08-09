@@ -140,15 +140,16 @@ class Records(object):
 
     def delete(self):
         """Remove the instance from the database."""
-        pipe = self.db.pipeline(transaction=True)
-        pipe.delete(*self.keys())
-        pipe.srem(self.namespace, "%s %s %s" % (
-                self.subject, self.attribute, self.cf))
-        pipe.execute()
+        with self.lock(self.db, self.subkey("lock"), 60):
+            pipe = self.db.pipeline(transaction=True)
+            pipe.delete(*self.keys())
+            pipe.srem(self.namespace, "%s %s %s" % (
+                    self.subject, self.attribute, self.cf))
+            pipe.execute()
 
     def rename(self, new):
         """Rename the series in the database."""
-        keys = self.keys()
+        keys = list(self.keys())
         keymap = zip(keys, new.keys())
         if len(keymap) != len(keys):
             raise errors.RecordError("Key mismatch in new Records instance")

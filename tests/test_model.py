@@ -176,3 +176,26 @@ class TestRecords(BaseTest):
         for t, v, i in result:
             self.assertEqual(bins[t], v)
 
+    def test_keys(self):
+        self.records.append((1,2))
+        keys = set(list(self.records.keys()) + ["records"])
+        self.assertEqual(keys, set(model.db.keys("*")))
+
+    def test_rename(self):
+        new = model.Records("new", "records", "last")
+        self.records.append((1,2))
+        self.records.rename(new)
+        newkeys = set(list(new.keys()) + ["records"])
+        self.assertEqual(newkeys, set(model.db.keys("*")))
+
+    def test_rename_conflicts(self):
+        new = model.Records("new", "records", "last")
+        new.append((1,2))
+
+        self.records.append((1,2))
+        self.assertRaises(errors.RecordError, self.records.rename, new)
+
+    def test_delete(self):
+        self.records.append((1,2))
+        self.records.delete()
+        self.assertEqual(model.db.keys("*"), [])
