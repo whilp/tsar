@@ -138,6 +138,12 @@ class Records(object):
         self.types.exception = exception
         self.types.excs = excs
 
+    def __eq__(self, other):
+        if not isinstance(other, Records):
+            return False
+
+        return self.subkey("__eq__") == other.subkey("__eq__")
+
     @classmethod
     def all(self):
         """Return an iterable with all records known to the database."""

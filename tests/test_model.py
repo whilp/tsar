@@ -211,3 +211,11 @@ class TestRecords(BaseTest):
 
     def test_all_empty(self):
         self.assertEqual(list(self.records.all()), [])
+
+    def test_equivalence(self):
+        a = model.Records("foo", "bar", "last")
+        b = model.Records("foo", "bar", "last")
+        self.assertEqual(a, b)
+
+        c = model.Records("foo", "bar", "baz")
+        self.assertNotEqual(a, c)
