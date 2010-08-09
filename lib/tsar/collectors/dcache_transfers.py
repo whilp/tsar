@@ -57,7 +57,7 @@ def dcache_transfers(app):
     data.append((subject, "transfer_errors", t, txdata.get("transfer_errors", 0)))
     data.append((subject, "active_transfers", t, txdata.get("active_transfers", 0)))
     for prot in set(protocols.values()):
-        key = "%s_transfers" % protocol
+        key = "%s_transfers" % prot
         data.append((subject, key, t, txdata.get(key, 0)))
 
     data.append((subject, "transfer_duration", t, 
