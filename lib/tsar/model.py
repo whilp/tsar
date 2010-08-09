@@ -138,6 +138,13 @@ class Records(object):
         self.types.exception = exception
         self.types.excs = excs
 
+    @classmethod
+    def all(self):
+        """Return an iterable with all records known to the database."""
+        global db
+        for record in db.smembers(self.namespace):
+            yield Records(*record.split())
+
     def delete(self):
         """Remove the instance from the database."""
         with self.lock(self.db, self.subkey("lock"), 60):

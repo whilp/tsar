@@ -199,3 +199,15 @@ class TestRecords(BaseTest):
         self.records.append((1,2))
         self.records.delete()
         self.assertEqual(model.db.keys("*"), [])
+
+    def test_all(self):
+        self.records.append((1,2))
+        self.assertEqual(self.records.all().next().subkey("foo"), 
+            self.records.subkey("foo"))
+
+    def test_all_class(self):
+        self.records.append((1,2))
+        self.assertEqual(len(list(model.Records.all())), len(list(self.records.all())))
+
+    def test_all_empty(self):
+        self.assertEqual(list(self.records.all()), [])
