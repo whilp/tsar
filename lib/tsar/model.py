@@ -138,6 +138,32 @@ class Records(object):
         self.types.exception = exception
         self.types.excs = excs
 
+    def delete(self):
+        """Remove the instance from the database."""
+        pipe = self.db.pipeline(transaction=True)
+        pipe.delete(*self.keys())
+        pipe.srem(self.namespace, "%s %s %s" % (
+                self.subject, self.attribute, self.cf))
+        pipe.execute()
+
+    def rename(self, new):
+        """Rename the series in the database."""
+        keys = self.keys()
+        keymap = zip(keys, new.keys())
+        if len(keymap) != len(keys):
+            raise errors.RecordError("Key mismatch in new Records instance")
+
+        with self.lock(self.db, self.subkey("lock"), 60):
+            check = True
+            pipe = self.db.pipeline(transaction=True)
+            for src, dst in keymap:
+                if check and self.db.exists(dst):
+                    raise errors.RecordError("New Records instance already exists")
+                elif check:
+                    check = False
+                pipe.renamenx(src, dst)
+            pipe.execute()
+
     def keys(self):
         """Return an iterable of keys used by this instance."""
         for i, samples in self.intervals:
