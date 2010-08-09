@@ -138,6 +138,12 @@ class Records(object):
         self.types.exception = exception
         self.types.excs = excs
 
+    def keys(self):
+        """Return an iterable of keys used by this instance."""
+        for i, samples in self.intervals:
+            yield self.subkey(i)
+            yield self.subkey(i, "last")
+
     def subkey(self, *chunks):
         """Return a key within this :class:`Record`'s :attr:`namespace`."""
         return self.tokey(self.namespace, \
