@@ -126,7 +126,7 @@ class Records(object):
     }
     """Supported consolidation functions."""
     
-    def __init__(self, subject, attribute, cf="last", exception=None, excs=None):
+    def __init__(self, subject, attribute, cf, exception=None, excs=None):
         super(Records, self).__init__()
 
         global db
