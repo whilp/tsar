@@ -27,7 +27,7 @@ def dcache_transfers(app):
         if not line:
             continue
 
-        incrkey(txdata, "active_transfers")
+        helpers.incrkey(txdata, "active_transfers")
         fields = line.split()
         keys = fieldkeys.get(len(fields), None)
         if not keys:
@@ -46,10 +46,10 @@ def dcache_transfers(app):
         protocol = fields.get("prot", None)
         protocol = protocols.get(protocol, None)
         if protocol is not None:
-            incrkey(txdata, "%s_transfers" % protocol)
+            helpers.incrkey(txdata, "%s_transfers" % protocol)
 
         if "error" in fields:
-            incrkey(txdata, "transfer_errors")
+            helpers.incrkey(txdata, "transfer_errors")
 
     data = []
     subject = "dcache"
