@@ -5,7 +5,7 @@ from .commands import Command, SubCommand
 class Tsar(Command):
 
     def __init__(self, main=None, commands={}, **kwargs):
-        super(Tsar, self).__init__(main, **kwargs)
+        super(Tsar, self).__init__(main=main, **kwargs)
         self.commands = commands
     
     @staticmethod
