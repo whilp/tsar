@@ -62,8 +62,9 @@ class Collect(ClientMixin, Command):
 
         collector = self.collectors[self.params.collector]
         collector.params = self.params
+        collector.exit_after_main = False
         try:
-            collector.run()
+            returned = collector.run()
         finally:
             if oldhandler:
                 signal.signal(signal.SIGALRM, oldhandler)
@@ -73,6 +74,8 @@ class Collect(ClientMixin, Command):
 
         if self.killpg:
             atexit._exithandlers.remove((cleanup, (), {}))
+
+        return returned
 
 class Collector(SubCommand):
     cfs = {
