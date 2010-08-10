@@ -12,18 +12,12 @@ from tsar.commands import ClientMixin, Command, SubCommand
 from tsar.collectors.helpers import insert, median
 
 class Collect(ClientMixin, Command):
+    collectors = {}
     service = "http://tsar.hep.wisc.edu/records"
-    cfs = {
-        "min": min,
-        "max": max,
-        "ave": median,
-    }
 
-    def __init__(self, main=None, timeout=30, killpg=True, 
-            collectors={}, parent=None, **kwargs):
+    def __init__(self, main=None, timeout=30, killpg=True, parent=None, **kwargs):
         self.timeout = timeout
         self.killpg = killpg
-        self.collectors = collectors
         self.parent = parent
         super(Collect, self).__init__(main, **kwargs)
 
@@ -37,6 +31,10 @@ class Collect(ClientMixin, Command):
             help="timeout (default: %s seconds)" % self.timeout)
 
         self.subparsers = self.argparser.add_subparsers(dest="collector")
+        from tsar.collectors.afs_server import Afs_Server
+        self.collectors = {
+            "afs-server": Afs_Server,
+        }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)
             collector.setup()
@@ -65,7 +63,7 @@ class Collect(ClientMixin, Command):
         collector = self.collectors[self.params.collector]
         collector.params = self.params
         try:
-            collector()
+            collector.run()
         finally:
             if oldhandler:
                 signal.signal(signal.SIGALRM, oldhandler)
@@ -77,6 +75,14 @@ class Collect(ClientMixin, Command):
             atexit._exithandlers.remove((cleanup, (), {}))
 
 class Collector(SubCommand):
+    cfs = {
+        "min": min,
+        "max": max,
+        "ave": median,
+    }
+
+    def pre_run(self):
+        self.client = self.parent.client
 
     def prepare(self, data, cfs=None):
         if cfs is None:
@@ -93,7 +99,7 @@ class Collector(SubCommand):
             yield record
 
     def submit(self, data, cfs=None):
-        return self.tsar.bulk(self.prepare(data, cfs=cfs))
+        return self.client.bulk(self.prepare(data, cfs=cfs))
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())
