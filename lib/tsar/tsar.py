@@ -3,7 +3,6 @@ from operator import itemgetter
 from .commands import Command, SubCommand
 
 class Tsar(Command):
-    name = "tsar"
 
     def __init__(self, main=None, commands={}, **kwargs):
         super(Tsar, self).__init__(main, **kwargs)

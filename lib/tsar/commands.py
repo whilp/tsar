@@ -4,7 +4,10 @@ from . import model
 from .util import parsedsn
 
 class Command(cli.LoggingApp):
-    pass
+
+    @property
+    def name(self):
+        return self.__class__.__name__.lower()
 
 class SubCommand(Command):
 

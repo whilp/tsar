@@ -42,7 +42,6 @@ def lastkeys(db):
 
 
 class Last(DBMixin, SubCommand):
-    name = "last"
 
     @staticmethod
     def main(self):
@@ -71,7 +70,6 @@ class Last(DBMixin, SubCommand):
             help="regular expression to match subkeys against")
 
 class Clean(DBMixin, SubCommand):
-    name = "clean"
     
     @staticmethod
     def main(self):
