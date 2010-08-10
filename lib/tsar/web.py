@@ -8,7 +8,7 @@ from urllib2 import quote, unquote
 from neat import neat
 
 from . import errors, model
-from .commands import DBMixin, SubCommand
+from .commands import DBMixin, DaemonizingSubCommand
 from .util import Decorator, json, parsedsn
 
 __all__ = ["Records", "service"]
@@ -201,7 +201,7 @@ def Server(host, port):
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
     return server
 
-class Serve(DBMixin, SubCommand):
+class Serve(DBMixin, DaemonizingSubCommand):
     
     @staticmethod
     def main(self):
@@ -219,9 +219,14 @@ class Serve(DBMixin, SubCommand):
             server.stop()
 
     def setup(self):
-        SubCommand.setup(self)
+        DaemonizingSubCommand.setup(self)
+        oldparser = self.argparser
         self.argparser = self.parent.subparsers.add_parser("serve", 
             help="start the tsar web service")
+        for action in oldparser._actions:
+            if action.dest in "==SUPPRESS== help".split():
+                continue
+            self.argparser._add_action(action)
         DBMixin.setup(self)
 
         default_server = "0.0.0.0:8000"
