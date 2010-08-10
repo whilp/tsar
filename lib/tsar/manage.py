@@ -52,9 +52,6 @@ def manage(app):
     cmd.params = app.params
     cmd.run()
 
-default_dsn = "redis://localhost:6379/0"
-manage.add_param("-D", "--dsn", default=default_dsn,
-    help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
 class Last(SubCommand):
     name = "last"
 
@@ -77,6 +74,12 @@ class Last(SubCommand):
         super(Last, self).setup()
         self.argparser = self.parent.subparsers.add_parser("last", 
             help="list database keys from oldest to newest")
+
+        default_dsn = "redis://localhost:6379/0"
+        self.add_param("-D", "--dsn", default=default_dsn,
+            help="Database connection: "
+                "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
+                "(default: %s)" % default_dsn)
         self.add_param("-r", "--reverse", default=False, action="store_true",
             help="reverse sort")
         self.add_param("pattern", nargs="?", default=".*", 
@@ -99,6 +102,12 @@ class Clean(SubCommand):
         super(Clean, self).setup()
         self.argparser = self.parent.subparsers.add_parser("clean", 
             help="remove keys")
+
+        default_dsn = "redis://localhost:6379/0"
+        self.add_param("-D", "--dsn", default=default_dsn,
+            help="Database connection: "
+                "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
+                "(default: %s)" % default_dsn)
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="don't actually remove records")
         self.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
