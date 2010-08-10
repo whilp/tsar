@@ -40,30 +40,24 @@ def lastkeys(db):
     last = zip(records, [v.split() for v in db.mget(lkeys)])
     return [(k, [intorfloat(x) for x in v]) for k, v in last]
 
-@cli.LoggingApp
-def manage(app):
-    dsn = parsedsn(app.params.dsn)
-    del(dsn["username"])
-    del(dsn["driver"])
-    dsn["db"] = dsn.pop("database")
-    model.db = model.connect(**dsn)
-    cmd = app.commands[app.params.command]
-    cmd.db = model.db
-    cmd.params = app.params
-    cmd.run()
+class DBMixin(object):
 
-class setupdb(Decorator):
-    
-    def call(self, func, args, kwargs):
-        other = args[0]
-        func(*args, **kwargs)
+    def setup(self):
         default_dsn = "redis://localhost:6379/0"
-        other.add_param("-D", "--dsn", default=default_dsn,
+        self.add_param("-D", "--dsn", default=default_dsn,
             help="Database connection: "
                 "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
                 "(default: %s)" % default_dsn)
+            
+    def pre_run(self):
+        dsn = parsedsn(self.params.dsn)
+        del(dsn["username"])
+        del(dsn["driver"])
+        dsn["db"] = dsn.pop("database")
+        model.db = model.connect(**dsn)
+        self.db = model.db
 
-class Last(SubCommand):
+class Last(DBMixin, SubCommand):
     name = "last"
 
     @staticmethod
@@ -81,18 +75,18 @@ class Last(SubCommand):
             lasttime, lastval, i = val
             self.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
 
-    @setupdb
     def setup(self):
-        super(Last, self).setup()
+        SubCommand.setup(self)
         self.argparser = self.parent.subparsers.add_parser("last", 
             help="list database keys from oldest to newest")
+        DBMixin.setup(self)
 
         self.add_param("-r", "--reverse", default=False, action="store_true",
             help="reverse sort")
         self.add_param("pattern", nargs="?", default=".*", 
             help="regular expression to match subkeys against")
 
-class Clean(SubCommand):
+class Clean(DBMixin, SubCommand):
     name = "clean"
     
     @staticmethod
@@ -105,11 +99,11 @@ class Clean(SubCommand):
                 if not self.params.dryrun:
                     record.delete()
 
-    @setupdb
     def setup(self):
-        super(Clean, self).setup()
+        SubCommand.setup(self)
         self.argparser = self.parent.subparsers.add_parser("clean", 
             help="remove keys")
+        DBMixin.setup(self)
 
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="don't actually remove records")
