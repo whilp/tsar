@@ -31,7 +31,6 @@ setup_options = {
     "entry_points": {
         "console_scripts": [
             "tsar = tsar.tsar:run",
-            "tsar-collect-redis = tsar.collectors.redis:redis.run",
             "tsar-collect-sar = tsar.collectors.sar:sar.run",
         ],
     },

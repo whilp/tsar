@@ -37,12 +37,14 @@ class Collect(ClientMixin, Command):
         from tsar.collectors.dcache_latency import DcacheLatency
         from tsar.collectors.dcache_pnfsmanager import PnfsManager
         from tsar.collectors.dcache_transfers import DcacheTransfers
+        from tsar.collectors.redis import Redis
         self.collectors = {
             "afs-server": AFSServer,
             "condor-queue": CondorQueue,
             "dcache-latency": DcacheLatency,
             "dcache-pnfsmanager": PnfsManager,
             "dcache-transfers": DcacheTransfers,
+            "redis": Redis,
         }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)
