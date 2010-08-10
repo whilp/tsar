@@ -108,6 +108,3 @@ class Clean(DBMixin, SubCommand):
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="don't actually remove records")
         self.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
-
-if __name__ == "__main__":
-    manage.run()
