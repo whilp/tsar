@@ -11,6 +11,7 @@ from itertools import chain
 
 from tsar import errors
 from tsar.client import Tsar
+from tsar.commands import ClientMixin, Command, SubCommand
 
 insert = lambda l, i, o: l[0:i] + [o] + l[i:]
 incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
@@ -37,7 +38,7 @@ def runcmd(cmd, **kwargs):
     return subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
 
-class Collector(cli.LoggingApp):
+class Collect(ClientMixin, Command):
     service = "http://tsar.hep.wisc.edu/records"
     cfs = {
         "min": min,
@@ -45,29 +46,31 @@ class Collector(cli.LoggingApp):
         "ave": median,
     }
 
-    def __init__(self, main=None, timeout=30, killpg=True, **kwargs):
+    def __init__(self, main=None, timeout=30, killpg=True, 
+            collectors={}, parent=None, **kwargs):
         self.timeout = timeout
         self.killpg = killpg
-        super(Collector, self).__init__(main, **kwargs)
-
-    @property
-    def name(self):
-        return "tsar-collect-%s" % super(Collector, self).name
+        self.collectors = collectors
+        self.parent = parent
+        super(Collect, self).__init__(main, **kwargs)
 
     def setup(self):
-        super(Collector, self).setup()
-        self.add_param("-S", "--service", default=self.service,
-            help="service URL (default: %s)" % self.service)
+        Command.setup(self)
+        self.argparser = self.parent.subparsers.add_parser("collect", 
+            help="collect and submit data for a tsar service")
+        ClientMixin.setup(self)
+
         self.add_param("-t", "--timeout", default=self.timeout,
             help="timeout (default: %s seconds)" % self.timeout)
 
-    def pre_run(self):
-        super(Collector, self).pre_run()
-        self.tsar = Tsar(self.params.service)
+        self.subparsers = self.argparser.add_subparsers(dest="collector")
+        for k, v in sorted(self.collectors.items(), key=operator.itemgetter(0)):
+            collector = v(parent=self)
+            collector.setup()
+            self.collectors[k] = collector
 
-    def run(self):
-        self.pre_run()
-
+    @staticmethod
+    def main(self):
         # Set a signal in case main() takes too long.
         self.params.timeout = int(self.params.timeout)
         timeout = self.params.timeout > 0
@@ -86,8 +89,10 @@ class Collector(cli.LoggingApp):
             oldhandler = signal.signal(signal.SIGALRM, handle_timeout)
             signal.alarm(self.params.timeout)
 
+        collector = self.collectors[self.params.collector]
+        collector.params = self.params
         try:
-            returned = self.main(self)
+            collector()
         finally:
             if oldhandler:
                 signal.signal(signal.SIGALRM, oldhandler)
@@ -98,7 +103,7 @@ class Collector(cli.LoggingApp):
         if self.killpg:
             atexit._exithandlers.remove((cleanup, (), {}))
 
-        return self.post_run(returned)
+class Collector(SubCommand):
 
     def prepare(self, data, cfs=None):
         if cfs is None:

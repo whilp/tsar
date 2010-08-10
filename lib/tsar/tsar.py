@@ -23,11 +23,13 @@ class Tsar(Command):
             self.commands[k] = command
 
 def run():
+    from .collectors.helpers import Collect
     from .manage import Clean, Last
     from .web import Serve
 
     tsar = Tsar(commands={
         "clean": Clean,
+        "collect": Collect,
         "last": Last,
         "serve": Serve,
     })

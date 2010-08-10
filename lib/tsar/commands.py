@@ -1,6 +1,7 @@
 import cli
 
 from . import model
+from .client import Tsar
 from .util import parsedsn
 
 class Command(cli.LoggingApp):
@@ -34,3 +35,12 @@ class DBMixin(object):
         dsn["db"] = dsn.pop("database")
         model.db = model.connect(**dsn)
         self.db = model.db
+
+class ClientMixin(object):
+    
+    def setup(self):
+        self.add_param("-S", "--service", default=self.service,
+            help="service URL (default: %s)" % self.service)
+
+    def pre_run(self):
+        self.client = Tsar(self.params.service)
