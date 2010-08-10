@@ -38,6 +38,7 @@ class Collect(ClientMixin, Command):
         from tsar.collectors.dcache_pnfsmanager import PnfsManager
         from tsar.collectors.dcache_transfers import DcacheTransfers
         from tsar.collectors.redis import Redis
+        from tsar.collectors.sar import Sar
         self.collectors = {
             "afs-server": AFSServer,
             "condor-queue": CondorQueue,
@@ -45,6 +46,7 @@ class Collect(ClientMixin, Command):
             "dcache-pnfsmanager": PnfsManager,
             "dcache-transfers": DcacheTransfers,
             "redis": Redis,
+            "sar": Sar,
         }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)
