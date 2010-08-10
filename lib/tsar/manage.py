@@ -7,7 +7,7 @@ from itertools import chain
 
 from . import model
 from .commands import SubCommand
-from .util import nearest, parsedsn
+from .util import Decorator, nearest, parsedsn
 
 def intorfloat(value):
     try:
@@ -52,6 +52,17 @@ def manage(app):
     cmd.params = app.params
     cmd.run()
 
+class setupdb(Decorator):
+    
+    def call(self, func, args, kwargs):
+        other = args[0]
+        func(*args, **kwargs)
+        default_dsn = "redis://localhost:6379/0"
+        other.add_param("-D", "--dsn", default=default_dsn,
+            help="Database connection: "
+                "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
+                "(default: %s)" % default_dsn)
+
 class Last(SubCommand):
     name = "last"
 
@@ -70,16 +81,12 @@ class Last(SubCommand):
             lasttime, lastval, i = val
             self.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
 
+    @setupdb
     def setup(self):
         super(Last, self).setup()
         self.argparser = self.parent.subparsers.add_parser("last", 
             help="list database keys from oldest to newest")
 
-        default_dsn = "redis://localhost:6379/0"
-        self.add_param("-D", "--dsn", default=default_dsn,
-            help="Database connection: "
-                "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
-                "(default: %s)" % default_dsn)
         self.add_param("-r", "--reverse", default=False, action="store_true",
             help="reverse sort")
         self.add_param("pattern", nargs="?", default=".*", 
@@ -98,16 +105,12 @@ class Clean(SubCommand):
                 if not self.params.dryrun:
                     record.delete()
 
+    @setupdb
     def setup(self):
         super(Clean, self).setup()
         self.argparser = self.parent.subparsers.add_parser("clean", 
             help="remove keys")
 
-        default_dsn = "redis://localhost:6379/0"
-        self.add_param("-D", "--dsn", default=default_dsn,
-            help="Database connection: "
-                "'<driver>://<username>:<password>@<host>:<port>/<database>' " 
-                "(default: %s)" % default_dsn)
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="don't actually remove records")
         self.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
