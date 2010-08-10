@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from .commands import Command, SubCommand
 
 class Tsar(Command):
@@ -16,16 +18,19 @@ class Tsar(Command):
     def setup(self):
         super(Tsar, self).setup()
         self.subparsers = self.argparser.add_subparsers(dest="command")
-        for k, v in self.commands.items():
+        for k, v in sorted(self.commands.items(), key=itemgetter(0)):
             command = v(parent=self)
             command.setup()
             self.commands[k] = command
 
 def run():
     from .manage import Clean, Last
+    from .web import Serve
+
     tsar = Tsar(commands={
         "clean": Clean,
         "last": Last,
+        "serve": Serve,
     })
     tsar.setup()
     tsar.run()

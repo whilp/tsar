@@ -8,6 +8,7 @@ from urllib2 import quote, unquote
 from neat import neat
 
 from . import errors, model
+from .commands import DBMixin, SubCommand
 from .util import Decorator, json, parsedsn
 
 __all__ = ["Records", "service"]
@@ -191,28 +192,22 @@ class Records(AllRecords):
 
         self.response.status_int = 200
 
-def Server(host, port, **dsn):
+def Server(host, port):
     from .ext import wsgiserver
 
-    model.db = model.connect(**dsn)
     service = neat.Dispatch(
         AllRecords(),
         Records())
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
     return server
 
-class Serve(cli.DaemonizingApp, SubCommand):
+class Serve(DBMixin, SubCommand):
     
     @staticmethod
     def main(self):
         host, _, port = self.params.server.partition(':')
         if not port:
             port = 8000
-        dsn = parsedsn(self.params.dsn)
-        del(dsn["username"])
-        del(dsn["driver"])
-        dsn["db"] = dsn.pop("database")
-        model.db = model.connect(**dsn)
 
         self.log.info("Starting server at http://%s:%s/", host, port)
         server = Server(host, int(port))
@@ -223,9 +218,12 @@ class Serve(cli.DaemonizingApp, SubCommand):
         except KeyboardInterrupt:
             server.stop()
 
-default_server = "0.0.0.0:8000"
-default_dsn = "redis://localhost:6379/0"
-server.add_param("server", nargs="?",
-    help="<host>:<port> (default: %s)" % default_server, default=default_server)
-server.add_param("-D", "--dsn", default=default_dsn,
-    help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
+    def setup(self):
+        SubCommand.setup(self)
+        self.argparser = self.parent.subparsers.add_parser("serve", 
+            help="start the tsar web service")
+        DBMixin.setup(self)
+
+        default_server = "0.0.0.0:8000"
+        self.add_param("server", nargs="?",
+            help="<host>:<port> (default: %s)" % default_server, default=default_server)
