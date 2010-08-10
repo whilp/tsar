@@ -3,7 +3,7 @@
 from .commands import Collector
 from . import commands, helpers
 
-class Afs_Server(Collector):
+class AFSServer(Collector):
 
     @staticmethod
     def main(self):

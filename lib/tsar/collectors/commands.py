@@ -31,9 +31,9 @@ class Collect(ClientMixin, Command):
             help="timeout (default: %s seconds)" % self.timeout)
 
         self.subparsers = self.argparser.add_subparsers(dest="collector")
-        from tsar.collectors.afs_server import Afs_Server
+        from tsar.collectors.afs_server import AFSServer
         self.collectors = {
-            "afs-server": Afs_Server,
+            "afs-server": AFSServer,
         }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)

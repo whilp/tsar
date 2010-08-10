@@ -8,7 +8,7 @@ class Command(cli.LoggingApp):
 
     @property
     def name(self):
-        return self.__class__.__name__.lower()
+        return self.__class__.__name__.lower().replace("_", "-")
 
 class SubCommand(Command):
 
