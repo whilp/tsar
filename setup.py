@@ -30,6 +30,7 @@ setup_options = {
     "install_requires": pkg.__requires__,
     "entry_points": {
         "console_scripts": [
+            "tsar = tsar.tsar:tsar.run",
             "tsar-manage = tsar.manage:manage.run",
             "tsar-collect-afs-server = tsar.collectors.afs_server:afs_server.run",
             "tsar-collect-condor-queue = tsar.collectors.condor_queue:condor_queue.run",
