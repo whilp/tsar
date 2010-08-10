@@ -34,9 +34,11 @@ class Collect(ClientMixin, Command):
 
         from tsar.collectors.afs_server import AFSServer
         from tsar.collectors.condor_queue import CondorQueue
+        from tsar.collectors.dcache_latency import DcacheLatency
         self.collectors = {
             "afs-server": AFSServer,
             "condor-queue": CondorQueue,
+            "dcache-latency": DcacheLatency,
         }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)
