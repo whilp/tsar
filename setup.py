@@ -31,7 +31,6 @@ setup_options = {
     "entry_points": {
         "console_scripts": [
             "tsar = tsar.tsar:run",
-            "tsar-collect-dcache-pnfsmanager = tsar.collectors.dcache_pnfsmanager:dcache_pnfsmanager.run",
             "tsar-collect-dcache-transfers = tsar.collectors.dcache_transfers:dcache_transfers.run",
             "tsar-collect-redis = tsar.collectors.redis:redis.run",
             "tsar-collect-sar = tsar.collectors.sar:sar.run",
