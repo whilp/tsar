@@ -23,7 +23,7 @@ class Tsar(Command):
             self.commands[k] = command
 
 def run():
-    from .collectors.helpers import Collect
+    from .collectors.commands import Collect
     from .manage import Clean, Last
     from .web import Serve
 
