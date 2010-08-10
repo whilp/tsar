@@ -6,6 +6,7 @@ import cli
 from itertools import chain
 
 from . import model
+from .commands import SubCommand
 from .util import nearest, parsedsn
 
 def intorfloat(value):
@@ -59,16 +60,6 @@ def last(app):
         lasttime, lastval, i = val
         app.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
 
-@SubApp
-def clean(app):
-    pattern = re.compile(app.params.pattern[0])
-    for record in model.Records.all():
-        key = record.subkey("")
-        if pattern.match(key):
-            app.stdout.write("%s*\n" % key)
-            if not app.params.dryrun:
-                record.delete()
-
 @cli.LoggingApp
 def manage(app):
     dsn = parsedsn(app.params.dsn)
@@ -83,7 +74,6 @@ def manage(app):
 
 manage.commands = {
     "last": last,
-    "clean": clean,
 }
 
 default_dsn = "redis://localhost:6379/0"
@@ -98,10 +88,26 @@ last.add_param("-r", "--reverse", default=False, action="store_true",
 last.add_param("pattern", nargs="?", default=".*", 
     help="regular expression to match subkeys against")
 
-clean.argparser = subparsers.add_parser("clean", help="remove keys")
-clean.add_param("-n", "--dryrun", default=False, action="store_true",
-    help="don't actually remove records")
-clean.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
+class Clean(SubCommand):
+    name = "clean"
+    
+    @staticmethod
+    def main(self):
+        pattern = re.compile(self.params.pattern[0])
+        for record in model.Records.all():
+            key = record.subkey("")
+            if pattern.match(key):
+                self.stdout.write("%s*\n" % key)
+                if not self.params.dryrun:
+                    record.delete()
+
+    def setup(self):
+        super(Clean, self).setup()
+        self.argparser = self.parent.subparsers.add_parser("clean", 
+            help="remove keys")
+        self.add_param("-n", "--dryrun", default=False, action="store_true",
+            help="don't actually remove records")
+        self.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
 
 if __name__ == "__main__":
     manage.run()

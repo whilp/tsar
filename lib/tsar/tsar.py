@@ -1,14 +1,33 @@
-from .commands import Command
+from .commands import Command, SubCommand
 
 class Tsar(Command):
     name = "tsar"
+
+    def __init__(self, main=None, commands={}, **kwargs):
+        super(Tsar, self).__init__(main, **kwargs)
+        self.commands = commands
     
     @staticmethod
     def main(self):
-        pass
+        cmd = self.commands[self.params.command]
+        cmd.params = self.params
+        return cmd.run()
 
-tsar = Tsar()
-tsar.setup()
+    def setup(self):
+        super(Tsar, self).setup()
+        self.subparsers = self.argparser.add_subparsers(dest="command")
+        for k, v in self.commands.items():
+            command = v(parent=self)
+            command.setup()
+            self.commands[k] = command
+
+def run():
+    from .manage import Clean
+    tsar = Tsar(commands={
+        "clean": Clean,
+    })
+    tsar.setup()
+    tsar.run()
 
 if __name__ == "__main__":
-    tsar.run()
+    run()

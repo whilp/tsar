@@ -201,27 +201,27 @@ def Server(host, port, **dsn):
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
     return server
 
-@cli.DaemonizingApp(name="tsar-server")
-def server(app):
-    from . import model
+class Serve(cli.DaemonizingApp, SubCommand):
+    
+    @staticmethod
+    def main(self):
+        host, _, port = self.params.server.partition(':')
+        if not port:
+            port = 8000
+        dsn = parsedsn(self.params.dsn)
+        del(dsn["username"])
+        del(dsn["driver"])
+        dsn["db"] = dsn.pop("database")
+        model.db = model.connect(**dsn)
 
-    host, _, port = app.params.server.partition(':')
-    if not port:
-        port = 8000
-    dsn = parsedsn(app.params.dsn)
-    del(dsn["username"])
-    del(dsn["driver"])
-    dsn["db"] = dsn.pop("database")
-    model.db = model.connect(**dsn)
-
-    app.log.info("Starting server at http://%s:%s/", host, port)
-    server = Server(host, int(port))
-    if app.params.daemonize:
-        app.daemonize()
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
+        self.log.info("Starting server at http://%s:%s/", host, port)
+        server = Server(host, int(port))
+        if self.params.daemonize:
+            self.daemonize()
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            server.stop()
 
 default_server = "0.0.0.0:8000"
 default_dsn = "redis://localhost:6379/0"
