@@ -218,15 +218,20 @@ class Serve(DBMixin, DaemonizingSubCommand):
         except KeyboardInterrupt:
             server.stop()
 
+    def pre_run(self):
+        DBMixin.pre_run(self)
+        cli.LoggingApp.pre_run(self)
+        self.log.propagate = False
+
     def setup(self):
         DaemonizingSubCommand.setup(self)
         oldparser = self.argparser
         self.argparser = self.parent.subparsers.add_parser("serve", 
             help="start the tsar web service")
+        actions = "user pidfile daemonize".split()
         for action in oldparser._actions:
-            if action.dest in "==SUPPRESS== help".split():
-                continue
-            self.argparser._add_action(action)
+            if action.dest not in "help ==SUPPRESS==".split():
+                self.argparser._add_action(action)
         DBMixin.setup(self)
 
         default_server = "0.0.0.0:8000"
