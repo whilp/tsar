@@ -40,26 +40,6 @@ def lastkeys(db):
     last = zip(records, [v.split() for v in db.mget(lkeys)])
     return [(k, [intorfloat(x) for x in v]) for k, v in last]
 
-class SubApp(cli.LoggingApp):
-    
-    def pre_run(self):
-        pass
-
-@SubApp
-def last(app):
-    now = time.time()
-    pattern = re.compile(app.params.pattern)
-    last = lastkeys(app.db)
-    last = [(k, v) for k, v in last if pattern.match(k)]
-    last.sort(key=lambda x:x[1][0], reverse=app.params.reverse)
-
-    headers = ("#AGE", "VALUE", "RECORD")
-    format = "%-12s %-12s %s\n"
-    app.stdout.write(format % headers)
-    for key, val in last:
-        lasttime, lastval, i = val
-        app.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
-
 @cli.LoggingApp
 def manage(app):
     dsn = parsedsn(app.params.dsn)
@@ -72,21 +52,35 @@ def manage(app):
     cmd.params = app.params
     cmd.run()
 
-manage.commands = {
-    "last": last,
-}
-
 default_dsn = "redis://localhost:6379/0"
 manage.add_param("-D", "--dsn", default=default_dsn,
     help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
+class Last(SubCommand):
+    name = "last"
 
-subparsers = manage.argparser.add_subparsers(dest="command")
-last.argparser = subparsers.add_parser("last", 
-    help="list database keys from oldest to newest")
-last.add_param("-r", "--reverse", default=False, action="store_true",
-    help="reverse sort")
-last.add_param("pattern", nargs="?", default=".*", 
-    help="regular expression to match subkeys against")
+    @staticmethod
+    def main(self):
+        now = time.time()
+        pattern = re.compile(self.params.pattern)
+        last = lastkeys(self.db)
+        last = [(k, v) for k, v in last if pattern.match(k)]
+        last.sort(key=lambda x:x[1][0], reverse=self.params.reverse)
+
+        headers = ("#AGE", "VALUE", "RECORD")
+        format = "%-12s %-12s %s\n"
+        self.stdout.write(format % headers)
+        for key, val in last:
+            lasttime, lastval, i = val
+            self.stdout.write(format % (dtos(now - lasttime), "%g" % lastval, key))
+
+    def setup(self):
+        super(Last, self).setup()
+        self.argparser = self.parent.subparsers.add_parser("last", 
+            help="list database keys from oldest to newest")
+        self.add_param("-r", "--reverse", default=False, action="store_true",
+            help="reverse sort")
+        self.add_param("pattern", nargs="?", default=".*", 
+            help="regular expression to match subkeys against")
 
 class Clean(SubCommand):
     name = "clean"

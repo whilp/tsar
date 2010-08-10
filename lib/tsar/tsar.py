@@ -22,9 +22,10 @@ class Tsar(Command):
             self.commands[k] = command
 
 def run():
-    from .manage import Clean
+    from .manage import Clean, Last
     tsar = Tsar(commands={
         "clean": Clean,
+        "last": Last,
     })
     tsar.setup()
     tsar.run()
