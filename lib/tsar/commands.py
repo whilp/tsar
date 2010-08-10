@@ -4,20 +4,34 @@ from . import model
 from .client import Tsar
 from .util import parsedsn
 
-class Command(cli.LoggingApp):
+class CommandMixin(object):
 
     @property
     def name(self):
         return self.__class__.__name__.lower().replace("_", "-")
 
-class SubCommand(Command):
+class Command(CommandMixin, cli.LoggingApp):
+    pass
+
+class DaemonizingCommand(CommandMixin, cli.DaemonizingApp):
+    pass
+
+class SubCommandMixin(object):
+    
+    def pre_run(self):
+        pass
+
+class SubCommand(SubCommandMixin, Command):
 
     def __init__(self, main=None, parent=None, **kwargs):
         self.parent = parent
         super(SubCommand, self).__init__(main, **kwargs)
-    
-    def pre_run(self):
-        pass
+
+class DaemonizingSubCommand(SubCommandMixin, DaemonizingCommand):
+
+    def __init__(self, main=None, parent=None, **kwargs):
+        self.parent = parent
+        super(DaemonizingSubCommand, self).__init__(main, **kwargs)
 
 class DBMixin(object):
 
