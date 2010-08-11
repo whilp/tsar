@@ -37,11 +37,17 @@ def dcache_transfers(app):
 
         speed = fields.get("speed", None)
         if speed is not None:
-            txdata.setdefault("speed", []).append(speed)
+            try:
+                txdata.setdefault("speed", []).append(float(speed))
+            except ValueError:
+                continue
 
         duration = fields.get("since", None)
         if duration is not None:
-            txdata.setdefault("duration", []).append(duration)
+            try:
+                txdata.setdefault("duration", []).append(float(duration))
+            except ValueError:
+                continue
 
         protocol = fields.get("prot", None)
         protocol = protocols.get(protocol, None)
@@ -60,10 +66,8 @@ def dcache_transfers(app):
         key = "%s_transfers" % prot
         data.append((subject, key, t, txdata.get(key, 0)))
 
-    data.append((subject, "transfer_duration", t, 
-        [float(x) for x in txdata.pop("duration", [])]))
-    data.append((subject, "transfer_speed", t,
-        [float(x) for x in txdata.pop("speed", [])]))
+    data.append((subject, "transfer_duration", t, txdata.get("duration", [])))
+    data.append((subject, "transfer_speed", t, txdata.get("speed", [])))
 
     app.submit(data)
 
