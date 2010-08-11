@@ -6,7 +6,7 @@ import sys
 
 import os
 
-from redis import Redis
+import redis
 
 from . import helpers
 from .commands import Collector
@@ -17,16 +17,10 @@ class Redis(DBMixin, Collector):
 
     @staticmethod
     def main(self):
-        dsn = parsedsn(self.params.dsn)
-        del(dsn["username"])
-        del(dsn["driver"])
-        dsn["db"] = dsn.pop("database")
-        db = Redis(**dsn)
-
         statkeys = "size resident share".split()
 
         t = self.now
-        info = db.info()
+        info = self.db.info()
         pid = info["process_id"]
 
         data = []
