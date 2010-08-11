@@ -15,7 +15,7 @@ class CondorQueue(Collector):
         5: "held",
     }
 
-    def __init__(self, main=None, timeout=120, **kwargs):
+    def __init__(self, main=None, timeout=300, **kwargs):
         super(CondorQueue, self).__init__(main, **kwargs)
         self.timeout = timeout
 
