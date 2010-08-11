@@ -39,6 +39,10 @@ class Redis(DBMixin, Collector):
 
         self.submit(data)
 
+    def pre_run(self):
+        Collector.pre_run(self)
+        DBMixin.pre_run(self)
+
     def setup(self):
         Collector.setup(self)
         self.argparser = self.parent.subparsers.add_parser("redis", 
