@@ -225,7 +225,7 @@ class Serve(DBMixin, DaemonizingSubCommand):
 
     def pre_run(self):
         DBMixin.pre_run(self)
-        cli.LoggingApp.pre_run(self)
+        #cli.LoggingApp.pre_run(self)
         self.log.propagate = False
 
     def setup(self):
