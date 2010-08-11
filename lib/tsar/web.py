@@ -63,6 +63,11 @@ class AllRecords(neat.Resource):
         ".json": "application/json",
         ".csv": "text/csv",
     }
+    params = {
+        "method": "_method",
+        "accept": "_accept",
+        "content-type": "_content",
+    }
 
     def decodeid(self, id):
         return tuple(unquote(id.encode("utf8")).split('/'))
