@@ -10,7 +10,7 @@ BINDIR=${DIR}/bin
 PIDFILE=${DIR}/tsar.pid
 LOGFILE=${DIR}/tsar.log
 USER=tsar:tsar
-prog=tsar-server
+prog=tsar
 
 . /etc/rc.d/init.d/functions
 
@@ -18,7 +18,7 @@ start ()
 {
     echo -n "Starting $prog:"
     # XXX: --check?
-    daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar-server \
+    daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar serve \
         -dv \
         -l "${LOGFILE}" \
         -p "${PIDFILE}" \

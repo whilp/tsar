@@ -1,33 +1,40 @@
-import cli
+from operator import itemgetter
 
-from .util import parsedsn
+from .commands import Command, SubCommand
 
-@cli.DaemonizingApp(name="tsar-server")
-def server(app):
-    from . import model
-    from .web import Server
+class Tsar(Command):
 
-    host, _, port = app.params.server.partition(':')
-    if not port:
-        port = 8000
-    dsn = parsedsn(app.params.dsn)
-    del(dsn["username"])
-    del(dsn["driver"])
-    dsn["db"] = dsn.pop("database")
-    model.db = model.connect(**dsn)
+    def __init__(self, main=None, commands={}, **kwargs):
+        super(Tsar, self).__init__(main=main, **kwargs)
+        self.commands = commands
+    
+    @staticmethod
+    def main(self):
+        cmd = self.commands[self.params.command]
+        cmd.params = self.params
+        return cmd.run()
 
-    app.log.info("Starting server at http://%s:%s/", host, port)
-    server = Server(host, int(port))
-    if app.params.daemonize:
-        app.daemonize()
-    try:
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
+    def setup(self):
+        super(Tsar, self).setup()
+        self.subparsers = self.argparser.add_subparsers(dest="command")
+        for k, v in sorted(self.commands.items(), key=itemgetter(0)):
+            command = v(parent=self)
+            command.setup()
+            self.commands[k] = command
 
-default_server = "0.0.0.0:8000"
-default_dsn = "redis://localhost:6379/0"
-server.add_param("server", nargs="?",
-    help="<host>:<port> (default: %s)" % default_server, default=default_server)
-server.add_param("-D", "--dsn", default=default_dsn,
-    help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
+def run():
+    from .collectors.commands import Collect
+    from .manage import Clean, Last
+    from .web import Serve
+
+    tsar = Tsar(commands={
+        "clean": Clean,
+        "collect": Collect,
+        "last": Last,
+        "serve": Serve,
+    })
+    tsar.setup()
+    tsar.run()
+
+if __name__ == "__main__":
+    run()

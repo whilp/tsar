@@ -1,12 +1,15 @@
 import csv
 import logging
 
+import cli
+
 from urllib2 import quote, unquote
 
 from neat import neat
 
 from . import errors, model
-from .util import Decorator, json
+from .commands import DBMixin, DaemonizingSubCommand
+from .util import Decorator, json, parsedsn
 
 __all__ = ["Records", "service"]
 
@@ -194,12 +197,48 @@ class Records(AllRecords):
 
         self.response.status_int = 200
 
-def Server(host, port, **dsn):
+def Server(host, port):
     from .ext import wsgiserver
 
-    model.db = model.connect(**dsn)
     service = neat.Dispatch(
         AllRecords(),
         Records())
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
     return server
+
+class Serve(DBMixin, DaemonizingSubCommand):
+    
+    @staticmethod
+    def main(self):
+        host, _, port = self.params.server.partition(':')
+        if not port:
+            port = 8000
+
+        self.log.info("Starting server at http://%s:%s/", host, port)
+        server = Server(host, int(port))
+        if self.params.daemonize:
+            self.daemonize()
+        try:
+            server.start()
+        except KeyboardInterrupt:
+            server.stop()
+
+    def pre_run(self):
+        DBMixin.pre_run(self)
+        cli.LoggingApp.pre_run(self)
+        self.log.propagate = False
+
+    def setup(self):
+        DaemonizingSubCommand.setup(self)
+        oldparser = self.argparser
+        self.argparser = self.parent.subparsers.add_parser("serve", 
+            help="start the tsar web service")
+        actions = "user pidfile daemonize".split()
+        for action in oldparser._actions:
+            if action.dest not in "help ==SUPPRESS==".split():
+                self.argparser._add_action(action)
+        DBMixin.setup(self)
+
+        default_server = "0.0.0.0:8000"
+        self.add_param("server", nargs="?",
+            help="<host>:<port> (default: %s)" % default_server, default=default_server)

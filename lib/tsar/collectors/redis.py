@@ -9,41 +9,47 @@ import os
 from redis import Redis
 
 from . import helpers
+from .commands import Collector
+from ..commands import DBMixin
 from ..util import parsedsn
 
-@helpers.Collector
-def redis(app):
-    dsn = parsedsn(app.params.dsn)
-    del(dsn["username"])
-    del(dsn["driver"])
-    dsn["db"] = dsn.pop("database")
-    db = Redis(**dsn)
+class Redis(DBMixin, Collector):
 
-    statkeys = "size resident share".split()
+    @staticmethod
+    def main(self):
+        dsn = parsedsn(self.params.dsn)
+        del(dsn["username"])
+        del(dsn["driver"])
+        dsn["db"] = dsn.pop("database")
+        db = Redis(**dsn)
 
-    t = app.now
-    info = db.info()
-    pid = info["process_id"]
+        statkeys = "size resident share".split()
 
-    data = []
-    subject = app.hostname
-    data.append((subject, "redis_used_memory", t, info["used_memory"]))
-    data.append((subject, "redis_keys", t, info.get("db0", {}).get("keys", 0)))
+        t = self.now
+        info = db.info()
+        pid = info["process_id"]
 
-    t = app.now
-    statcols = "size resident share text lib data dt".split()
-    with open("/proc/%d/statm" % pid) as stat:
-        statvals = stat.read()
+        data = []
+        subject = self.hostname
+        data.append((subject, "redis_used_memory", t, info["used_memory"]))
+        data.append((subject, "redis_keys", t, info.get("db0", {}).get("keys", 0)))
 
-    statdata = dict(zip(statcols, statvals.split()))
-    for key in statkeys:
-        data.append((subject, "redis_stat_%s" % key, t, statdata[key]))
+        t = self.now
+        statcols = "size resident share text lib data dt".split()
+        with open("/proc/%d/statm" % pid) as stat:
+            statvals = stat.read()
 
-    app.submit(data)
+        statdata = dict(zip(statcols, statvals.split()))
+        for key in statkeys:
+            data.append((subject, "redis_stat_%s" % key, t, statdata[key]))
 
-default_dsn = "redis://localhost:6379/0"
-redis.add_param("-D", "--dsn", default=default_dsn,
-    help="<driver>://<username>:<password>@<host>:<port>/<database> (default: %s)" % default_dsn)
+        self.submit(data)
+
+    def setup(self):
+        Collector.setup(self)
+        self.argparser = self.parent.subparsers.add_parser("redis", 
+            help="redis database server")
+        DBMixin.setup(self)
 
 if __name__ == "__main__":
     redis.run()
