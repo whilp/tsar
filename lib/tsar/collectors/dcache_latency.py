@@ -21,9 +21,9 @@ class DcacheLatency(Collector):
         "gsiftp": "globus-url-copy -nodcau %s %s",
     }
     
-    def __init__(self, main=None, timeout=600, **kwargs):
+    def __init__(self, main=None, timeout=1200, **kwargs):
         super(DcacheLatency, self).__init__(main=main, **kwargs)
-        self.timeout = timeout
+        self.parent.timeout = timeout
 
     def timecp(self, proto, src, dst):
         copier = self.copiers[proto]

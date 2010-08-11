@@ -17,7 +17,7 @@ class CondorQueue(Collector):
 
     def __init__(self, main=None, timeout=300, **kwargs):
         super(CondorQueue, self).__init__(main, **kwargs)
-        self.timeout = timeout
+        self.parent.timeout = timeout
 
     @staticmethod
     def main(self):
