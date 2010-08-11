@@ -6,7 +6,7 @@ import cli
 from itertools import chain
 
 from . import model
-from .commands import DBMixin, SubCommand
+from .commands import ClientMixin, DBMixin, SubCommand
 from .util import Decorator, nearest
 
 def intorfloat(value):
@@ -90,3 +90,28 @@ class Clean(DBMixin, SubCommand):
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="don't actually remove records")
         self.add_param("pattern", nargs=1, help="regular expression to match subkeys against")
+
+class Record(ClientMixin, SubCommand):
+    service = "http://tsar.hep.wisc.edu/records"
+    
+    @staticmethod
+    def main(self):
+        data = [(
+            self.params.subject,
+            self.params.attribute,
+            self.params.cf,
+            self.params.time,
+            self.params.value)]
+        self.client.bulk(data)
+
+    def setup(self):
+        SubCommand.setup(self)
+        self.argparser = self.parent.subparsers.add_parser("record", 
+            help="send a new record to the tsar service")
+        ClientMixin.setup(self)
+
+        self.add_param("subject", nargs=1)
+        self.add_param("attribute", nargs=1)
+        self.add_param("cf", nargs=1)
+        self.add_param("time", nargs=1)
+        self.add_param("value", nargs=1)
