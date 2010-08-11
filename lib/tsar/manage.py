@@ -97,11 +97,11 @@ class Record(ClientMixin, SubCommand):
     @staticmethod
     def main(self):
         data = [(
-            self.params.subject,
-            self.params.attribute,
-            self.params.cf,
-            self.params.time,
-            self.params.value)]
+            self.params.subject[0],
+            self.params.attribute[0],
+            self.params.cf[0],
+            self.params.time[0],
+            self.params.value[0])]
         self.client.bulk(data)
 
     def setup(self):
