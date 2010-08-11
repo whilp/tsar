@@ -134,7 +134,7 @@ class Records(object):
         self.subject = subject
         self.attribute = attribute
         if cf not in self.cfs:
-            raise errors.RecordError("Invalid cf: %s" % self.cf)
+            raise errors.RecordError("Invalid cf: %s" % cf)
         self.cf = cf
         self.types = Types()
         self.types.exception = exception
