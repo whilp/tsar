@@ -217,5 +217,5 @@ class TestRecords(BaseTest):
         b = model.Records("foo", "bar", "last")
         self.assertEqual(a, b)
 
-        c = model.Records("foo", "bar", "baz")
+        c = model.Records("spam", "eggs", "last")
         self.assertNotEqual(a, c)
