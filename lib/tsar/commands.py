@@ -1,4 +1,5 @@
-import cli
+from cli.log import LoggingApp
+from cli.daemon import DaemonizingApp
 
 from . import model
 from .client import Tsar
@@ -10,10 +11,10 @@ class CommandMixin(object):
     def name(self):
         return self.__class__.__name__.lower().replace("_", "-")
 
-class Command(CommandMixin, cli.LoggingApp):
+class Command(CommandMixin, LoggingApp):
     pass
 
-class DaemonizingCommand(CommandMixin, cli.DaemonizingApp):
+class DaemonizingCommand(CommandMixin, DaemonizingApp):
     pass
 
 class SubCommandMixin(object):
