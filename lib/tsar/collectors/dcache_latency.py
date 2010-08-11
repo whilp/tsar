@@ -25,7 +25,7 @@ class DcacheLatency(Collector):
         super(DcacheLatency, self).__init__(main=main, **kwargs)
         self.timeout = timeout
 
-    def timecp(proto, src, dst):
+    def timecp(self, proto, src, dst):
         copier = self.copiers[proto]
 
         start = time.time()
