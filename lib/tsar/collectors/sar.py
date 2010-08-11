@@ -60,7 +60,7 @@ class Sar(Collector):
             fieldtoattr = dict((k, v) for k, v in self.fieldtoattr.items() if \
                 k in fields or v in fields)
 
-        cmd = self.params.command
+        cmd = self.params.sadfcmd
         records = []
         for fname in self.params.files:
             process = helpers.runcmd(cmd.replace("<FILE>", fname), shell=True)
@@ -87,7 +87,7 @@ class Sar(Collector):
         self.argparser = self.parent.subparsers.add_parser("sar", 
             help="sar(1) system monitor")
         default_sadf = "/usr/bin/sadf -p <FILE> -- -c -n DEV -n EDEV -q -r -u -w"
-        self.add_param("-c", "--command", default=default_sadf,
+        self.add_param("-c", "--sadfcmd", default=default_sadf,
             help="sadf command (default: %r)" % default_sadf)
         self.add_param("-f", "--fields", default="",
             help="comma-separated list of fields to include (default: all fields)")
