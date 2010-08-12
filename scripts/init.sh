@@ -22,7 +22,7 @@ start ()
         -dv \
         -l "${LOGFILE}" \
         -p "${PIDFILE}" \
-        -D redis://localhost:6379/0 \
+        -D redis://redis01.hep.wisc.edu:6379/0 \
         ${HOST} >/dev/null 2>&1
     RETVAL=$?
     echo
