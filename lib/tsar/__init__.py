@@ -56,4 +56,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
 __todo__ = """\
+ * tsar rename <subject> <attribute> <cf> (model.Records.rename)
+ * tsar delete <subject> <attribute> <cf> (model.Records.delete)
+ * rest of client API in tsar CLI
+ * docs
 """.split(" * ")
