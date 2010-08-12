@@ -1,38 +1,50 @@
-from cli.log import LoggingApp
-from cli.daemon import DaemonizingApp
+from cli.app import Application, CommandLineMixin
+from cli.log import LoggingApp, LoggingMixin
+from cli.daemon import DaemonizingMixin
 
 from . import model
 from .client import Tsar
 from .util import parsedsn
 
-class CommandMixin(object):
+class Command(LoggingApp):
 
     @property
     def name(self):
         return self.__class__.__name__.lower().replace("_", "-")
 
-class Command(CommandMixin, LoggingApp):
-    pass
-
-class DaemonizingCommand(CommandMixin, DaemonizingApp):
-    pass
-
-class SubCommandMixin(object):
+class SubCommand(Command):
     
+    def __init__(self, main=None, parent=None, **kwargs):
+        self.parent = parent
+        Command.__init__(self, main, **kwargs)
+
+class DaemonizingCommand(DaemonizingMixin, Command):
+
+    def __init__(self, main=None, **kwargs):
+        Command.__init__(self, main, **kwargs)
+        DaemonizingMixin.__init__(self, **kwargs)
+    
+    def setup(self):
+        Command.setup(self)
+        DaemonizingMixin.setup(self)
+
     def pre_run(self):
-        pass
+        Command.pre_run(self)
+        DaemonizingMixin.pre_run(self)
 
-class SubCommand(SubCommandMixin, Command):
+class DaemonizingSubCommand(DaemonizingMixin, SubCommand):
+    
+    def __init__(self, main=None, **kwargs):
+        SubCommand.__init__(self, main, **kwargs)
+        DaemonizingMixin.__init__(self, **kwargs)
+    
+    def setup(self):
+        SubCommand.setup(self)
+        DaemonizingMixin.setup(self)
 
-    def __init__(self, main=None, parent=None, **kwargs):
-        self.parent = parent
-        super(SubCommand, self).__init__(main, **kwargs)
-
-class DaemonizingSubCommand(SubCommandMixin, DaemonizingCommand):
-
-    def __init__(self, main=None, parent=None, **kwargs):
-        self.parent = parent
-        super(DaemonizingSubCommand, self).__init__(main, **kwargs)
+    def pre_run(self):
+        SubCommand.pre_run(self)
+        DaemonizingMixin.pre_run(self)
 
 class DBMixin(object):
 
