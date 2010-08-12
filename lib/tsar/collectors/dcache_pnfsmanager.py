@@ -4,8 +4,9 @@ from . import helpers
 from .commands import Collector
 
 from dcache.admin import Admin
+from dcache.app import AdminMixin
 
-class PnfsManager(Collector):
+class PnfsManager(AdminMixin, Collector):
 
     @staticmethod
     def main(self):
@@ -79,16 +80,4 @@ class PnfsManager(Collector):
         Collector.setup(self)
         self.argparser = self.parent.subparsers.add_parser("dcache-pnfsmanager", 
             help="dCache PNFSManager")
-
-        # XXX: Can't use AdminApp here cause it inherits from cli.LoggingApp; it
-        # should be a mixin...
-        from dcache.app import AdminConnection, Password
-        connection = AdminConnection()
-
-        self.add_param("-P", "--password", type=Password,
-            help="if PASSWORD starts with '%s', assume it's a path to "
-                "a file containing the password; otherwise, use it "
-                "as the password" % (Password.pathprefix))
-        self.add_param("-a", "--admin", type=AdminConnection,
-                help="connect to the admin interface as [USER@]HOST[:PORT] "
-                    "(defaults: %s)" % connection)
+        AdminMixin.setup(self)
