@@ -54,7 +54,6 @@ class DaemonizingSubCommand(DaemonizingMixin, SubCommand):
 
     def pre_run(self):
         SubCommand.pre_run(self)
-        DaemonizingMixin.pre_run(self)
 
 class DBMixin(object):
 
