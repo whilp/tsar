@@ -129,19 +129,19 @@ class Collector(SubCommand):
             self.log.debug("Submitting %d records", nrecords)
             return self.client.bulk(processed)
 
-    def runcmd(self, cmd, expect=0, **kwargs):
+    def runcmd(self, cmd, expect=0, abort=True, **kwargs):
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-        if expect is not False:
-            returncode = process.wait()
-            if returncode != expect:
-                stdout, stderr = process.communicate()
-                self.log.warn("Command %r returned %d", ' '.join(cmd), returncode)
-                self.stdout.write(stdout)
-                self.stderr.write(stderr)
-                raise Abort(returncode)
+        stdout, stderr = process.communicate()
+        if expect is not False and process.returncode != expect:
+            self.log.warn("Command %r returned %d", ' '.join(cmd), 
+                process.returncode)
+            self.stdout.write(stdout)
+            self.stderr.write(stderr)
+            if abort:
+                raise Abort(process.returncode)
 
-        return process
+        return process, stdout, stderr
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())
