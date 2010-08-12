@@ -12,11 +12,21 @@ class Command(LoggingApp):
     def name(self):
         return self.__class__.__name__.lower().replace("_", "-")
 
+    def pre_run(self):
+        # SubCommands need to set up their own logging.
+        Application.pre_run(self)
+        CommandLineMixin.pre_run(self)
+
 class SubCommand(Command):
     
     def __init__(self, main=None, parent=None, **kwargs):
         self.parent = parent
         Command.__init__(self, main, **kwargs)
+
+    def pre_run(self):
+        # Let Command run the CommandLineMixin.pre_run()
+        Application.pre_run(self)
+        LoggingMixin.pre_run(self)
 
 class DaemonizingCommand(DaemonizingMixin, Command):
 
