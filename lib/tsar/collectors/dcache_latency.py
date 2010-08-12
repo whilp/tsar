@@ -29,7 +29,7 @@ class DcacheLatency(Collector):
         copier = self.copiers[proto]
 
         start = time.time()
-        process = helpers.runcmd(copier % (src, dst), shell=True)
+        process = self.runcmd(copier % (src, dst), expect=False, shell=True)
         process.wait()
         stop = time.time()
 
@@ -54,7 +54,10 @@ class DcacheLatency(Collector):
                 if process.returncode == 0:
                     data.append(("dcache", "%s_write_latency" % proto, t, duration))
                 else:
-                    self.log.warn("%s write transfer failed", proto)
+                    self.log.warn("%s write transfer returned %d", proto,
+                        process.returncode)
+                    self.stdout.write(process.stdout.read() + '\n')
+                    self.stderr.write(process.stderr.read() + '\n')
         finally:
             os.remove(src)
 

@@ -55,6 +55,7 @@ class Sar(Collector):
 
     @staticmethod
     def main(self):
+        fieldtoattr = self.fieldtoattr
         if self.params.fields:
             if "LIST" in self.params.fields:
                 self.stdout.write("Available fields:\n")
@@ -67,10 +68,14 @@ class Sar(Collector):
         cmd = self.params.sadfcmd
         records = []
         for fname in self.params.files:
-            process = helpers.runcmd(cmd.replace("<FILE>", fname), shell=True)
+            fullcmd = cmd.replace("<FILE>", fname)
+            process = self.runcmd(fullcmd, expect=False, shell=True)
             stdout, stderr = process.communicate()
 
             if process.returncode != 0:
+                self.log.warn("Command %r returned %d", fullcmd, process.returncode)
+                self.stdout.write(stdout)
+                self.stderr.write(stderr)
                 continue
 
             stdout = iter(stdout.splitlines())
