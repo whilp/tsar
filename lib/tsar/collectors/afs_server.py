@@ -11,8 +11,7 @@ class AFSServer(Collector):
         cmd = ["/usr/sbin/rxdebug", server]
 
         t = self.now
-        process = self.runcmd(cmd)
-        stdout, stderr = process.communicate()
+        process, stdout, stderr = self.runcmd(cmd)
 
         rxdata = {}
         for line in stdout.splitlines():

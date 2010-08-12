@@ -29,12 +29,12 @@ class DcacheLatency(Collector):
         copier = self.copiers[proto]
 
         start = time.time()
-        process = self.runcmd(copier % (src, dst), expect=False, shell=True)
-        process.wait()
+        process, stdout, stderr = self.runcmd(copier % (src, dst), 
+            abort=False, shell=True)
         stop = time.time()
 
         duration = stop - start
-        return process, duration
+        return process, stdout, stderr, duration
 
     @staticmethod
     def main(self):
@@ -49,27 +49,20 @@ class DcacheLatency(Collector):
             for proto in self.params.protos:
                 t = self.now
                 prefix = getattr(self.params, proto)
-                process, duration = self.timecp(proto, localprefix(proto, src), 
+                process, stdout, stderr, duration = self.timecp(proto, localprefix(proto, src), 
                     "%s%s.%s" % (prefix, dst, proto))
                 if process.returncode == 0:
                     data.append(("dcache", "%s_write_latency" % proto, t, duration))
-                else:
-                    self.log.warn("%s write transfer returned %d", proto,
-                        process.returncode)
-                    self.stdout.write(process.stdout.read() + '\n')
-                    self.stderr.write(process.stderr.read() + '\n')
         finally:
             os.remove(src)
 
         for proto in self.params.protos:
             t = self.now
             prefix = getattr(self.params, proto)
-            process, duration = self.timecp(proto, "%s%s" % (prefix, self.params.test_file),
-                localprefix(proto, os.devnull))
+            process, stdout, stderr, duration = self.timecp(proto, 
+                "%s%s" % (prefix, self.params.test_file), localprefix(proto, os.devnull))
             if process.returncode == 0:
                 data.append(("dcache", "%s_read_latency" % proto, t, duration))
-            else:
-                self.log.warn("%s read transfer failed", proto)
 
         self.submit(data)
 

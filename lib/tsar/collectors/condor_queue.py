@@ -32,8 +32,7 @@ class CondorQueue(Collector):
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
         t = self.now
-        process = self.runcmd(cmd)
-        stdout, stderr = process.communicate()
+        process, stdout, stderr = self.runcmd(cmd)
 
         cqdata = {}
         for line in stdout.splitlines():

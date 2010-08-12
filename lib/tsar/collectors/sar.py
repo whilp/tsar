@@ -69,13 +69,9 @@ class Sar(Collector):
         records = []
         for fname in self.params.files:
             fullcmd = cmd.replace("<FILE>", fname)
-            process = self.runcmd(fullcmd, expect=False, shell=True)
-            stdout, stderr = process.communicate()
+            process, stdout, stderr = self.runcmd(fullcmd, abort=False, shell=True)
 
             if process.returncode != 0:
-                self.log.warn("Command %r returned %d", fullcmd, process.returncode)
-                self.stdout.write(stdout)
-                self.stderr.write(stderr)
                 continue
 
             stdout = iter(stdout.splitlines())

@@ -1,6 +1,8 @@
 import functools
 import operator
 
+from io import StringIO
+
 insert = lambda l, i, o: l[0:i] + [o] + l[i:]
 incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
 median = lambda x: sorted(x)[len(x)/2]
