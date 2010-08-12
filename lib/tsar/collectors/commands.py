@@ -98,6 +98,7 @@ class Collector(SubCommand):
     }
 
     def pre_run(self):
+        SubCommand.pre_run(self)
         self.client = self.parent.client
 
     def prepare(self, data, cfs=None):
