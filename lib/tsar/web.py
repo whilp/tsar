@@ -1,14 +1,14 @@
 import csv
 import logging
 
-import cli
-
 from urllib2 import quote, unquote
 
 from neat import neat
 
 from . import errors, model
 from .commands import DBMixin, DaemonizingSubCommand
+from .commands import (
+    Application, CommandLineMixin, DaemonizingMixin, LoggingMixin)
 from .util import Decorator, json, parsedsn
 
 __all__ = ["Records", "service"]
@@ -233,19 +233,16 @@ class Serve(DBMixin, DaemonizingSubCommand):
             server.stop()
 
     def pre_run(self):
+        DaemonizingSubCommand.pre_run(self)
         DBMixin.pre_run(self)
-        #cli.LoggingApp.pre_run(self)
-        self.log.propagate = False
 
     def setup(self):
-        DaemonizingSubCommand.setup(self)
-        oldparser = self.argparser
+        Application.setup(self)
+        CommandLineMixin.setup(self)
+        LoggingMixin.setup(self)
         self.argparser = self.parent.subparsers.add_parser("serve", 
             help="start the tsar web service")
-        actions = "user pidfile daemonize".split()
-        for action in oldparser._actions:
-            if action.dest not in "help ==SUPPRESS==".split():
-                self.argparser._add_action(action)
+        DaemonizingMixin.setup(self)
         DBMixin.setup(self)
 
         default_server = "0.0.0.0:8000"
