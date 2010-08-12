@@ -29,6 +29,8 @@ class Collect(ClientMixin, Command):
 
         self.add_param("-t", "--timeout", default=self.timeout,
             help="timeout (default: %s seconds)" % self.timeout)
+        self.add_param("-n", "--dryrun", default=False, action="store_true",
+            help="print collected data instead of submitting it (default: submit)")
 
         self.subparsers = self.argparser.add_subparsers(dest="collector")
 
@@ -116,7 +118,15 @@ class Collector(SubCommand):
             yield record
 
     def submit(self, data, cfs=None):
-        return self.client.bulk(self.prepare(data, cfs=cfs))
+        processed = list(self.prepare(data, cfs=cfs))
+        nrecords = len(processed)
+        self.log.debug("Collected %d records", nrecords)
+        for record in processed:
+            self.log.debug(' '.join(repr(r) for r in record))
+            
+        if not self.params.dryrun:
+            self.log.debug("Submitting %d records", nrecords)
+            return self.client.bulk(processed)
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())
