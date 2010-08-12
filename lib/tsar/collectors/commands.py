@@ -1,11 +1,12 @@
 import os
 import socket
+import subprocess
 import time
-
-import cli
 
 from itertools import chain
 from operator import itemgetter
+
+from cli.app import Abort
 
 from tsar import errors
 from tsar.commands import ClientMixin, Command, SubCommand
@@ -127,6 +128,20 @@ class Collector(SubCommand):
         if not self.params.dryrun:
             self.log.debug("Submitting %d records", nrecords)
             return self.client.bulk(processed)
+
+    def runcmd(self, cmd, expect=0, **kwargs):
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+        if expect is not False:
+            returncode = process.wait()
+            if returncode != expect:
+                stdout, stderr = process.communicate()
+                self.log.warn("Command %r returned %d", ' '.join(cmd), returncode)
+                self.stdout.write(stdout)
+                self.stderr.write(stderr)
+                raise Abort(returncode)
+
+        return process
 
     now = property(lambda s: int(time.time()))
     hostname = property(lambda s: socket.gethostname())

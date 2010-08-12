@@ -1,6 +1,5 @@
 import functools
 import operator
-import subprocess
 
 insert = lambda l, i, o: l[0:i] + [o] + l[i:]
 incrkey = lambda d, k, i=1: operator.setitem(d, k, d.setdefault(k, 0) + i)
@@ -22,8 +21,3 @@ def trim(s, subs, reverse=False):
     return s[start:end]
 
 rtrim = functools.partial(trim, reverse=True)
-
-def runcmd(cmd, **kwargs):
-    return subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-
