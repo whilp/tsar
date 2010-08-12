@@ -18,9 +18,8 @@ start ()
 {
     echo -n "Starting $prog:"
     # XXX: --check?
-    daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar serve \
-        -dv \
-        -l "${LOGFILE}" \
+    daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar -vl "${LOGFILE}" serve \
+        -d \
         -p "${PIDFILE}" \
         -D redis://redis01.hep.wisc.edu:6379/0 \
         ${HOST} >/dev/null 2>&1
