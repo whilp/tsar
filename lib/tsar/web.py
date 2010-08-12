@@ -197,12 +197,21 @@ class Records(AllRecords):
 
         self.response.status_int = 200
 
+class Ping(neat.Resource):
+    prefix = "/_ping"
+
+    def get(self):
+        self.response.body = "OK"
+        self.response.status_int = 200
+        self.response.content_type = "text/plain"
+
 def Server(host, port):
     from .ext import wsgiserver
 
     service = neat.Dispatch(
         AllRecords(),
-        Records())
+        Records(),
+        Ping())
     server = wsgiserver.CherryPyWSGIServer((host, port), service)
     return server
 
