@@ -46,7 +46,7 @@ class CondorQueue(Collector):
             key = None
             k, v = line.split('=', 1)
             if k == "runtime":
-                runtimes = cqdata.setdefault("runtime", [])
+                runtimes = cqdata.setdefault("job_runtime", [])
                 runtimes.append(int(v))
             elif k == "user":
                 users = cqdata.setdefault("condor_users", set())
@@ -69,8 +69,6 @@ class CondorQueue(Collector):
             data.append((subject, "users", t, len(users)))
 
         data.extend((subject, k, t, v) for k, v in cqdata.items())
-        data.append((subject, "job_runtime", t, 
-            [float(x) for x in runtimes]))
 
         self.submit(data)
 
