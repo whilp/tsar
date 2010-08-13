@@ -132,8 +132,9 @@ class Collector(SubCommand):
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
         stdout, stderr = process.communicate()
         if expect is not False and process.returncode != expect:
-            self.log.warn("Command %r returned %d", ' '.join(cmd), 
-                process.returncode)
+            if not isinstance(cmd, basestring):
+                cmd = ' '.join(cmd)
+            self.log.warn("Command %r returned %d", cmd, process.returncode)
             self.stdout.write(stdout)
             self.stderr.write(stderr)
             if abort:
