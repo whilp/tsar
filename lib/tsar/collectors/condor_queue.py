@@ -31,8 +31,13 @@ class CondorQueue(Collector):
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
         t = self.now
-        process, stdout, stderr = self.runcmd(cmd)
-
+        if self.params.input:
+            stdout = open(self.params.input, 'r').read()
+        else:
+            process, stdout, stderr = self.runcmd(cmd)
+            if self.params.output:
+                open(self.params.output, 'w').write(stdout)
+            
         cqdata = {}
         for line in stdout.splitlines():
             if not line:
@@ -74,6 +79,11 @@ class CondorQueue(Collector):
         self.argparser = self.parent.subparsers.add_parser("condor-queue", 
             help="Condor batch queues")
         self.add_param("pool", nargs=1, help="Condor pool to query")
+        self.add_param("-i", "--input", default=False,
+            help="use file INPUT instead of running condor_q")
+        self.add_param("-o", "--output", default=False,
+            help="write condor_q output to file OUTPUT")
+
 
 if __name__ == "__main__":
     condor_queue.run()
