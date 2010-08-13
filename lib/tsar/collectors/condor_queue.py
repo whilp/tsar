@@ -24,10 +24,10 @@ class CondorQueue(Collector):
         cmd = ["/condor/bin/condor_q", "-global", "-pool", pool,
             "-attributes", ','.join(self.attributes),
             "-format", "runtime=%d\n", "RemoteWallClockTime + (CurrentTime - EnteredCurrentStatus)",
-            "-format", "jobstatus=%d\n", "JobStatus",
             "-format", "user=%s", "Owner",
             "-format", "|%s", "x509userproxysubject",
             "-format", "\n", "Owner",
+            "-format", "jobstatus=%d\n", "JobStatus",
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
         t = self.now
@@ -39,6 +39,7 @@ class CondorQueue(Collector):
                 open(self.params.output, 'w').write(stdout)
             
         cqdata = {}
+        user = None
         for line in stdout.splitlines():
             if not line:
                 continue
@@ -51,12 +52,17 @@ class CondorQueue(Collector):
             elif k == "user":
                 users = cqdata.setdefault("condor_users", set())
                 users.add(v)
+                user = v.partition('|')[0]
             elif k == "globaljobid":
                 key = "total_jobs"
+                user = None
             elif k == "jobstatus":
                 status = self.jobstatusmap[int(v)]
                 if status in ("running", "held", "idle"):
                     key = "%s_jobs" % status
+                    if user:
+                        helpers.incrkey(cqdata, 
+                            "owner_%s_%s_jobs" % (user, status))
                 
             if key is not None:
                 helpers.incrkey(cqdata, key)
