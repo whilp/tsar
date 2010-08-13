@@ -36,7 +36,6 @@ class DcacheLatency(Collector):
         duration = stop - start
         return process, stdout, stderr, duration
 
-    @staticmethod
     def main(self):
         srcfd, src = mkstemp(prefix="dcache-latency-testfile.")
         srcfile = os.fdopen(srcfd, 'a')

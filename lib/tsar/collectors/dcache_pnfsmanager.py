@@ -8,7 +8,6 @@ from dcache.app import AdminMixin
 
 class PnfsManager(AdminMixin, Collector):
 
-    @staticmethod
     def main(self):
         connection = self.params.admin.as_dict
         connection["passwd"] = str(self.params.password)

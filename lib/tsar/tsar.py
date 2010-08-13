@@ -5,10 +5,9 @@ from .commands import Command, SubCommand
 class Tsar(Command):
 
     def __init__(self, main=None, commands={}, **kwargs):
-        super(Tsar, self).__init__(main=main, **kwargs)
         self.commands = commands
+        super(Tsar, self).__init__(main=main, **kwargs)
     
-    @staticmethod
     def main(self):
         cmd = self.commands[self.params.command]
         cmd.params = self.params
@@ -19,7 +18,6 @@ class Tsar(Command):
         self.subparsers = self.argparser.add_subparsers(dest="command")
         for k, v in sorted(self.commands.items(), key=itemgetter(0)):
             command = v(parent=self)
-            command.setup()
             self.commands[k] = command
 
 def run():
@@ -34,7 +32,6 @@ def run():
         "record": manage.Record,
         "serve": Serve,
     })
-    tsar.setup()
     tsar.run()
 
 if __name__ == "__main__":

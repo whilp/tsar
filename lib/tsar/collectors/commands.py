@@ -53,10 +53,8 @@ class Collect(ClientMixin, Command):
         }
         for k, v in sorted(self.collectors.items(), key=itemgetter(0)):
             collector = v(parent=self)
-            collector.setup()
             self.collectors[k] = collector
 
-    @staticmethod
     def main(self):
         # Set a signal in case main() takes too long.
         self.params.timeout = int(self.params.timeout)

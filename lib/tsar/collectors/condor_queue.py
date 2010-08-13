@@ -19,7 +19,6 @@ class CondorQueue(Collector):
         super(CondorQueue, self).__init__(main, **kwargs)
         self.parent.timeout = timeout
 
-    @staticmethod
     def main(self):
         pool = self.params.pool[0]
         cmd = ["/condor/bin/condor_q", "-global", "-pool", pool,

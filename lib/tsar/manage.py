@@ -43,7 +43,6 @@ def lastkeys(db):
 
 class Last(DBMixin, SubCommand):
 
-    @staticmethod
     def main(self):
         now = time.time()
         pattern = re.compile(self.params.pattern)
@@ -71,7 +70,6 @@ class Last(DBMixin, SubCommand):
 
 class Clean(DBMixin, SubCommand):
     
-    @staticmethod
     def main(self):
         pattern = re.compile(self.params.pattern[0])
         for record in model.Records.all():
@@ -94,7 +92,6 @@ class Clean(DBMixin, SubCommand):
 class Record(ClientMixin, SubCommand):
     service = "http://tsar.hep.wisc.edu/records"
     
-    @staticmethod
     def main(self):
         data = [(
             self.params.subject[0],

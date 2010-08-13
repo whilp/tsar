@@ -18,7 +18,6 @@ class DcacheTransfers(Collector):
         18: (sharedkeys + "_ mover direction since s _ transferred speed _").split(),
     }
 
-    @staticmethod
     def main(self):
         url = self.params.url[0]
 

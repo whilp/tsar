@@ -53,7 +53,6 @@ class Sar(Collector):
         "txpck/s": "net_tx_packets/s",
     }
 
-    @staticmethod
     def main(self):
         fieldtoattr = self.fieldtoattr
         if self.params.fields:

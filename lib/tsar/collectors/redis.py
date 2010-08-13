@@ -15,7 +15,6 @@ from ..util import parsedsn
 
 class Redis(DBMixin, Collector):
 
-    @staticmethod
     def main(self):
         statkeys = "size resident share".split()
 

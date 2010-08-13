@@ -5,7 +5,6 @@ from . import commands, helpers
 
 class AFSServer(Collector):
 
-    @staticmethod
     def main(self):
         server = self.params.server[0]
         cmd = ["/usr/sbin/rxdebug", server]

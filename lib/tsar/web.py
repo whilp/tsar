@@ -217,7 +217,6 @@ def Server(host, port):
 
 class Serve(DBMixin, DaemonizingSubCommand):
     
-    @staticmethod
     def main(self):
         host, _, port = self.params.server.partition(':')
         if not port:
