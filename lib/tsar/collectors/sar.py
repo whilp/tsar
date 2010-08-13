@@ -56,9 +56,13 @@ class Sar(Collector):
     def main(self):
         fieldtoattr = self.fieldtoattr
         if self.params.fields:
-            if "LIST" in self.params.fields:
+            fields = [x for x in self.params.fields if x in "KEYS VALUES".split()]
+            if fields:
                 self.stdout.write("Available fields:\n")
-                self.stdout.write('\n'.join(self.fieldtoattr) + '\n')
+                if "KEYS" in fields:
+                    self.stdout.write('\n'.join(self.fieldtoattr) + '\n')
+                if "VALUES" in fields:
+                    self.stdout.write('\n'.join(self.fieldtoattr.values()) + '\n')
                 return 0
             fields = self.params.fields
             fieldtoattr = dict((k, v) for k, v in self.fieldtoattr.items() if \
@@ -94,7 +98,7 @@ class Sar(Collector):
         self.add_param("-c", "--sadfcmd", default=default_sadf,
             help="sadf command (default: %r)" % default_sadf)
         self.add_param("-f", "--fields", nargs="*", 
-            help="fields to include; LIST to see choices (default: all fields)")
+            help="fields to include; KEYS or VALUES to see choices (default: all fields)")
         self.add_param("-n", "--newer", default=None,
             help="only submit records newer than supplied UTC timestamp (default: all records)")
         self.add_param("files", help="system activity files", nargs="*")
