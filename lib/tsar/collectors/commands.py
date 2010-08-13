@@ -10,7 +10,7 @@ from cli.app import Abort
 
 from tsar import errors
 from tsar.commands import ClientMixin, Command, SubCommand
-from tsar.collectors.helpers import insert, median
+from tsar.collectors.helpers import insert, median, replace
 
 class Collect(ClientMixin, Command):
     collectors = {}
@@ -32,6 +32,8 @@ class Collect(ClientMixin, Command):
             help="timeout (default: %s seconds)" % self.timeout)
         self.add_param("-n", "--dryrun", default=False, action="store_true",
             help="print collected data instead of submitting it (default: submit)")
+        self.add_param("-g", "--groups", nargs="*", 
+            help="list of aggregate groups to report to (default: none)")
 
         self.subparsers = self.argparser.add_subparsers(dest="collector")
 
@@ -118,6 +120,10 @@ class Collector(SubCommand):
 
     def submit(self, data, cfs=None):
         processed = list(self.prepare(data, cfs=cfs))
+        groupdata = []
+        for group in (self.params.groups or []):
+            groupdata.extend(replace(r, 0, group) for r in data)
+        processed.extend(groupdata)
         nrecords = len(processed)
         self.log.debug("Collected %d records", nrecords)
         for record in processed:
