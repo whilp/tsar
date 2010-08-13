@@ -60,7 +60,7 @@ class Sar(Collector):
                 self.stdout.write("Available fields:\n")
                 self.stdout.write('\n'.join(self.fieldtoattr) + '\n')
                 return 0
-            fields = self.params.fields.split(',')
+            fields = self.params.fields
             fieldtoattr = dict((k, v) for k, v in self.fieldtoattr.items() if \
                 k in fields or v in fields)
 
