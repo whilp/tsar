@@ -254,21 +254,41 @@ class Records(object):
         def __call__(self, db, key, expire=1, interval=.1, attempts=10):
             self.db = db
             self.key = key
-            self.expire = expire
+            self.expire = expire + 1
             self.interval = interval
             self.attempts = attempts
             return self
+
+        @property
+        def now(self):
+            return time.time()
         
         def __enter__(self):
             i = 0
-            locked = self.db.setnx(self.key, "")
+            locked = False
             while not locked and i < self.attempts:
-                time.sleep(self.interval)
-                i += 1
-                locked = self.db.setnx(self.key, "")
-            if not locked and self.db.ttl(self.key):
+                if i > 0:
+                    time.sleep(self.interval)
+                    i += 1
+
+                locked = self.db.setnx(self.key, self.now + self.expire)
+                if locked:
+                    break
+
+                current = self.db.get(self.key)
+                if float(current or 0) > self.now:
+                    # Existing lock hasn't expired yet.
+                    locked = False
+                elif self.db.getset(self.key, self.now + self.expire) != current:
+                    # The lock's expired but somebody beat us in a race to
+                    # update the lock.
+                    locked = False
+                else:
+                    # The lock expired and we updated it successfully (GETSET).
+                    locked = True
+
+            if not locked:
                 raise errors.LockError(self.key)
-            self.db.expire(self.key, self.expire)
 
         def __exit__(self, *args):
             self.db.delete(self.key)
