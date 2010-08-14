@@ -251,7 +251,7 @@ class Records(object):
 
     class Lock(object):
 
-        def __call__(self, db, key, expire=5, interval=.1, attempts=10):
+        def __call__(self, db, key, expire=1, interval=.1, attempts=10):
             self.db = db
             self.key = key
             self.expire = expire
