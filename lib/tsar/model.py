@@ -266,9 +266,9 @@ class Records(object):
                 locked = self.db.setnx(self.key, "")
                 time.sleep(self.interval)
                 i += 1
-            if i >= self.attempts:
-                raise errors.LockError(self.key)
             self.db.expire(self.key, self.expire)
+            if not locked:
+                raise errors.LockError(self.key)
 
         def __exit__(self, *args):
             self.db.delete(self.key)
