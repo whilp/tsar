@@ -224,9 +224,9 @@ class Serve(DBMixin, DaemonizingSubCommand):
 
         self.log.info("Starting server at http://%s:%s/", host, port)
         server = Server(host, int(port),
-            numthreads=self.params.nthreads,
-            request_queue_size=self.params.requests,
-            timeout=self.params.timeout)
+            numthreads=int(self.params.nthreads),
+            request_queue_size=int(self.params.requests),
+            timeout=int(self.params.timeout))
         if self.params.daemonize:
             self.daemonize()
         try:
@@ -253,7 +253,7 @@ class Serve(DBMixin, DaemonizingSubCommand):
         default_timeout = 10
         self.add_param("-n", "--nthreads", default=default_threads,
             help="minimum size of server thread pool (default: %s)" % default_threads)
-        self.add_param("-r", "--request", default=default_requests,
+        self.add_param("-r", "--requests", default=default_requests,
             help="size of the server request queue (default: %s)" % default_requests)
         self.add_param("-t", "--timeout", default=default_timeout,
             help="timeout (seconds) for accepted connections (default: %s)" % default_timeout)
