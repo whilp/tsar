@@ -263,12 +263,12 @@ class Records(object):
             i = 0
             locked = self.db.setnx(self.key, "")
             while not locked and i < self.attempts:
-                locked = self.db.setnx(self.key, "")
                 time.sleep(self.interval)
                 i += 1
-            self.db.expire(self.key, self.expire)
-            if not locked:
+                locked = self.db.setnx(self.key, "")
+            if not locked and self.db.ttl(self.key):
                 raise errors.LockError(self.key)
+            self.db.expire(self.key, self.expire)
 
         def __exit__(self, *args):
             self.db.delete(self.key)
