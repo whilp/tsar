@@ -124,7 +124,7 @@ class Collector(SubCommand):
         processed = list(self.prepare(data, cfs=cfs))
         groupdata = []
         for group in (self.params.groups or []):
-            groupdata.extend(replace(r, 0, group) for r in data)
+            groupdata.extend(replace(r, 0, group) for r in processed)
         processed.extend(groupdata)
         nrecords = len(processed)
         self.log.debug("Collected %d records", nrecords)
