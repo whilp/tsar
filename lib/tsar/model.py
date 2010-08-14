@@ -251,14 +251,24 @@ class Records(object):
 
     class Lock(object):
 
-        def __call__(self, db, key, expire):
+        def __call__(self, db, key, expire, interval=.1, attempts=5):
             self.db = db
             self.key = key
             self.expire = expire
+            self.interval = interval
+            self.attempts = attempts
             return self
         
         def __enter__(self):
-            self.db.setex(self.key, "", self.expire)
+            i = 0
+            locked = self.db.setnx(self.key, "")
+            while not locked and i < self.attempts:
+                locked = self.db.setnx(self.key, "")
+                time.sleep(self.interval)
+                i += 1
+            if i >= self.attempts:
+                raise errors.LockError(self.key)
+            self.db.expire(self.key, self.expire)
 
         def __exit__(self, *args):
             self.db.delete(self.key)

@@ -18,3 +18,10 @@ class APIError(Error):
         message = message + " (HTTP status: %d)" % self.response.getcode()
 
         super(APIError, self).__init__(message)
+
+class LockError(Error):
+    
+    def __init__(self, key):
+        self.key = key
+        message = "Failed to lock key %r" % key
+        super(LockError, self).__init__(message)
