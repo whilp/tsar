@@ -155,7 +155,7 @@ class Records(object):
 
     def delete(self):
         """Remove the instance from the database."""
-        with self.lock(self.db, self.subkey("lock"), 60):
+        with self.lock(self.db, self.subkey("lock")):
             pipe = self.db.pipeline(transaction=True)
             pipe.delete(*self.keys())
             pipe.srem(self.namespace, "%s %s %s" % (
@@ -169,7 +169,7 @@ class Records(object):
         if len(keymap) != len(keys):
             raise errors.RecordError("Key mismatch in new Records instance")
 
-        with self.lock(self.db, self.subkey("lock"), 60):
+        with self.lock(self.db, self.subkey("lock")):
             check = True
             pipe = self.db.pipeline(transaction=True)
             for src, dst in keymap:
@@ -251,7 +251,7 @@ class Records(object):
 
     class Lock(object):
 
-        def __call__(self, db, key, expire, interval=.1, attempts=10):
+        def __call__(self, db, key, expire=5, interval=.1, attempts=10):
             self.db = db
             self.key = key
             self.expire = expire
@@ -437,7 +437,7 @@ class Records(object):
         Each value is a two-tuple consisting of (timestamp, value) that will be
         passed to :meth:`record`.
         """
-        with self.lock(self.db, self.subkey("lock"), 60):
+        with self.lock(self.db, self.subkey("lock")):
             pipe = self.db.pipeline(transaction=True)
             self.record(pipe, iterable)
             pipe.execute()
