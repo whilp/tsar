@@ -92,7 +92,7 @@ class AllRecords(neat.Resource):
             raise errors.HTTPConflict(e.args[0])
 
     def post(self):
-        content = self.req.content
+        content = getattr(self.req, "content", None)
         if not content:
             raise errors.HTTPBadRequest("No data")
 
