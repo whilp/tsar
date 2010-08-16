@@ -29,9 +29,6 @@
   <div id="iowait" class="plot"></div>
   <div id="iowait-overview" class="overview"></div>
 
-  <div id="pnfsman" class="plot"></div>
-  <div id="pnfsman-overview" class="overview"></div>
-
   <p>This plot shows various types of system load on our dCache PNFS headnode, sampled 
   at ten minute intervals by <tt>sar(1)</tt> (all times UTC). Note: you can select 
   ranges on the x axis of either the detailed or summary plots to zoom.
@@ -153,34 +150,29 @@
       queries: [
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
-              options: { label: "iowait load (%)" }}),
+              options: { label: "iowait load (%)", yaxis: 1 }}),
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct",
-              options: { label: "system load (%)" }}),
+              options: { label: "system load (%)", yaxis: 1 }}),
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
-              options: { label: "user load (%)" }}),
+              options: { label: "user load (%)", yaxis: 1 }}),
+          $.extend({}, common, 
+            { subject: "dcache_pnfsmanager", attribute: "queue_depth",
+              options: { label: "queue depth (messages)", yaxis: 2 }}),
       ],
+      yaxis: { 
+        min: 0, max: 100,
+        tickFormatter: function (v, axis) { return v.toFixed(axis.tickDecimals) +"%" },
+      },
+      y2axis: { position: "right", min: 0, },
+      // yaxes: [ {min: 0, max: 100, position: "left"}, { position: "right" } ],
       overview: {
         placeholder: "#iowait-overview",
+        y2axis: { ticks: [] },
       },
     }));
-    var pnfsman = plot("#pnfsman", $.extend({}, options, {
-        queries: [
-            $.extend({}, common, 
-              { subject: "dcache_pnfsmanager", attribute: "queue_depth",
-                options: { label: "queue depth", yaxis: 1 }}),
-            $.extend({}, common, 
-              { subject: "dcache_pnfsmanager", attribute: "failrate_total",
-                options: { label: "message fail rate (%)", yaxis: 2 }}),
-        ],
-        yaxes: [ {}, { position: "right" } ],
-        overview: {
-          placeholder: "#pnfsman-overview",
-        },
-    }));
   });
-
   </script>
 </body>
 </html>
