@@ -51,82 +51,98 @@
 
   <script>
   $(function () {
-    var options = {
-        bars: { show: true },
-        selection: { mode: "x" },
-        xaxis: { mode: "time" },
-        // colors: [ "#aaa", "#666", "#333", "#111" ],
-    };
-    var overviewopts = $.extend({}, options, {
-        lines: { lineWidth: 1 },
-        shadowSize: 0,
-        yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
-        legend: { show: false },
-    });
+    function plot (placeholder, options) {
+      var options = $.extend({}, {
+          bars: { show: true },
+          lines: {show: true},
+          selection: { mode: "x" },
+          xaxis: { mode: "time" },
+          // colors: [ "#aaa", "#666", "#333", "#111" ],
+      }, options);
+      var overviewopts = $.extend({}, options, {
+          lines: { lineWidth: 1 },
+          shadowSize: 0,
+          yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
+          legend: { show: false },
+      }, options.overview);
 
-    var iowait = $("#iowait");
-    var iowaitoverview = $("#iowait-overview");
+      var plotplaceholder = $(placeholder);
+      var viewplaceholder = false;
+      if (options.overview && options.overview.placeholder) {
+        var viewplaceholder = $(options.overview.placeholder);
+      };
 
-    function render (json) {
-      var data = [];
-      $.each(json, function (s, series) {
-        for (var i = 0; i < series.length; ++i) {
-            series[i][0] *= 1000;
-        };
-        data.push({data: series, label: s});
-      });
-
-      var plot = $.plot(iowait, data, options);
-      var overview = $.plot(iowaitoverview, data, overviewopts);
-
-      iowait.bind("plotselected", function (event, ranges) {
-        plot = $.plot(iowait, data,
-            $.extend(true, {}, options, {
-                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                bars: { barWidth: (ranges.xaxis.from - ranges.xaxis.to)/600 },
-            }))
-        overview.setSelection(ranges, true);
-      });
-
-      iowaitoverview.bind("plotselected", function (event, ranges) {
-        plot.setSelection(ranges);
-      });
-    };
-
-    // XXX
-    var common = { cf: "max", interval: 60 };
-    var queries = [
-        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" },
-        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" },
-        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" },
-        // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
-        // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
-    ];
-
-    function paramify (k, v) {
-        return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
-    };
-
-    function querify (queries) {
-        var url = "";
-        $.each(queries, function (i, query) {
-            var q = $.extend({}, common, query);
-            url += paramify("subject", q.subject);
-            delete q.subject;
-            $.each(q, function (k, v) { url += paramify(k,v ); });
+      function render (json) {
+        var data = [];
+        $.each(json, function (s, series) {
+          for (var i = 0; i < series.length; ++i) {
+              series[i][0] *= 1000;
+          };
+          data.push({data: series, label: s});
         });
 
-        return url;
+        var plot = $.plot(plotplaceholder, data, options);
+        if (viewplaceholder) {
+          var overview = $.plot(viewplaceholder, data, overviewopts);
+
+          plotplaceholder.bind("plotselected", function (event, ranges) {
+            plot = $.plot(plotplaceholder, data,
+                $.extend(true, {}, options, {
+                    xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                    bars: { 
+                      barWidth: 
+                        10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotplaceholder.width()),
+                    },
+                }))
+            overview.setSelection(ranges, true);
+          });
+
+          viewplaceholder.bind("plotselected", function (event, ranges) {
+            plot.setSelection(ranges);
+          });
+        };
+      };
+
+      // XXX
+      var common = { cf: "max", interval: 60 };
+      var queries = [
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" },
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" },
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" },
+          // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
+          // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
+      ];
+
+      function paramify (k, v) {
+          return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+      };
+
+      function querify (queries) {
+          var url = "";
+          $.each(queries, function (i, query) {
+              var q = $.extend({}, common, query);
+              url += paramify("subject", q.subject);
+              delete q.subject;
+              $.each(q, function (k, v) { url += paramify(k,v ); });
+          });
+
+          return url;
+      };
+
+      var url = "http://tsar.hep.wisc.edu/records?_accept=application/json&callback=?";
+      url += querify(queries);
+
+      $.ajax({
+          url: url,
+          success: render,
+          method: "GET",
+          dataType: "jsonp",
+      });
     };
-
-    var url = "http://tsar.hep.wisc.edu/records?_accept=application/json&callback=?";
-    url += querify(queries);
-
-    $.ajax({
-        url: url,
-        success: render,
-        method: "GET",
-        dataType: "jsonp",
+    plot("#iowait", {
+      overview: {
+        placeholder: "#iowait-overview",
+      },
     });
   });
   </script>
