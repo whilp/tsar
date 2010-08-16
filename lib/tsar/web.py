@@ -24,37 +24,6 @@ mediatypes = {
     "records": v + ".records.v2",
 }
 
-class getmethod(Decorator):
-    
-    def call(self, func, args, kwargs):
-        log = logger(self)
-        instance = args[0]
-        req = instance.req
-
-        path = req.path_info.lstrip('/')
-        try:
-            rid = instance.decodeid(path)
-        except ValueError:
-            raise errors.HTTPNotFound
-
-        try:
-            records = model.Records(*rid, exception=errors.HTTPBadRequest)
-        except TypeError:
-            raise errors.HTTPBadRequest("Invalid resource id")
-
-        start, stop, now, interval = 0, -1, None, None
-        if req.content is not None:
-            now = req.content.get("now", None)
-            start = req.content.get("start", 0)
-            stop = req.content.get("stop", -1)
-            interval = req.content.get("interval", None)
-        records.types.now = now
-
-        log.debug("Handling GET, start=%s, stop=%s, now=%s", 
-            start, stop, records.types.now)
-
-        return func(instance, records, start, stop, interval)
-
 class AllRecords(neat.Resource):
     prefix = "/records"
     media = {
@@ -106,16 +75,16 @@ class AllRecords(neat.Resource):
 
         raise errors.HTTPNoContent("Records created")
 
-    def _get(self):
+    def _get(self, **base):
         queries = []
-        query = {}
+        query = base.copy()
         for k, v in self.req.params.items():
             if k in ("callback",):
                 continue
             elif k == "subject":
                 if query:
                     queries.append(query)
-                    query = {}
+                    query = base.copy()
                 query = {k: v}
             elif not query:
                 raise errors.HTTPBadRequest("%r parameter must follow subject" % k)
@@ -179,11 +148,17 @@ class AllRecords(neat.Resource):
 class Records(AllRecords):
     prefix = "/records/"
 
-    @getmethod
-    def get_json(self, records, start, stop, interval):
-        data = {
-            self.encodeid(records): list(records.query(start, stop, interval)),
-        }
+    def _get(self):
+        path = self.req.path_info.lstrip('/')
+        keys = "subject attribute cf".split()
+        try:
+            query = dict(zip(keys, self.decodeid(path)))
+        except ValueError:
+            raise errors.HTTPNotFound
+        return super(Records, self)._get(**query)
+
+    def get_json(self):
+        data = self._get()
 
         self.response.status_int = 200
         self.response.body = json.dumps(data)
@@ -191,12 +166,13 @@ class Records(AllRecords):
         if callback is not None:
             self.response.body = "%s(%s)" % (callback, self.response.body)
 
-    @getmethod
-    def get_csv(self, records, start, stop, interval):
+    def get_csv(self):
         writer = csv.writer(self.response.body_file)
         writer.writerow("subject attribute cf timestamp value".split())
-        for t, v in records.query(start, stop, interval):
-            writer.writerow((records.subject, records.attribute, records.cf, t, v))
+        for k, v in self._get().items():
+            s, a, c = self.decodeid(k)
+            for t, v in v:
+                writer.writerow((s, a, c, t, v))
 
         self.response.status_int = 200
 
