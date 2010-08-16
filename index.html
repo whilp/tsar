@@ -53,17 +53,16 @@
   $(function () {
     function plot (placeholder, options) {
       var options = $.extend({}, {
-          queries: [],
-          lines: {show: true},
-          selection: { mode: "x" },
-          xaxis: { mode: "time" },
-          // colors: [ "#aaa", "#666", "#333", "#111" ],
+        queries: [],
+        lines: {show: true},
+        selection: { mode: "x" },
+        xaxis: { mode: "time" },
       }, options);
       var overviewopts = $.extend({}, options, {
-          lines: { lineWidth: 1 },
-          shadowSize: 0,
-          yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
-          legend: { show: false },
+        lines: { lineWidth: 1 },
+        shadowSize: 0,
+        yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
+        legend: { show: false },
       }, options.overview);
 
       var plotplaceholder = $(placeholder);
@@ -86,7 +85,7 @@
         var data = [];
         $.each(json, function (s, series) {
           for (var i = 0; i < series.length; ++i) {
-              series[i][0] *= 1000;
+            series[i][0] *= 1000;
           };
           data.push($.extend({data: series}, {label: s}, seriesopts[s]));
         });
@@ -97,13 +96,13 @@
 
           plotplaceholder.bind("plotselected", function (event, ranges) {
             plot = $.plot(plotplaceholder, data,
-                $.extend(true, {}, options, {
-                    xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                    bars: { 
-                      barWidth: 
-                        10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotplaceholder.width()),
-                    },
-                }))
+              $.extend(true, {}, options, {
+                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                bars: { 
+                  barWidth: 
+                    10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotplaceholder.width()),
+                },
+            }));
             overview.setSelection(ranges, true);
           });
 
@@ -114,28 +113,28 @@
       };
 
       function paramify (k, v) {
-          return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+        return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
       };
 
       function querify (queries) {
-          var url = "";
-          $.each(queries, function (i, query) {
-              url += paramify("subject", query.subject);
-              delete query.subject;
-              $.each(query, function (k, v) { url += paramify(k, v); });
-          });
+        var url = "";
+        $.each(queries, function (i, query) {
+          url += paramify("subject", query.subject);
+          delete query.subject;
+          $.each(query, function (k, v) { url += paramify(k, v); });
+        });
 
-          return url;
+        return url;
       };
 
       var url = options.service + "?_accept=application/json&callback=?&missing=skip";
       url += querify(options.queries);
 
       $.ajax({
-          url: url,
-          success: render,
-          method: "GET",
-          dataType: "jsonp",
+        url: url,
+        success: render,
+        method: "GET",
+        dataType: "jsonp",
       });
 
       return plotplaceholder;
@@ -148,25 +147,24 @@
 
     var iowait = plot("#iowait", $.extend({}, options, {
       queries: [
-          $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
-              options: { label: "iowait load (%)", yaxis: 1 }}),
-          $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct",
-              options: { label: "system load (%)", yaxis: 1 }}),
-          $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
-              options: { label: "user load (%)", yaxis: 1 }}),
-          $.extend({}, common, 
-            { subject: "dcache_pnfsmanager", attribute: "queue_depth",
-              options: { label: "queue depth (messages)", yaxis: 2 }}),
+        $.extend({}, common, 
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
+            options: { label: "iowait load (%)", yaxis: 1 }}),
+        $.extend({}, common, 
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct",
+            options: { label: "system load (%)", yaxis: 1 }}),
+        $.extend({}, common, 
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
+            options: { label: "user load (%)", yaxis: 1 }}),
+        $.extend({}, common, 
+          { subject: "dcache_pnfsmanager", attribute: "queue_depth",
+            options: { label: "PNFS queue depth (messages)", yaxis: 2 }}),
       ],
       yaxis: { 
         min: 0, max: 100,
         tickFormatter: function (v, axis) { return v.toFixed(axis.tickDecimals) +"%" },
       },
       y2axis: { position: "right", min: 0, },
-      // yaxes: [ {min: 0, max: 100, position: "left"}, { position: "right" } ],
       overview: {
         placeholder: "#iowait-overview",
         y2axis: { ticks: [] },
