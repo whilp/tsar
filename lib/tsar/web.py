@@ -1,5 +1,6 @@
 import csv
 import logging
+import socket
 
 from urllib2 import quote, unquote
 
@@ -204,6 +205,15 @@ class Ping(neat.Resource):
         self.response.body = "OK"
         self.response.status_int = 200
         self.response.content_type = "text/plain"
+
+class Dispatch(neat.Dispatch):
+    backend = socket.gethostname()
+
+    @neat.wsgify
+    def __call__(self, req):
+        response = neat.Dispatch.__call__(self, req)
+        response.headers["X-Tsar-Backend"] = self.backend
+        return response
 
 def Server(host, port, **kwargs):
     from .ext import wsgiserver
