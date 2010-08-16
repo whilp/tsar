@@ -92,6 +92,36 @@ class TestAllRecords(RecordsTest):
             body=body)
         self.assertEquals(response.status_int, 204)
 
+class TestAllRecordsGet(RecordsTest):
+    cls = AllRecords
+
+    def setUp(self):
+        super(TestAllRecordsGet, self).setUp()
+        for i in ("foo bar", "spam eggs"):
+            s, a = i.split()
+            record = model.Records(s, a, "last")
+            record.extend(self.data)
+
+    def test_get_multiquery(self):
+        response = self.get("/records?" 
+            "subject=foo&attribute=bar&cf=last&subject=spam&attribute=eggs&cf=last", 
+            accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertTrue("foo/bar/last" in body)
+        self.assertTrue("spam/eggs/last" in body)
+
+    def test_get_multiquery_and_magicparams(self):
+        response = self.get("/records?_accept=application/json&" 
+            "subject=foo&attribute=bar&cf=last&subject=spam&attribute=eggs&cf=last", 
+            accept="text/csv")
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.content_type, "application/json")
+        body = json.loads(response.body)
+        self.assertTrue("foo/bar/last" in body)
+        self.assertTrue("spam/eggs/last" in body)
+
 class TestRecordsPost(RecordsTest):
 
     def test_post(self):
