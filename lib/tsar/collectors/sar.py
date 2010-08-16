@@ -11,7 +11,7 @@ def parsesadf(output, fieldmap={}):
     nkeys = len(keys)
     for line in output:
         line = line.strip()
-        if not line:
+        if not line or line.endswith("RESTART"):
             continue
         data = dict(zip(keys, line.split(None, nkeys - 1)))
         data["attribute"] = fieldmap.get(data["field"], None)
