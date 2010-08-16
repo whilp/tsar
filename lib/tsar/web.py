@@ -211,14 +211,14 @@ class Dispatch(neat.Dispatch):
 
     @neat.wsgify
     def __call__(self, req):
-        response = neat.Dispatch.__call__(self, req)
+        response = super(Dispatch, self).__call__(req)
         response.headers["X-Tsar-Backend"] = self.backend
         return response
 
 def Server(host, port, **kwargs):
     from .ext import wsgiserver
 
-    service = neat.Dispatch(
+    service = Dispatch(
         AllRecords(),
         Records(),
         Ping())
