@@ -26,8 +26,8 @@
  
 <body> 
   <h1>iowait patterns on cmsdcache01 (July/August, 2010)</h1>
-  <div id="iowait"  style="height:300px;width=600px;"></div>
-  <div id="iowait-overview"  style="height:100px;width=600px;"></div>
+  <div id="iowait" class="plot"></div>
+  <div id="iowait-overview" class="overview"></div>
 
   <p>This plot shows various types of system load on our dCache PNFS headnode, sampled 
   at ten minute intervals by <tt>sar(1)</tt> (all times UTC). Note: you can select 
@@ -52,9 +52,10 @@
   <script>
   $(function () {
     var options = {
-        lines: { show: true },
+        bars: { show: true },
         selection: { mode: "x" },
         xaxis: { mode: "time" },
+        // colors: [ "#aaa", "#666", "#333", "#111" ],
     };
     var overviewopts = $.extend({}, options, {
         lines: { lineWidth: 1 },
@@ -62,12 +63,13 @@
         yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
         legend: { show: false },
     });
+
     var iowait = $("#iowait");
     var iowaitoverview = $("#iowait-overview");
 
-    function doplot (json) {
+    function render (json) {
       var data = [];
-      $.each(json.data, function (s, series) {
+      $.each(json, function (s, series) {
         for (var i = 0; i < series.length; ++i) {
             series[i][0] *= 1000;
         };
@@ -81,6 +83,7 @@
         plot = $.plot(iowait, data,
             $.extend(true, {}, options, {
                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                bars: { barWidth: (ranges.xaxis.from - ranges.xaxis.to)/600 },
             }))
         overview.setSelection(ranges, true);
       });
@@ -90,11 +93,40 @@
       });
     };
 
+    // XXX
+    var common = { cf: "max", interval: 60 };
+    var queries = [
+        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" },
+        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" },
+        { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" },
+        // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
+        // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
+    ];
+
+    function paramify (k, v) {
+        return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+    };
+
+    function querify (queries) {
+        var url = "";
+        $.each(queries, function (i, query) {
+            var q = $.extend({}, common, query);
+            url += paramify("subject", q.subject);
+            delete q.subject;
+            $.each(q, function (k, v) { url += paramify(k,v ); });
+        });
+
+        return url;
+    };
+
+    var url = "http://tsar.hep.wisc.edu/records?_accept=application/json&callback=?";
+    url += querify(queries);
+
     $.ajax({
-        url: "iowait.json",
-        success: doplot,
+        url: url,
+        success: render,
         method: "GET",
-        dataType: "json",
+        dataType: "jsonp",
     });
   });
   </script>
