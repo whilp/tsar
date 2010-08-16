@@ -110,7 +110,9 @@ class AllRecords(neat.Resource):
         queries = []
         query = {}
         for k, v in self.req.params.items():
-            if k == "subject":
+            if k in ("callback",):
+                continue
+            elif k == "subject":
                 if query:
                     queries.append(query)
                     query = {}
