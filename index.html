@@ -72,13 +72,23 @@
         var viewplaceholder = $(options.overview.placeholder);
       };
 
+      var seriesopts = {};
+      function encodeid (subject, attribute, cf) {
+        return [subject, attribute, cf].join("/");
+      };
+      $.each(options.queries, function (i, query) {
+        var key = encodeid(query.subject, query.attribute, query.cf);
+        seriesopts[key] = query.options;
+        delete query.options;
+      });
+
       function render (json) {
         var data = [];
         $.each(json, function (s, series) {
           for (var i = 0; i < series.length; ++i) {
               series[i][0] *= 1000;
           };
-          data.push({data: series, label: s});
+          data.push($.extend({data: series}, {label: s}, seriesopts[s]));
         });
 
         var plot = $.plot(plotplaceholder, data, options);
@@ -136,11 +146,14 @@
     plot("#iowait", $.extend({}, options, {
       queries: [
           $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" }),
+            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
+              options: { label: "iowait load (%)" }}),
           $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" }),
+            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct",
+              options: { label: "system load (%)" }}),
           $.extend({}, common, 
-            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" }),
+            { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
+              options: { label: "user load (%)" }}),
           // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
           // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
       ],
