@@ -135,6 +135,24 @@ class TestRecordsPost(RecordsTest):
         response = self.post("/records/dblfoo/bar/last", content_type="application/json",
             body=json.dumps({"dblfoo/bar/last": [self.data[-2]]}))
         self.assertEqual(response.status_int, 204)
+    
+    def test_magic_params_content(self):
+        response = self.post("/records/magicjson/bar/last?_content=application/json",
+            content_type="text/csv",
+            body=json.dumps({"magicjson/bar/last": [self.data[-1]]}))
+        self.assertEqual(response.status_int, 204)
+        response = self.post("/records/magicbad/bar/last?_content=text/csv",
+            content_type="application/json",
+            body=json.dumps({"magicbad/bar/last": [self.data[-1]]}))
+        self.assertEqual(response.status_int, 400)
+    
+    def test_magic_params_method(self):
+        path = "/records/magicjson/bar/last?_method=POST"
+        req = self.req(path, method="GET")
+        req.content_type = "application/json"
+        req.body = json.dumps({"magicjson/bar/last": [self.data[-1]]})
+        response = req.get_response(self.application)
+        self.assertEqual(response.status_int, 204)
 
 class TestRecordsGet(RecordsTest):
 
@@ -199,3 +217,11 @@ class TestRecordsGet(RecordsTest):
             ['fullfoo', 'bar', 'last', '1278115200', '-94'],
             ['fullfoo', 'bar', 'last', '1278201600', '-64'],
             ['fullfoo', 'bar', 'last', '1278288000', '99']] )
+    
+    def test_magic_params_accept(self):
+        response = self.get("/records/fullfoo/bar/last?_accept=application/json", accept="*/*")
+        self.assertEqual(response.status_int, 200)
+        result = json.loads(response.body)["fullfoo/bar/last"]
+        self.assertEqual(len(result), 4)
+        self.assertEqual(result[0], [1278028800, -69])
+        self.assertEqual(result[-1], [1278288000, 99])
