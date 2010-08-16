@@ -116,7 +116,7 @@ class AllRecords(neat.Resource):
                     query = {}
                 query = {k: v}
             elif not query:
-                raise errors.HTTPBadRequest("%r parameter must follow subject", k)
+                raise errors.HTTPBadRequest("%r parameter must follow subject" % k)
             else:
                 query[k] = v
         if query:
