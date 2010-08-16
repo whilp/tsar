@@ -29,6 +29,9 @@
   <div id="iowait" class="plot"></div>
   <div id="iowait-overview" class="overview"></div>
 
+  <div id="pnfsman" class="plot"></div>
+  <div id="pnfsman-overview" class="overview"></div>
+
   <p>This plot shows various types of system load on our dCache PNFS headnode, sampled 
   at ten minute intervals by <tt>sar(1)</tt> (all times UTC). Note: you can select 
   ranges on the x axis of either the detailed or summary plots to zoom.
@@ -145,7 +148,8 @@
       service: "http://tsar.hep.wisc.edu/records",
     };
     var common = { cf: "max", interval: 60 };
-    plot("#iowait", $.extend({}, options, {
+
+    var iowait = plot("#iowait", $.extend({}, options, {
       queries: [
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
@@ -156,18 +160,27 @@
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
               options: { label: "user load (%)" }}),
-          $.extend({}, common, 
-            { subject: "dcache_pnfsmanager", attribute: "queue_depth",
-              options: { label: "PNFS queue depth", yaxis: 2 }}),
-          // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
-          // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
       ],
-      yaxes: [ {}, { position: "right" } ],
       overview: {
         placeholder: "#iowait-overview",
       },
     }));
+    var pnfsman = plot("#pnfsman", $.extend({}, options, {
+        queries: [
+            $.extend({}, common, 
+              { subject: "dcache_pnfsmanager", attribute: "queue_depth",
+                options: { label: "queue depth", yaxis: 1 }}),
+            $.extend({}, common, 
+              { subject: "dcache_pnfsmanager", attribute: "failrate_total",
+                options: { label: "message fail rate (%)", yaxis: 2 }}),
+        ],
+        yaxes: [ {}, { position: "right" } ],
+        overview: {
+          placeholder: "#pnfsman-overview",
+        },
+    }));
   });
+
   </script>
 </body>
 </html>
