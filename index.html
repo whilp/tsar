@@ -137,6 +137,8 @@
           method: "GET",
           dataType: "jsonp",
       });
+
+      return plotplaceholder;
     };
 
     var options = {
@@ -154,9 +156,13 @@
           $.extend({}, common, 
             { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
               options: { label: "user load (%)" }}),
+          $.extend({}, common, 
+            { subject: "dcache_pnfsmanager", attribute: "queue_depth",
+              options: { label: "PNFS queue depth", yaxis: 2 }}),
           // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
           // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
       ],
+      yaxes: [ {}, { position: "right" } ],
       overview: {
         placeholder: "#iowait-overview",
       },
