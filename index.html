@@ -118,7 +118,7 @@
           return url;
       };
 
-      var url = options.service + "?_accept=application/json&callback=?";
+      var url = options.service + "?_accept=application/json&callback=?&missing=skip";
       url += querify(options.queries);
 
       $.ajax({
