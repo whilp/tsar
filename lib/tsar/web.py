@@ -76,6 +76,7 @@ class AllRecords(neat.Resource):
         raise errors.HTTPNoContent("Records created")
 
     def _get(self, **base):
+        missing = self.req.GET.pop("missing", False)
         queries = []
         query = base.copy()
         for k, v in self.req.params.items():
@@ -99,6 +100,8 @@ class AllRecords(neat.Resource):
             records = model.Records(*rid, exception=errors.HTTPBadRequest)
             records.types.now = query.pop("now", None)
             result = records.query(**query)
+            if missing == "skip":
+                result = (x for x in result if x[1] != None)
             data[self.encodeid(records)] = list(result)
 
         return data

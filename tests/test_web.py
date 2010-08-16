@@ -255,3 +255,13 @@ class TestRecordsGet(RecordsTest):
         self.assertEqual(len(result), 4)
         self.assertEqual(result[0], [1278028800, -69])
         self.assertEqual(result[-1], [1278288000, 99])
+
+    def test_skip_null(self):
+        response = self.get("/records/fullfoo/bar/last?interval=60&missing=skip", 
+            accept="application/json")
+        self.assertEqual(response.status_int, 200)
+        body = json.loads(response.body)
+        data = body["fullfoo/bar/last"]
+        values = [x[1] for x in data]
+        self.assertTrue(None not in values)
+        self.assertEqual(len(data), 277)
