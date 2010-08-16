@@ -53,6 +53,8 @@
   $(function () {
     function plot (placeholder, options) {
       var options = $.extend({}, {
+          queries: [],
+          common: {},
           bars: { show: true },
           lines: {show: true},
           selection: { mode: "x" },
@@ -103,21 +105,11 @@
         };
       };
 
-      // XXX
-      var common = { cf: "max", interval: 60 };
-      var queries = [
-          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" },
-          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" },
-          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" },
-          // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
-          // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
-      ];
-
       function paramify (k, v) {
           return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
       };
 
-      function querify (queries) {
+      function querify (queries, common) {
           var url = "";
           $.each(queries, function (i, query) {
               var q = $.extend({}, common, query);
@@ -130,7 +122,7 @@
       };
 
       var url = "http://tsar.hep.wisc.edu/records?_accept=application/json&callback=?";
-      url += querify(queries);
+      url += querify(options.queries, options.common);
 
       $.ajax({
           url: url,
@@ -139,7 +131,16 @@
           dataType: "jsonp",
       });
     };
+
     plot("#iowait", {
+      queries: [
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct" },
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_system_pct" },
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct" },
+          // { subject: "dcache_pnfsmanager", attribute: "queue_depth" },
+          // { subject: "dcache_pnfsmanager", attribute: "failrate_total" },
+      ],
+      common: { cf: "max", interval: 60 },
       overview: {
         placeholder: "#iowait-overview",
       },
