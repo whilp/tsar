@@ -237,20 +237,20 @@ class Proc(DaemonizingMixin, Collector):
             subject = self.hostname
         t = self.now
         for fname in self.fds:
-            data.extend((subject, t, k, v) 
+            data.extend((subject, k, t, v) 
                 for fname, k, v in self.dispatch(fname))
 
         synthetic = {}
         for record in data:
-            attribute, value = record[2:4]
+            attribute, value = record[1], record[3]
             for prefix, synthesizer in self.synthesizers.items():
                 if not attribute.startswith(prefix):
                     continue
                 synthesizer(attribute, value, synthetic)
-        data.extend((subject, t, k, v) for k, v in synthetic.items())
+        data.extend((subject, k, t, v) for k, v in synthetic.items())
 
         if self.params.fields:
-            data = [r for r in data if r[2] in self.params.fields]
+            data = [r for r in data if r[1] in self.params.fields]
 
         self.submit(data)
         
