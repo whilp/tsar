@@ -214,6 +214,9 @@ class Proc(DaemonizingMixin, Collector):
         for fname in self.fds:
             data.extend((subject, t, k, v) 
                 for fname, k, v in self.dispatch(fname))
+        if self.params.fields:
+            data = [r for r in data if r[2] in self.params.fields]
+
         self.submit(data)
         
     def loop(self):
@@ -278,3 +281,5 @@ class Proc(DaemonizingMixin, Collector):
             nargs="?", help="action to take (default: %s)" % default_action)
         self.add_param("-i", "--interval", default=default_interval,
             help="interval between cycles while daemonized (default: %s)" % default_interval)
+        self.add_param("-f", "--fields", nargs="*", 
+            help="fields to include (default: all fields)")
