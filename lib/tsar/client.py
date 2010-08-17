@@ -131,7 +131,11 @@ class RESTClient(object):
 
         req = self.requestfactory(url, data, _headers)
         req.get_method = lambda : method
-        response = self.opener.open(req, timeout=timeout)
+        try:
+            response = self.opener.open(req, timeout=timeout)
+        except HTTPError, e:
+            e.req = req
+            raise
 
         return response
 

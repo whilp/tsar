@@ -143,9 +143,14 @@ class Collector(SubCommand):
             except urllib2.HTTPError, e:
                 self.log.warn("%s (HTTP code %d) error: %s",
                     e.url, e.code, e.msg)
-                self.stderr.write('\n'.join("%s: %s" % (k.capitalize(), v) 
+                req = getattr(e, "req", None)
+                if req is not None:
+                    self.stderr.write('\n'.join("> %s: %s" % (k.capitalize(), v)
+                        for k, v in req.headers.items()) + '\n')
+                    self.stderr.write(req.data + '\n')
+                self.stderr.write('\n'.join("< %s: %s" % (k.capitalize(), v) 
                     for k, v in e.headers.items()) + '\n')
-                self.stderr.write(e.read())
+                self.stderr.write(e.read() + '\n')
                 raise Abort(1)
 
     def runcmd(self, cmd, expect=0, abort=True, **kwargs):
