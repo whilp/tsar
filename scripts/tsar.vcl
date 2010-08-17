@@ -1,34 +1,26 @@
-backend tsar01 {
-    .host = "144.92.181.91";
-    .port = "8080";
-    .probe = {
-        .url = "/_ping";
-        .interval = 5s;
-        .timeout = 10s;
-        .window = 8;
-        .threshold = 3;
-    }
-}
-
-backend tsar02 {
-    .host = "144.92.181.93";
-    .port = "8080";
-    .probe = {
-        .url = "/_ping";
-        .interval = 5s;
-        .timeout = 10s;
-        .window = 8;
-        .threshold = 3;
-    }
-}
-
 director tsar round-robin {
-{
-    .backend = tsar01;
-}
-{   
-    .backend = tsar02;
-}
+    { .backend = {
+        .host = "144.92.181.91";
+        .port = "8080";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+    { .backend = {
+        .host = "144.92.181.93";
+        .port = "8080";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
 }
 
 sub vcl_recv { 
