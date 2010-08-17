@@ -7,6 +7,8 @@ import time
 
 from functools import partial
 
+from cli.daemon import DaemonizingMixin
+
 from . import helpers
 from .commands import Collector
 
@@ -125,10 +127,9 @@ def vmstat(string):
         k, v = line.split()
         yield k, int(v)
 
-class Proc(Collector):
+class Proc(DaemonizingMixin, Collector):
     fds = {}
     state = {}
-    interval = 180
     handlers = {
         "/proc/sys/fs/inode-state": inode_state,
         "/proc/sys/fs/file-nr": file_nr,
@@ -143,6 +144,10 @@ class Proc(Collector):
         "/proc/sys/kernel/pty/nr": lambda x: [("number", int(x))],
         "/proc/vmstat": vmstat,
     }
+
+    def __init__(self, main=None, **kwargs):
+        Collector.__init__(self, main, **kwargs)
+        DaemonizingMixin.__init__(self, **kwargs)
 
     def open(self, fname):
         fd = self.fds.get(fname, None)
@@ -187,7 +192,7 @@ class Proc(Collector):
 
             self.log.debug("Monitoring cycle complete; sleeping %d seconds",
                 self.interval)
-            time.sleep(self.interval)
+            time.sleep(self.params.interval)
 
     def start(self):
         pass
@@ -227,6 +232,10 @@ class Proc(Collector):
         Collector.setup(self)
         self.argparser = self.parent.subparsers.add_parser("proc", 
             help="Linux proc(5) monitor")
+        DaemonizingMixin.setup(self)
 
+        default_interval = 180
         self.add_param("action", default="start", choices=self.initactions,
             help="action to take")
+        self.add_param("-i", "--interval", default=default_interval,
+            help="interval between cycles while daemonized (default: %s)" % default_interval)
