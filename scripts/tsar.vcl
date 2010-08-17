@@ -1,13 +1,11 @@
 backend tsar01 {
     .host = "144.92.181.91";
     .port = "8080";
-    .first_byte_timeout = 300s;
-    .connect_timeout = 10s;
     .probe = {
         .url = "/_ping";
         .interval = 5s;
-        .timeout = 1s;
-        .window = 5;
+        .timeout = 10s;
+        .window = 8;
         .threshold = 3;
     }
 }
@@ -15,12 +13,11 @@ backend tsar01 {
 backend tsar02 {
     .host = "144.92.181.93";
     .port = "8080";
-    .first_byte_timeout = 300s;
     .probe = {
         .url = "/_ping";
         .interval = 5s;
-        .timeout = 1s;
-        .window = 5;
+        .timeout = 10s;
+        .window = 8;
         .threshold = 3;
     }
 }
