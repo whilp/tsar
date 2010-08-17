@@ -7,6 +7,7 @@ import time
 
 from functools import partial
 
+from cli.app import Abort
 from cli.daemon import DaemonizingMixin
 
 from . import helpers
@@ -177,6 +178,31 @@ class Proc(DaemonizingMixin, Collector):
                 self.state[key] = v
                 yield fname, k, v
 
+    def checkpid(self, pidfile):
+        try:
+            pidfile = open(pidfile, "r")
+        except IOError, e:
+            if e.errno == 2:
+                # No pidfile means we're not running.
+                return False
+            raise
+
+        pid = pidfile.read()
+        try:
+            pid = int(pid)
+        except ValueError:
+            return False
+
+        try:
+            os.kill(pid, 0)
+        except OSError, e:
+            if e.errno == 3:
+                # We're not running.
+                return False
+            raise
+
+        return pid
+
     def cycle(self):
         data = []
         subject = socket.gethostname()
@@ -195,14 +221,20 @@ class Proc(DaemonizingMixin, Collector):
             time.sleep(self.params.interval)
 
     def start(self):
-        pass
+        pid = self.checkpid(self.params.pidfile)
+        if pid:
+            self.stderr.write("monitord already running at PID %s\n" % pid)
+            raise Abort(1)
 
     def stop(self):
-        pass
+        self.restart()
+        raise Abort(0)
 
     def restart(self):
-        self.stop()
-        self.start()
+        pid = self.checkpid(self.params.pidfile)
+        if pid:
+            self.log.debug("Killing running instance at PID %s\n" % pid)
+            os.kill(pid, 1)
 
     initactions = {
         "start": start,
@@ -235,7 +267,8 @@ class Proc(DaemonizingMixin, Collector):
         DaemonizingMixin.setup(self)
 
         default_interval = 180
-        self.add_param("action", default="start", choices=self.initactions,
-            help="action to take")
+        default_action = "start"
+        self.add_param("action", choices=self.initactions, default=default_action,
+            help="action to take (default: %s)" % default_action)
         self.add_param("-i", "--interval", default=default_interval,
             help="interval between cycles while daemonized (default: %s)" % default_interval)
