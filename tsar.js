@@ -16,7 +16,6 @@
     plot: function (placeholder, options) {
       var options = $.extend({}, this.options, options);
       var overviewopts = $.extend({}, options, this.options.overview, options.overview);
-      console.log(overviewopts);
 
       var plotplaceholder = $(placeholder);
       var viewplaceholder = false;
