@@ -20,8 +20,8 @@ start ()
     # XXX: --check?
     daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar -vl "${LOGFILE}" serve \
         -d \
-        -n 20 \
-        -r 10 \
+        -n 40 \
+        -r 20 \
         -t 15 \
         -p "${PIDFILE}" \
         -D redis://redis01.hep.wisc.edu:6379/0 \
