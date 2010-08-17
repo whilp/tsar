@@ -35,7 +35,7 @@ def cma(last, next, i):
     return (i, last + float(next - last)/(i + 1))
 
 class Types(validate):
-    keylen = 128
+    keylen = 256
     keydelim = '!'
     keychars = [x for x in digits + letters + punctuation \
         if x not in (keydelim, '/')]
