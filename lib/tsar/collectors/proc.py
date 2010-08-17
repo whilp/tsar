@@ -205,7 +205,9 @@ class Proc(DaemonizingMixin, Collector):
 
     def cycle(self):
         data = []
-        subject = self.hostname
+        subject = self.params.subject
+        if not subject:
+            subject = self.hostname
         t = self.now
         for fname in self.fds:
             data.extend((subject, t, k, v) for fname, k, v in self.dispatch(fname))

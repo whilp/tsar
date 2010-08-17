@@ -34,6 +34,8 @@ class Collect(ClientMixin, Command):
             help="print collected data instead of submitting it (default: submit)")
         self.add_param("-g", "--groups", nargs="*", 
             help="list of aggregate groups to report to (default: none)")
+        self.add_param("-s", "--subject", default=None,
+            help="force record subject with SUBJECT")
 
         self.subparsers = self.argparser.add_subparsers(dest="collector")
 
