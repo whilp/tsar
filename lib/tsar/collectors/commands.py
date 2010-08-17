@@ -17,7 +17,7 @@ class Collect(ClientMixin, Command):
     collectors = {}
     service = "http://tsar.hep.wisc.edu/records"
 
-    def __init__(self, main=None, timeout=600, killpg=True, parent=None, **kwargs):
+    def __init__(self, main=None, timeout=30, killpg=True, parent=None, **kwargs):
         self.timeout = timeout
         self.killpg = killpg
         self.parent = parent
