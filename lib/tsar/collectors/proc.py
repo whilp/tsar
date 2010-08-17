@@ -243,7 +243,7 @@ class Proc(DaemonizingMixin, Collector):
     }
 
     def main(self):
-        action = self.initactions[self.params.action[0]]
+        action = self.initactions[self.params.action]
         action()
 
         # Open files so we can read them after we daemonize/change user.
@@ -269,6 +269,6 @@ class Proc(DaemonizingMixin, Collector):
         default_interval = 180
         default_action = "start"
         self.add_param("action", choices=self.initactions, default=default_action,
-            help="action to take (default: %s)" % default_action)
+            nargs="?", help="action to take (default: %s)" % default_action)
         self.add_param("-i", "--interval", default=default_interval,
             help="interval between cycles while daemonized (default: %s)" % default_interval)
