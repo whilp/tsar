@@ -146,6 +146,7 @@ class Collector(SubCommand):
                 self.stderr.write('\n'.join("%s: %s" % (k.capitalize(), v) 
                     for k, v in e.headers.items()) + '\n')
                 self.stderr.write(e.read())
+                raise Abort(1)
 
     def runcmd(self, cmd, expect=0, abort=True, **kwargs):
         process = subprocess.Popen(
