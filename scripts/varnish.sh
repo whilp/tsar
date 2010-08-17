@@ -37,8 +37,13 @@ MEMLOCK=82000
 DAEMON_OPTS="-a :80 \
              -f /scratch/tsar/scripts/tsar.vcl \
              -u apache -g apache \
+			 -p thread_pool_min=200 \
+			 -p thread_pool_max=4096 \
+			 -p thread_pools=4 \
+			 -p thread_pool_add_delay=2 \
+			 -p listen_depth=4096 \
              -s file,/scratch/varnish/varnish_storage.bin,1G"
-
+ 
 
 ## Alternative 3, Advanced configuration
 #
