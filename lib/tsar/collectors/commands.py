@@ -126,7 +126,10 @@ class Collector(SubCommand):
             yield record
 
     def submit(self, data, cfs=None):
-        processed = list(self.prepare(data, cfs=cfs))
+        processed = self.prepare(data, cfs=cfs)
+        if self.params.subject:
+            processed = (replace(r, 0, self.params.subject) for r in processed)
+        processed = list(processed)
         groupdata = []
         for group in (self.params.groups or []):
             groupdata.extend(replace(r, 0, group) for r in processed)
