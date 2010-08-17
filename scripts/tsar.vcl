@@ -2,6 +2,7 @@ backend tsar01 {
     .host = "144.92.181.91";
     .port = "8080";
     .first_byte_timeout = 300s;
+    .connect_timeout = 10s;
     .probe = {
         .url = "/_ping";
         .interval = 5s;
