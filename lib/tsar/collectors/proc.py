@@ -246,7 +246,7 @@ class Proc(DaemonizingMixin, Collector):
         action = self.initactions[self.params.action[0]]
         action()
 
-        # Open pidfile so we can write to it after we daemonize.
+        # Open files so we can read them after we daemonize/change user.
         for fname in self.handlers:
             self.open(fname)
 
