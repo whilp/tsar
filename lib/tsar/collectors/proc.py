@@ -170,11 +170,15 @@ class Proc(Collector):
             last = self.state.get(key, None)
             if last != v:
                 self.state[key] = v
-                self.log.info("%s %s %s", fname, k, v)
+                yield fname, k, v
 
     def cycle(self):
+        data = []
+        subject = socket.gethostname()
+        t = self.now
         for fname in self.fds:
-            self.dispatch(fname)
+            data.extend((subject, t, k, v) for fname, k, v in self.dispatch(fname))
+        self.submit(data)
         
     def loop(self):
         while True:
@@ -195,14 +199,14 @@ class Proc(Collector):
         self.stop()
         self.start()
 
-    actions = {
+    initactions = {
         "start": start,
         "stop": stop,
         "restart": restart,
     }
 
     def main(self):
-		action = self.actions[self.params.action[0]]
+        action = self.initactions[self.params.action[0]]
         action()
 
         # Open pidfile so we can write to it after we daemonize.
@@ -215,7 +219,7 @@ class Proc(Collector):
             try:
                 self.loop()
             except (KeyboardInterrupt, SystemExit):
-                reutrn 0
+                return 0
         else:
             return self.cycle()
 
@@ -224,5 +228,5 @@ class Proc(Collector):
         self.argparser = self.parent.subparsers.add_parser("proc", 
             help="Linux proc(5) monitor")
 
-        self.add_param("action", default="start", choices=self.actions,
+        self.add_param("action", default="start", choices=self.initactions,
             help="action to take")

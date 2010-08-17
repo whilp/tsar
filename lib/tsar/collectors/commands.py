@@ -43,6 +43,7 @@ class Collect(ClientMixin, Command):
         from tsar.collectors.dcache_pnfsmanager import PnfsManager
         from tsar.collectors.dcache_transfers import DcacheTransfers
         from tsar.collectors.hddtemp import Hddtemp
+        from tsar.collectors.proc import Proc
         from tsar.collectors.redis import Redis
         from tsar.collectors.sar import Sar
         self.collectors = {
@@ -52,6 +53,7 @@ class Collect(ClientMixin, Command):
             "dcache-pnfsmanager": PnfsManager,
             "dcache-transfers": DcacheTransfers,
             "hddtemp": Hddtemp,
+            "proc": Proc,
             "redis": Redis,
             "sar": Sar,
         }
