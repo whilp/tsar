@@ -205,7 +205,7 @@ class Proc(DaemonizingMixin, Collector):
 
     def cycle(self):
         data = []
-        subject = socket.gethostname()
+        subject = self.hostname
         t = self.now
         for fname in self.fds:
             data.extend((subject, t, k, v) for fname, k, v in self.dispatch(fname))
