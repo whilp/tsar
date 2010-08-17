@@ -13,7 +13,7 @@ from cli.daemon import DaemonizingMixin
 from . import helpers
 from .commands import Collector
 
-def fields(string, keys, delim=None, types=str):
+def fields(string, keys, delim=None, types=str, prefix=""):
     """Split *string* and zip its fields with *keys*, yielding two-tuples.
 
     *delim* is used to split the string. *types* may be a converter callable or
@@ -26,27 +26,29 @@ def fields(string, keys, delim=None, types=str):
 
     for i, v in enumerate(string.split(delim)):
         k = keys[i]
-        yield k, convert(v)
+        yield (prefix + k), convert(v)
 
 # Handlers.
-file_nr = partial(fields, keys="allocated free max".split(), types=int)
+file_nr = partial(fields, keys="allocated free max".split(), 
+    types=int, prefix="fs_files")
 inode_state = partial(fields,
     keys="nr_inodes nr_free_inodes preshrink "
-        "dummy1 dummy2 dummy3 dummy4".split(), types=int)
+        "dummy1 dummy2 dummy3 dummy4".split(), 
+    types=int, prefix="fs_inode_")
 
-def diskstats(string):
-    keys = "major minor reads-completed reads-merged " \
-        "sectors-read ms-reading writes-completed writes-merged " \
-        "sectors-written ms-writing current-ios ms-ios weighted-ms-ios".split()
+def diskstats(string, prefix="disk_"):
+    keys = "major minor reads_completed reads_merged " \
+        "sectors_read ms_reading writes_completed writes_merged " \
+        "sectors_written ms_writing current_ios ms_ios weighted_ms_ios".split()
 
     for line in string.splitlines():
         values = line.split()
         dev = values.pop(2)
         for i, v in enumerate(values):
-            key = '.'.join((dev, keys[i]))
-            yield key, int(v)
+            key = '_'.join((dev, keys[i]))
+            yield (prefix + key), int(v)
 
-def loadavg(string):
+def loadavg(string, prefix="load_"):
     results = {}
     keys = "1min 5min 15min entities lastpid".split()
     types=dict((x, float) for x in keys if x != "entities")
@@ -57,33 +59,33 @@ def loadavg(string):
     result["executing"] = int(executing)
     result["entities"] = int(entities)
 
-    return result.items()
+    return [(prefix + k, v) for k, v in result.items()]
 
-def meminfo(string):
+def meminfo(string, prefix="mem_"):
     delim = ':'
     for line in string.splitlines():
         k, v = [x.strip() for x in line.split()[:2]]
         k = k.lower().rstrip(':')
         v = int(v)
-        yield k, v
+        yield (prefix + k), v
 
-def netdev(string):
+def netdev(string, prefix="net_"):
     keys = []
     rx = "bytes packets errs drop fifo".split()
     tx = rx + "colls carrier compressed".split()
     rx.extend("frame compressed multicast".split())
-    keys.extend("rx-" + x for x in rx)
-    keys.extend("tx-" + x for x in tx)
+    keys.extend("rx_" + x for x in rx)
+    keys.extend("tx_" + x for x in tx)
 
     # Skip the first two lines, which are headers.
     for line in string.splitlines()[2:]:
         dev, rest = line.split(':', 1)
         dev = dev.strip()
         for i, v in enumerate(rest.split()):
-            key = '.'.join((dev, keys[i]))
-            yield key, int(v)
+            key = '_'.join((dev, keys[i]))
+            yield (prefix + key), int(v)
 
-def slabinfo(string):
+def slabinfo(string, prefix="slabinfo_"):
     # '_' keys are useless; skip 'em.
     keys = "active_objs num_objs objsize objperslab pagesperslab _ _ limit " \
         "batchcount sharedfactor _ _ active_slabs num_slabs sharedavail".split()
@@ -95,10 +97,10 @@ def slabinfo(string):
         for i, v in enumerate(values):
             key = keys[i]
             if key == "_": continue
-            key = '.'.join((name, key))
-            yield key, int(v)
+            key = '_'.join((name, key))
+            yield (prefix + key), int(v)
 
-def stat(string):
+def stat(string, prefix="stat_"):
     for line in string.splitlines():
         values = line.split()
         keys = "user nice system idle _ iowait irq softirq".split()
@@ -107,26 +109,26 @@ def stat(string):
             for i, v in enumerate(values):
                 key = keys[i]
                 if key == "_": continue
-                yield '.'.join((name, key)), int(v)
+                yield prefix + '_'.join((name, key)), int(v)
         elif name == "intr":
             pass
         else:
-            yield name, int(v)
+            yield prefix + name, int(v)
 
-def swaps(string):
+def swaps(string, prefix="swap_"):
     keys = "filename type size used priority".split()
     types = {"filename": str, "type": str, "size": int, "used": int, "priority": int}
     # Skip header.
     for line in string.splitlines()[1:]:
         results = dict(fields(line, keys=keys, types=types))
-        filename = results.pop("filename")
+        filename = results.pop("filename").rsplit("/")[-1]
         for k, v in results.items():
-            yield '.'.join((filename, k)), v
+            yield (prefix + '_'.join((filename, k))), v
 
-def vmstat(string):
+def vmstat(string, prefix="vm_"):
     for line in string.splitlines():
         k, v = line.split()
-        yield k, int(v)
+        yield (prefix + k), int(v)
 
 class Proc(DaemonizingMixin, Collector):
     fds = {}
@@ -142,7 +144,7 @@ class Proc(DaemonizingMixin, Collector):
         "/proc/slabinfo": slabinfo,
         "/proc/stat": stat,
         "/proc/swaps": swaps,
-        "/proc/sys/kernel/pty/nr": lambda x: [("number", int(x))],
+        "/proc/sys/kernel/pty/nr": lambda x: [("pty_number", int(x))],
         "/proc/vmstat": vmstat,
     }
 
@@ -210,7 +212,8 @@ class Proc(DaemonizingMixin, Collector):
             subject = self.hostname
         t = self.now
         for fname in self.fds:
-            data.extend((subject, t, k, v) for fname, k, v in self.dispatch(fname))
+            data.extend((subject, t, k, v) 
+                for fname, k, v in self.dispatch(fname))
         self.submit(data)
         
     def loop(self):
