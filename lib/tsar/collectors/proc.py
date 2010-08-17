@@ -147,6 +147,7 @@ class Proc(DaemonizingMixin, Collector):
         "/proc/sys/kernel/pty/nr": lambda x: [("pty_number", int(x))],
         "/proc/vmstat": vmstat,
     }
+    synthesizers = {}
 
     def __init__(self, main=None, **kwargs):
         Collector.__init__(self, main, **kwargs)
@@ -214,6 +215,15 @@ class Proc(DaemonizingMixin, Collector):
         for fname in self.fds:
             data.extend((subject, t, k, v) 
                 for fname, k, v in self.dispatch(fname))
+
+        synthetic = {}
+        for record in data:
+            attribute = record[2]
+            for pattern, synthesizer in self.synthesizers.items():
+                if pattern.match(attribute):
+                    synthesizer(record, synthetic)
+        data.extend((subject, t, k, v) for k, v in synthetic.items())
+
         if self.params.fields:
             data = [r for r in data if r[2] in self.params.fields]
 
