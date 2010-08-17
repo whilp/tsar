@@ -45,7 +45,7 @@ def diskstats(string, prefix="disk_"):
         values = line.split()
         dev = values.pop(2)
         for i, v in enumerate(values):
-            key = '_'.join((dev, keys[i]))
+            key = '_'.join((dev, keys[i].replace('_', '')))
             yield (prefix + key), int(v)
 
 def loadavg(string, prefix="load_"):
@@ -97,7 +97,7 @@ def slabinfo(string, prefix="slabinfo_"):
         for i, v in enumerate(values):
             key = keys[i]
             if key == "_": continue
-            key = '_'.join((name, key))
+            key = '_'.join((name, key.replace('_', '')))
             yield (prefix + key), int(v)
 
 def stat(string, prefix="stat_"):
@@ -123,12 +123,31 @@ def swaps(string, prefix="swap_"):
         results = dict(fields(line, keys=keys, types=types))
         filename = results.pop("filename").rsplit("/")[-1]
         for k, v in results.items():
+            if k.startswith(prefix):
+                k = k[len(prefix):]
             yield (prefix + '_'.join((filename, k))), v
 
 def vmstat(string, prefix="vm_"):
     for line in string.splitlines():
         k, v = line.split()
         yield (prefix + k), int(v)
+
+# Synthesizers.
+allkey = lambda x, a="all", d='_': d.join(helpers.replace(x.split(d), 1, a))
+synthall = lambda a, v, s: helpers.appendkey(s, allkey(a), v)
+
+def s_slabinfo(attribute, value, synthetic):
+    splitted = attribute.split('_')
+    all = '_'.join([splitted[0], "all", splitted[-1]])
+    helpers.appendkey(synthetic, all, value)
+
+def s_swap(attribute, value, synthetic):
+    if any(x in attribute for x in ("size", "used")):
+        synthall(attribute, value, synthetic)
+
+def s_disk(attribute, value, synthetic):
+    if not any(x in attribute for x in ("major", "minor")):
+        synthall(attribute, value, synthetic)
 
 class Proc(DaemonizingMixin, Collector):
     fds = {}
@@ -147,7 +166,12 @@ class Proc(DaemonizingMixin, Collector):
         "/proc/sys/kernel/pty/nr": lambda x: [("pty_number", int(x))],
         "/proc/vmstat": vmstat,
     }
-    synthesizers = {}
+    synthesizers = {
+        "net_": synthall,
+        "disk_": synthall,
+        "slabinfo": s_slabinfo,
+        "swap_": s_swap,
+    }
 
     def __init__(self, main=None, **kwargs):
         Collector.__init__(self, main, **kwargs)
@@ -218,10 +242,11 @@ class Proc(DaemonizingMixin, Collector):
 
         synthetic = {}
         for record in data:
-            attribute = record[2]
-            for pattern, synthesizer in self.synthesizers.items():
-                if pattern.match(attribute):
-                    synthesizer(record, synthetic)
+            attribute, value = record[2:4]
+            for prefix, synthesizer in self.synthesizers.items():
+                if not attribute.startswith(prefix):
+                    continue
+                synthesizer(attribute, value, synthetic)
         data.extend((subject, t, k, v) for k, v in synthetic.items())
 
         if self.params.fields:
