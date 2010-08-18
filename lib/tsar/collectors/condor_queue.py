@@ -23,9 +23,9 @@ class CondorQueue(Collector):
             "-format", "user=%s", "Owner",
             "-format", "|%s", "x509userproxysubject",
             "-format", "\n", "Owner",
-            "-format", "jobstatus=%d\n", "JobStatus",
             "-format", "prodagentjobtype=%s\n", "ProdAgent_JobType",
             "-format", "gridresource=%s\n", "GridResource",
+            "-format", "jobstatus=%d\n", "JobStatus",
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
         pool = self.params.pool[0]
@@ -44,6 +44,8 @@ class CondorQueue(Collector):
             
         cqdata = {}
         user = None
+        pajobtype = None
+        gridresource = None
         for line in stdout.splitlines():
             if not line:
                 continue
@@ -57,9 +59,16 @@ class CondorQueue(Collector):
                 users = cqdata.setdefault("condor_users", set())
                 users.add(v)
                 user = v.partition('|')[0]
+            elif k == "prodagentjobtype":
+                pajobtype = v.lower()
+            elif k == "gridresource":
+                gridresource = v.split()[1]
+                gridresource = gridresource.split('/')[0]
             elif k == "globaljobid":
                 key = "total_jobs"
                 user = None
+                pajobtype = None
+                gridresource = None
             elif k == "jobstatus":
                 status = self.jobstatusmap[int(v)]
                 if status in ("running", "held", "idle"):
@@ -67,6 +76,15 @@ class CondorQueue(Collector):
                     if user:
                         helpers.incrkey(cqdata, 
                             "owner_%s_%s_jobs" % (user, status))
+                    if gridresource:
+                        helpers.incrkey(cqdata,
+                            "prod_%s_%s_jobs" % (gridresource, status))
+                    if pajobtype:
+                        helpers.incrkey(cqdata,
+                            "prod_%s_%s_jobs" % (pajobtype, status))
+                    if gridresource and pajobtype:
+                        helpers.incrkey(cqdata,
+                            "prod_%s_%s_%s_jobs" % (gridresource, pajobtype, status))
                 
             if key is not None:
                 helpers.incrkey(cqdata, key)
