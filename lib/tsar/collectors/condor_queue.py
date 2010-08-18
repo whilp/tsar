@@ -38,7 +38,9 @@ class CondorQueue(Collector):
         if self.params.input:
             stdout = open(self.params.input, 'r').read()
         else:
-            process, stdout, stderr = self.runcmd(cmd)
+            process, stdout, stderr = self.runcmd(cmd, expect=False)
+            if process.returncode == 1 and "All queues are empty" in stdout:
+                return 0
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
             
