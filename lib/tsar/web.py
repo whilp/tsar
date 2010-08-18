@@ -98,8 +98,10 @@ class AllRecords(neat.Resource):
 
         data = {}
         for query in queries:
-            rid = [query.pop(x, None) for x in "subject attribute cf".split()]
-            records = model.Records(*rid, exception=errors.HTTPBadRequest)
+            subject, attribute, cf = \
+                [query.pop(x, None) for x in "subject attribute cf".split()]
+            records = model.Records(subject, attribute, cf, 
+                exception=errors.HTTPBadRequest)
             records.types.now = query.pop("now", None)
             result = records.query(**query)
             if missing == "skip":
