@@ -25,6 +25,9 @@ class DcacheInfo(Collector):
         expath = lambda e, p, **k: e.xpath(p, namespaces=nsmap, **k)
         xpath = partial(expath, root)
 
+        pctkeys ="free precious used".split()
+        pct = lambda x, y: y != 0 and (100.0 * x)/y or 0.0
+
         data = {}
 
         # Domains and cells.
@@ -42,11 +45,13 @@ class DcacheInfo(Collector):
         # Space summary.
         data.update(("space_%s_bytes" % m.get("name"), int(m.text)) for m in \
             xpath("i:summary/i:pools/i:space/i:metric"))
+        total = data["space_total_bytes"]
+        for k in pctkeys:
+            base = "space_%s" % k
+            data["%s_pct" % base] = pct(data["%s_bytes" % base], total)
 
         # Pools.
         pgroups = ["all"]
-        pct = lambda x, y: y != 0 and (100.0 * x)/y or 0.0
-        pctkeys ="free precious used gap".split()
         for pool in xpath("i:pools/i:pool"):
             helpers.incrkey(data, "pools_count")
             pspace = dict((m.get("name"), helpers.intorfloat(m.text)) \
