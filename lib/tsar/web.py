@@ -68,8 +68,10 @@ class AllRecords(neat.Resource):
 
         for key, data in content.items():
             try:
-                records = model.Records(*key, exception=errors.HTTPBadRequest)
-            except TypeError:
+                subject, attribute, cf = key
+                records = model.Records(subject, attribute, cf, 
+                    exception=errors.HTTPBadRequest)
+            except (TypeError, ValueError):
                 raise errors.HTTPBadRequest("Invalid resource id")
             self.extend(records, data)
 
