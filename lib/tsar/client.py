@@ -121,7 +121,7 @@ class RESTClient(object):
         for handler in self.opener.handlers:
             handler._debuglevel = self.debuglevel
 
-    def request(self, url, method="GET", data=None, headers={}, timeout=30):
+    def request(self, url, method="GET", data=None, headers={}):
         """Send a request to the service, returning its response.
 
         The response is a httplib.HTTPResponse instance.
@@ -132,7 +132,7 @@ class RESTClient(object):
         req = self.requestfactory(url, data, _headers)
         req.get_method = lambda : method
         try:
-            response = self.opener.open(req, timeout=timeout)
+            response = self.opener.open(req)
         except HTTPError, e:
             e.req = req
             raise
@@ -186,13 +186,13 @@ class Tsar(RESTClient):
         response = self.request(self.service, method="POST", 
             data=body, headers={"Content-Type": self.mediatype + "+csv"})
 
-        if response.getcode() != 204:
+        if hasattr(response, "getcode") and response.getcode() != 204:
             raise errors.APIError("failed to create records", response)
 
         return True
 
     def query(self, subject, attribute, cf, 
-            start=None, stop=None, now=None, missing="skip"):
+            start=None, stop=None, now=None, missing="skip", interval=None):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may include
@@ -211,6 +211,8 @@ class Tsar(RESTClient):
             query["stop"] = stop
         if now is not None:
             query["now"] = now
+        if interval is not None:
+            query["interval"] = interval
         if missing is not None:
             query["missing"] = missing
         if query:
@@ -219,7 +221,7 @@ class Tsar(RESTClient):
         response = self.request(resource, method="GET",
             headers={"Accept": self.mediatype + "+csv"})
 
-        if response.getcode() != 200:
+        if hasattr(response, "getcode") and response.getcode() != 200:
             raise errors.APIError("query failed", response)
 
         body = response.read()
