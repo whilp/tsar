@@ -191,7 +191,8 @@ class Tsar(RESTClient):
 
         return True
 
-    def query(self, subject, attribute, cf, start=None, stop=None, now=None):
+    def query(self, subject, attribute, cf, 
+            start=None, stop=None, now=None, missing="skip"):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may include
@@ -210,6 +211,8 @@ class Tsar(RESTClient):
             query["stop"] = stop
         if now is not None:
             query["now"] = now
+        if missing is not None:
+            query["missing"] = missing
         if query:
             resource += '?' + urlencode(query)
 
