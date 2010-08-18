@@ -43,9 +43,7 @@ class CondorQueue(Collector):
                 open(self.params.output, 'w').write(stdout)
             
         cqdata = {}
-        user = None
-        pajobtype = None
-        gridresource = None
+        state = {}
         for line in stdout.splitlines():
             if not line:
                 continue
@@ -58,33 +56,31 @@ class CondorQueue(Collector):
             elif k == "user":
                 users = cqdata.setdefault("condor_users", set())
                 users.add(v)
-                user = v.partition('|')[0]
+                state["user"] = v.partition('|')[0]
             elif k == "prodagentjobtype":
-                pajobtype = v.lower()
+                state["pajobtype"] = v.lower()
             elif k == "gridresource":
                 gridresource = v.split()[1]
-                gridresource = gridresource.split('/')[0]
+                state["gridresource"] = gridresource.split('/')[0]
             elif k == "globaljobid":
                 key = "total_jobs"
-                user = None
-                pajobtype = None
-                gridresource = None
+                state = {}
             elif k == "jobstatus":
                 status = self.jobstatusmap[int(v)]
+                state["status"] = status
                 if status in ("running", "held", "idle"):
-                    key = "%s_jobs" % status
-                    if user:
-                        helpers.incrkey(cqdata, 
-                            "owner_%s_%s_jobs" % (user, status))
-                    if gridresource:
-                        helpers.incrkey(cqdata,
-                            "prod_%s_%s_jobs" % (gridresource, status))
-                    if pajobtype:
-                        helpers.incrkey(cqdata,
-                            "prod_%s_%s_jobs" % (pajobtype, status))
-                    if gridresource and pajobtype:
-                        helpers.incrkey(cqdata,
-                            "prod_%s_%s_%s_jobs" % (gridresource, pajobtype, status))
+                    keys = []
+                    if "user" in state:
+                        keys.append("owner_%(user)s_%(status)s_jobs")
+                    if "gridresource" in state:
+                        keys.append("prod_%(gridresource)s_%(status)s_jobs")
+                    if "pajobtype" in state:
+                        keys.append("prod_%(pajobtype)s_%(status)s_jobs")
+                    if all(k in state for k in ("gridresource", "pajobtype")):
+                        keys.append("prod_%(gridresource)s_%(pajobtype)s_%(status)s_jobs")
+                    for key in keys:
+                        helpers.incrkey(cqdata, key % state)
+                    key = "%(status)s_jobs" % state
                 
             if key is not None:
                 helpers.incrkey(cqdata, key)
