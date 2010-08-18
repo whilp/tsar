@@ -365,8 +365,9 @@ class Records(object):
 
         if lasttime is None:
             last = self.db.get(self.subkey(interval, "last"))
-            if last:
-                lasttime = self.fromlast(last)[0]
+            if not last:
+                raise StopIteration()
+            lasttime = self.fromlast(last)[0]
 
         # Convert start and stop to indexes on the series. Since the series is
         # stored from most recent to oldest in the database, we flip the order
