@@ -42,6 +42,7 @@ class Collect(ClientMixin, Command):
 
         from tsar.collectors.afs_server import AFSServer
         from tsar.collectors.condor_queue import CondorQueue
+        from tsar.collectors.dcache_info import DcacheInfo
         from tsar.collectors.dcache_latency import DcacheLatency
         from tsar.collectors.dcache_pnfsmanager import PnfsManager
         from tsar.collectors.dcache_transfers import DcacheTransfers
@@ -52,6 +53,7 @@ class Collect(ClientMixin, Command):
         self.collectors = {
             "afs-server": AFSServer,
             "condor-queue": CondorQueue,
+            "dcache-info": DcacheInfo,
             "dcache-latency": DcacheLatency,
             "dcache-pnfsmanager": PnfsManager,
             "dcache-transfers": DcacheTransfers,
