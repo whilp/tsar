@@ -28,13 +28,17 @@ class CondorQueue(Collector):
             "-format", "gridresource=%s\n", "GridResource",
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
-        t = self.now
         pool = self.params.pool[0]
+        target = ["-pool", pool]
+        if self.params.name:
+            target = ["-name", pool]
+        cmd = helpers.insert(cmd, 1, target)
+
+        t = self.now
         if self.params.input:
             stdout = open(self.params.input, 'r').read()
         else:
-            pcmd = helpers.insert(cmd, 1, ["-pool", pool])
-            process, stdout, stderr = self.runcmd(pcmd)
+            process, stdout, stderr = self.runcmd(cmd)
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
             
@@ -87,6 +91,8 @@ class CondorQueue(Collector):
             help="use file INPUT instead of running condor_q")
         self.add_param("-o", "--output", default=False,
             help="write condor_q output to file OUTPUT")
+        self.add_param("-n", "--name", default=False, action="store_true",
+            help="POOL is a schedd, not a pool (default: false)")
 
 
 if __name__ == "__main__":
