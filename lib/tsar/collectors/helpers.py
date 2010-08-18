@@ -31,3 +31,9 @@ def trim(s, subs, reverse=False):
     return s[start:end]
 
 rtrim = functools.partial(trim, reverse=True)
+
+def intorfloat(string):
+    try:
+        return int(string)
+    except ValueError:
+        return float(string)
