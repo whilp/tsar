@@ -5,7 +5,7 @@ from .commands import Collector
 
 class CondorQueue(Collector):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
-         JobStartDate JobStatus GlobalJobId""".split()
+         JobStartDate JobStatus ProdAgent_JobType GridResource GlobalJobId""".split()
     jobstatusmap = {
         0: "unexpanded",
         1: "idle",
@@ -16,21 +16,25 @@ class CondorQueue(Collector):
     }
 
     def main(self):
-        pool = self.params.pool[0]
-        cmd = ["/condor/bin/condor_q", "-global", "-pool", pool,
+        cmd = ["/condor/bin/condor_q", "-global",
+            # Pool/schedd will be inserted here.
             "-attributes", ','.join(self.attributes),
             "-format", "runtime=%d\n", "RemoteWallClockTime + (CurrentTime - EnteredCurrentStatus)",
             "-format", "user=%s", "Owner",
             "-format", "|%s", "x509userproxysubject",
             "-format", "\n", "Owner",
             "-format", "jobstatus=%d\n", "JobStatus",
+            "-format", "prodagentjobtype=%s\n", "ProdAgent_JobType",
+            "-format", "gridresource=%s\n", "GridResource",
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
         ]
         t = self.now
+        pool = self.params.pool[0]
         if self.params.input:
             stdout = open(self.params.input, 'r').read()
         else:
-            process, stdout, stderr = self.runcmd(cmd)
+            pcmd = helpers.insert(cmd, 1, ["-pool", pool])
+            process, stdout, stderr = self.runcmd(pcmd)
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
             
