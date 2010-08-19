@@ -1,7 +1,52 @@
 director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
-        .port = "8080";
+        .port = "8000";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+    { .backend = {
+        .host = "144.92.181.91";
+        .port = "8001";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+    { .backend = {
+        .host = "144.92.181.91";
+        .port = "8002";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+    { .backend = {
+        .host = "144.92.181.91";
+        .port = "8003";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+
+    { .backend = {
+        .host = "144.92.181.93";
+        .port = "8000";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -12,7 +57,7 @@ director tsar round-robin {
     }}
     { .backend = {
         .host = "144.92.181.93";
-        .port = "8080";
+        .port = "8001";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -21,6 +66,29 @@ director tsar round-robin {
             .threshold = 3;
         }
     }}
+    { .backend = {
+        .host = "144.92.181.93";
+        .port = "8002";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+    { .backend = {
+        .host = "144.92.181.93";
+        .port = "8003";
+        .probe = {
+            .url = "/_ping";
+            .interval = 5s;
+            .timeout = 10s;
+            .window = 8;
+            .threshold = 3;
+        }
+    }}
+
 }
 
 sub vcl_recv { 
