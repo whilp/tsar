@@ -1,48 +1,95 @@
-jQuery.tsar = function () {
-	this.service = "";
-	this.timeout = 5;
-};
+(function ($) {
+  jQuery.tsar = {
+    options: {
+      queries: [],
+      lines: {show: true},
+      selection: { mode: "x" },
+      xaxis: { mode: "time" },
+      overview: {
+        lines: { lineWidth: 1 },
+        shadowSize: 0,
+        yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
+        legend: { show: false },
+      },
+    },
 
-jQuery.tsar.prototype.request = function (resource, method, data, callback, settings_) {
-	var url = this.service + "/" + resource;
-	var settings = {
-		url: url,
-		data: data,
-		success: callback,
-		dataType: "json",
-		timeout: this.timeout;
-		type: method,
-	};
-	$.extend(true, settings, settings_);
-	$.ajax(settings);
-};
+    plot: function (placeholder, options) {
+      var options = $.extend({}, this.options, options);
+      var overviewopts = $.extend({}, options, this.options.overview, options.overview);
 
-jQuery.tsar.prototype.get = function (resource, data, callback) {
-	this.request(resource, "GET", data, callback);
-};
+      var plotplaceholder = $(placeholder);
+      var viewplaceholder = false;
+      if (options.overview && options.overview.placeholder) {
+        var viewplaceholder = $(options.overview.placeholder);
+      };
 
-jQuery.tsar.prototype.post = function (resource, data, callback) {
-	this.request(resource, "POST", data, callback);
-};
+      var seriesopts = {};
+      function encodeid (subject, attribute, cf) {
+        return [subject, attribute, cf].join("/");
+      };
+      $.each(options.queries, function (i, query) {
+        var key = encodeid(query.subject, query.attribute, query.cf);
+        seriesopts[key] = query.options;
+        delete query.options;
+      });
 
-jQuery.tsar.prototype.record = function (subject, attribute, time, value) {
-	if (time.getTime != undefined) {
-		time = time.getTime() / 1000;
-	}
-	var data = {
-		subject: subject,
-		attribute: attribute,
-		time: time.UTC(),
-		value: value,
-	};
-	this.post("records", data);
-};
+      function render (json) {
+        var data = [];
+        $.each(json, function (s, series) {
+          for (var i = 0; i < series.length; ++i) {
+            series[i][0] *= 1000;
+          };
+          data.push($.extend({data: series}, {label: s}, seriesopts[s]));
+        });
 
-jQuery.tsar.prototype.records = function (subject, attribute, callback, options) {
-	var data = {
-		subject: subject,
-		attribute: attribute,
-	};
-	$.extend(true, data, options);
-	this.get("records", data, callback);
-};
+        var plot = $.plot(plotplaceholder, data, options);
+        if (viewplaceholder) {
+          var overview = $.plot(viewplaceholder, data, overviewopts);
+
+          plotplaceholder.bind("plotselected", function (event, ranges) {
+            plot = $.plot(plotplaceholder, data,
+              $.extend(true, {}, options, {
+                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                bars: { 
+                  barWidth: 
+                    10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotplaceholder.width()),
+                },
+            }));
+            overview.setSelection(ranges, true);
+          });
+
+          viewplaceholder.bind("plotselected", function (event, ranges) {
+            plot.setSelection(ranges);
+          });
+        };
+      };
+
+      function paramify (k, v) {
+        return "&" + encodeURIComponent(k) + "=" + encodeURIComponent(v);
+      };
+
+      function querify (queries) {
+        var url = "";
+        $.each(queries, function (i, query) {
+          url += paramify("subject", query.subject);
+          delete query.subject;
+          $.each(query, function (k, v) { url += paramify(k, v); });
+        });
+
+        return url;
+      };
+
+      var url = options.service + "?_accept=application/json&callback=?&missing=skip";
+      url += querify(options.queries);
+
+      $.ajax({
+        url: url,
+        success: render,
+        method: "GET",
+        dataType: "jsonp",
+      });
+
+      return plotplaceholder;
+    },
+  };
+})(jQuery);
