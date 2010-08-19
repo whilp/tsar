@@ -20,7 +20,7 @@
 
     plot: function (container, options) {
       var options = $.extend(true, {}, this.options, options);
-      var overviewopts = $.extend({}, options, this.options.overview, options.overview);
+      options.overview = $.extend({}, options, this.options.overview, options.overview);
 
       container = $(container);
       var rootid = container.attr("id");
@@ -72,7 +72,7 @@
 
         var plot = $.plot(plotelem, data, options);
         if (overviewelem) {
-          var overview = $.plot(overviewelem, data, overviewopts);
+          var overview = $.plot(overviewelem, data, options.overview);
 
           plotelem.bind("plotselected", function (event, ranges) {
             plot = $.plot(plotelem, data,
