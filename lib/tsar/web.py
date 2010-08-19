@@ -205,9 +205,10 @@ class Static(neat.Resource):
 
     def get(self):
         prefix = self.prefix.rstrip("/") + "/"
-        fname = os.path.normpath(trim(self.req.path, self.prefix))
+        fname = self.req.path
         if fname.endswith("/"):
             fname += "index.html"
+        fname = os.path.normpath(trim(fname, self.prefix))
         fullpath = os.path.abspath(os.path.join(self.public, fname))
         if not fullpath.startswith(self.public):
             raise errors.HTTPNotFound()
