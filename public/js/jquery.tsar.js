@@ -28,7 +28,7 @@
       if (options.plot.container) {
         var plotelem = $(options.plot.container);
       } else {
-        var plotelem = $('<div class="tsar-plot" id="tsar-plot-' + rootid + '>');
+        var plotelem = $('<div class="tsar-plot" id="tsar-plot-' + rootid + '">');
         container.append(plotelem);
       }
 
@@ -36,7 +36,7 @@
       if (options.overview.container) {
         overviewelem = $(options.overview.container);
       } else if (options.overview.show) {
-        overviewelem = $('<div class="tsar-overview" id="tsar-overview-' + rootid + '>');
+        overviewelem = $('<div class="tsar-overview" id="tsar-overview-' + rootid + '">');
         container.append(overviewelem);
       }
 
@@ -44,7 +44,7 @@
       if (options.legend.container) {
         var legendelem = $(options.legend.container);
       } else {
-        var legendelem = $('<div class="tsar-legend" id="tsar-legend-' + rootid + '>');
+        var legendelem = $('<div class="tsar-legend" id="tsar-legend-' + rootid + '">');
         container.append(legendelem);
         options.legend.container = legendelem;
       }
