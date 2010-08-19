@@ -59,6 +59,7 @@
     var common = { cf: "max", interval: 60 };
     var iowait = $.tsar.plot("#iowait", {
       queries: [
+        /*
         $.extend({}, common, 
           { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_iowait_pct", 
             options: { label: "iowait load (%)", yaxis: 1 }}),
@@ -68,14 +69,14 @@
         $.extend({}, common, 
           { subject: "cmsdcache01.hep.wisc.edu", attribute: "cpu_user_pct",
             options: { label: "user load (%)", yaxis: 1 }}),
+        */
+        $.extend({}, common, 
+          { subject: "cmsdcache01.hep.wisc.edu", attribute: "stat_cpu_iowait",
+            options: { label: "IO wait (USER_HZ)", yaxis: 1 }}),
         $.extend({}, common, 
           { subject: "dcache_pnfsmanager", attribute: "queue_depth",
             options: { label: "PNFS queue depth (messages)", yaxis: 2 }}),
       ],
-      yaxis: { 
-        min: 0, max: 100,
-        tickFormatter: function (v, axis) { return v.toFixed(axis.tickDecimals) +"%" },
-      },
       y2axis: { position: "right", min: 0, },
       overview: {
         placeholder: "#iowait-overview",
