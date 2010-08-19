@@ -1,7 +1,6 @@
 (function ($) {
   jQuery.tsar = {
     options: {
-      queries: [],
       lines: {show: true},
       selection: { mode: "x" },
       xaxis: { mode: "time" },
@@ -12,15 +11,16 @@
       overview: {
         show: true,
         lines: { lineWidth: 1 },
+        selection: { mode: "x" },
         shadowSize: 0,
         yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
+        xaxis: { mode: "time" },
         legend: { show: false },
       },
     },
 
-    plot: function (container, options) {
-      var options = $.extend(true, {}, this.options, options);
-      options.overview = $.extend({}, options, this.options.overview, options.overview);
+    plot: function (container, opts) {
+      var options = $.extend(true, {}, this.options, opts);
 
       container = $(container);
       var rootid = container.attr("id");
