@@ -1,3 +1,4 @@
+import functools
 import logging
 import sys
 
@@ -114,3 +115,20 @@ def nearest(value, interval):
     if distance > (interval/2):
         distance -= interval
     return value - distance
+
+def trim(s, subs, reverse=False):
+    find = s.find
+    if reverse:
+        find = s.rfind
+    i = find(subs)
+
+    if i < 0:
+        start, end = 0, None
+    elif reverse:
+        start, end = 0, i
+    else:
+        start, end = len(subs), None
+
+    return s[start:end]
+
+rtrim = functools.partial(trim, reverse=True)
