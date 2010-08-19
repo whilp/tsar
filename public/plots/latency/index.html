@@ -1,0 +1,73 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="utf-8" /> 
+  <title>dcache latency</title> 
+  <link rel="stylesheet" href="../css/style.css" /> 
+  <!--[if IE]>
+  <script language="javascript" type="text/javascript" src="../../js/excanvas.min.js"></script>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <script src="http://www.google.com/jsapi"></script>
+  <script>
+    google.load("jquery", "1.4.2");
+  </script>
+  <script src="http://tsar.hep.wisc.edu/js/jquery.flot.min.js"></script>
+  <script src="http://tsar.hep.wisc.edu/js/jquery.flot.selection.min.js"></script>
+  <script src="http://tsar.hep.wisc.edu/js/jquery.tsar.js"></script>
+
+  <style>
+    div.container {
+      float: left;
+      padding: 1em;
+    }
+    div.container h2 {
+      text-align: center;
+    }
+  </style>
+</head> 
+ 
+<body> 
+  <div id="write-latency" class="container small">
+    <h2>Storage write latency</h2>
+  </div>
+
+  <div id="read-latency" class="container small">
+    <h2>Storage read latency</h2>
+  </div>
+
+  <script>
+  $(function () {
+    $.tsar.options = $.extend($.tsar.options, {
+      service: "http://tsar.hep.wisc.edu/records",
+    });
+
+    var subject = "dcache";
+    var protos = ["dcap", "gsiftp", "srm"];
+    var directions = ["read", "write"];
+    var common = { cf: "max", interval: 60, };
+    $.each(directions, function (i, d) {
+      var queries = [];
+      $.each(protos, function (i, p) {
+        queries.push($.extend(true, {}, common, 
+          { 
+            subject: subject, 
+            attribute: [p, d, "latency"].join("_"), 
+            options: { label: p },
+          })
+        );
+      });
+      $.tsar.plot("#" + d + "-latency", {
+        queries: queries,
+        yaxis: { min: 0, max: 300 },
+        overview: {
+          yaxis: { min: 0, max: 300 },
+        }
+        });
+    });
+
+  });
+  </script>
+</body>
+</html>
