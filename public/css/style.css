@@ -71,8 +71,8 @@ div.tsar-plot {
   height: 400px;
 }
 div.small div.tsar-plot {
-	width: 400px;
-	height: 200px;
+    width: 400px;
+    height: 200px;
 }
 div.tsar-overview {
   width: 800px;
@@ -83,5 +83,12 @@ div.small div.tsar-overview {
   height: 50px;
 }
 div.tsar-legend tr {
-	float: left;
+    float: left;
+}
+div.container {
+  float: left;
+  padding: 1em;
+}
+div.container h2 {
+  text-align: center;
 }
