@@ -29,6 +29,7 @@
       };
       $.each(options.queries, function (i, query) {
         var key = encodeid(query.subject, query.attribute, query.cf);
+        query.options["id"] = i;
         seriesopts[key] = query.options;
         delete query.options;
       });
@@ -39,7 +40,8 @@
           for (var i = 0; i < series.length; ++i) {
             series[i][0] *= 1000;
           };
-          data.push($.extend({data: series}, {label: s}, seriesopts[s]));
+          var sid = seriesopts[s]["id"];
+          data[sid] = $.extend({data: series}, {label: s}, seriesopts[s]);
         });
 
         var plot = $.plot(plotplaceholder, data, options);
