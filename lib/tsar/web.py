@@ -1,6 +1,14 @@
+from __future__ import with_statement
+
 import csv
 import logging
+import os
 import socket
+
+try:
+    import mimetypes
+except ImportError:
+    mimetypes = None
 
 from urllib2 import quote, unquote
 
@@ -10,7 +18,7 @@ from . import errors, model
 from .commands import DBMixin, DaemonizingSubCommand
 from .commands import (
     Application, CommandLineMixin, DaemonizingMixin, LoggingMixin)
-from .util import Decorator, json, parsedsn
+from .util import Decorator, json, parsedsn, trim
 
 __all__ = ["Records", "service"]
 
@@ -191,6 +199,33 @@ class Ping(neat.Resource):
         self.response.status_int = 200
         self.response.content_type = "text/plain"
 
+class Static(neat.Resource):
+    prefix = "/"
+    public = ""
+
+    def get(self):
+        prefix = self.prefix.rstrip("/") + "/"
+        fname = os.path.normpath(trim(self.req.path, self.prefix))
+        fullpath = os.path.abspath(os.path.join(self.public, fname))
+        if not fullpath.startswith(self.public):
+            raise errors.HTTPNotFound()
+
+        content = "text/plain"
+        if mimetypes is not None:
+            guess = mimetypes.guess_type(fullpath)
+            if guess[0] is not None:
+                content = guess[0]
+        self.response.content_type = content
+
+        try:
+            with open(fullpath, 'r') as f:
+                self.response.body = f.read()
+        except IOError, e:
+            if e.errno == 2:
+                raise errors.HTTPNotFound()
+            elif e.errno == 13:
+                raise errors.HTTPForbidden()
+
 class Dispatch(neat.Dispatch):
     backend = ""
 
@@ -201,13 +236,19 @@ class Dispatch(neat.Dispatch):
             response.headers["X-Tsar-Backend"] = self.backend
         return response
 
-def Server(host, port, backend="", **kwargs):
+def Server(host, port, backend="", public=False, **kwargs):
     from .ext import wsgiserver
 
-    service = Dispatch(
+    resources = [
         AllRecords(),
         Records(),
-        Ping())
+        Ping(),
+    ]
+    if public is not False:
+        static = Static()
+        static.public = public
+        resources.append(static)
+    service = Dispatch(*resources)
     service.backend = socket.gethostname()
     if backend:
         service.backend = "%s/%s" % (service.backend, backend)
@@ -221,8 +262,15 @@ class Serve(DBMixin, DaemonizingSubCommand):
         if not port:
             port = 8000
 
+        public = self.params.public
+        if public is False or not os.path.isdir(public):
+            public = False
+        else:
+            public = os.path.abspath(public)
+
         self.log.info("Starting server at http://%s:%s/", host, port)
         server = Server(host, int(port),
+            public=public,
             backend=self.params.backend,
             numthreads=int(self.params.nthreads),
             request_queue_size=int(self.params.requests),
@@ -260,5 +308,7 @@ class Serve(DBMixin, DaemonizingSubCommand):
             help="timeout (seconds) for accepted connections (default: %s)" % default_timeout)
         self.add_param("-b", "--backend", default=default_backend,
             help="set backend tag (default: %s)" % default_backend)
+        self.add_param("-P", "--public", default=False,
+            help="specify public directory for static files (default: no static files)")
         self.add_param("server", nargs="?",
             help="<host>:<port> (default: %s)" % default_server, default=default_server)
