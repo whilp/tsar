@@ -223,6 +223,7 @@ class Serve(DBMixin, DaemonizingSubCommand):
 
         self.log.info("Starting server at http://%s:%s/", host, port)
         server = Server(host, int(port),
+            backend=self.params.backend,
             numthreads=int(self.params.nthreads),
             request_queue_size=int(self.params.requests),
             timeout=int(self.params.timeout))
