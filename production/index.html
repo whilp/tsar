@@ -1,0 +1,64 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="utf-8" /> 
+  <title>production</title> 
+  <link rel="stylesheet" href="../../style.css" /> 
+  <!--[if IE]>
+  <script language="javascript" type="text/javascript" src="../../js/excanvas.min.js"></script>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <script src="http://www.google.com/jsapi"></script>
+  <script>
+    google.load("jquery", "1.4.2");
+  </script>
+  <script src="../../js/jquery.flot.min.js"></script>
+  <script src="../../js/jquery.flot.selection.min.js"></script>
+  <script src="../../js/jquery.flot.stack.min.js"></script>
+  <script src="../../js/tsar.js"></script>
+
+  <style>
+  p {
+    margin-top: 1em;
+    margin-bottom: 1em;
+  }
+  </style>
+</head> 
+ 
+<body> 
+  <h1>production</h1>
+  <div id="stevia-prod" class="plot"></div>
+  <div id="stevia-prod-overview" class="overview"></div>
+
+  <script>
+  $(function () {
+    $.tsar.options = $.extend($.tsar.options, {
+      service: "http://tsar.hep.wisc.edu/records",
+    });
+
+    var common = { cf: "max", interval: 60 };
+    var iowait = $.tsar.plot("#stevia-prod", {
+      stack: true,
+      lines: { show: true, fill: true },
+      queries: [
+        $.extend({}, common, 
+          { subject: "stevia.hep.wisc.edu", attribute: "prod_processing_running_jobs",
+            options: { label: "processing" }}),
+        $.extend({}, common, 
+          { subject: "stevia.hep.wisc.edu", attribute: "prod_merge_running_jobs",
+            options: { label: "merge" }}),
+        $.extend({}, common, 
+          { subject: "stevia.hep.wisc.edu", attribute: "prod_cleanup_running_jobs",
+            options: { label: "cleanup" }}),
+      ],
+      overview: {
+        placeholder: "#stevia-prod-overview",
+        stack: false,
+        lines: { show: true, fill: true },
+      },
+    });
+  });
+  </script>
+</body>
+</html>
