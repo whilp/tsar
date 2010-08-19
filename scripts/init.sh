@@ -4,28 +4,19 @@
 # description: tsar
 # processname: tsar-server
 
-HOST=0.0.0.0:8080
-DIR=/scratch/tsar
-BINDIR=${DIR}/bin
-PIDFILE=${DIR}/tsar.pid
-LOGFILE=${DIR}/tsar.log
-USER=tsar:tsar
-prog=tsar
+ROOT=/scratch/tsar
+PIDFILE=${ROOT}/logs/supervisord.pid
+PROG=tsar
 
 . /etc/rc.d/init.d/functions
 
-start ()
-{
-    echo -n "Starting $prog:"
-    # XXX: --check?
-    daemon --pidfile="${PIDFILE}" --user="${USER%:*}" ${BINDIR}/tsar -vl "${LOGFILE}" serve \
-        -d \
-        -n 40 \
-        -r 20 \
-        -t 15 \
-        -p "${PIDFILE}" \
-        -D redis://redis01.hep.wisc.edu:6379/0 \
-        ${HOST} >/dev/null 2>&1
+start () {
+    echo -n "Starting ${PROG}:"
+	cd ${ROOT}
+	${ROOT}/bin/supervisord \
+		-c ${ROOT}/scripts/supervisor.conf \
+		-u tsar \
+		-j "${PIDFILE}"
     RETVAL=$?
     echo
     return ${RETVAL}
@@ -34,7 +25,7 @@ start ()
 stop ()
 {
     if [ ! -r "${PIDFILE}" ]; then
-        echo "$prog is not running"
+        echo "${PROG} is not running"
         return 1
     fi
 
@@ -52,7 +43,10 @@ case "$1" in
     stop)
         stop
         ;;
+    restart)
+        stop && sleep 1 && start
+        ;;
     *)
-        echo "Usage: $0 {start|stop}"
+        echo "Usage: $0 {start|stop|restart}"
         ;;
 esac
