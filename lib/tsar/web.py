@@ -192,21 +192,23 @@ class Ping(neat.Resource):
         self.response.content_type = "text/plain"
 
 class Dispatch(neat.Dispatch):
-    backend = socket.gethostname()
+    backend = ""
 
     @neat.wsgify
     def __call__(self, req):
         response = super(Dispatch, self).__call__(req)
-        response.headers["X-Tsar-Backend"] = self.backend
+        if self.backend:
+            response.headers["X-Tsar-Backend"] = self.backend
         return response
 
-def Server(host, port, **kwargs):
+def Server(host, port, backend="", **kwargs):
     from .ext import wsgiserver
 
     service = Dispatch(
         AllRecords(),
         Records(),
         Ping())
+    service.backend = backend
     server = wsgiserver.CherryPyWSGIServer((host, port), service, **kwargs)
     return server
 
@@ -246,11 +248,14 @@ class Serve(DBMixin, DaemonizingSubCommand):
         default_threads = 10
         default_requests = 5
         default_timeout = 10
+        default_backend = socket.gethostname()
         self.add_param("-n", "--nthreads", default=default_threads,
             help="minimum size of server thread pool (default: %s)" % default_threads)
         self.add_param("-r", "--requests", default=default_requests,
             help="size of the server request queue (default: %s)" % default_requests)
         self.add_param("-t", "--timeout", default=default_timeout,
             help="timeout (seconds) for accepted connections (default: %s)" % default_timeout)
+        self.add_param("-b", "--backend", default=default_backend,
+            help="set backend name (default: %s)" % default_backend)
         self.add_param("server", nargs="?",
             help="<host>:<port> (default: %s)" % default_server, default=default_server)
