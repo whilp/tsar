@@ -208,7 +208,9 @@ def Server(host, port, backend="", **kwargs):
         AllRecords(),
         Records(),
         Ping())
-    service.backend = backend
+    service.backend = socket.gethostname()
+    if backend:
+        service.backend = "%s/%s" % (service.backend, backend)
     server = wsgiserver.CherryPyWSGIServer((host, port), service, **kwargs)
     return server
 
@@ -248,7 +250,7 @@ class Serve(DBMixin, DaemonizingSubCommand):
         default_threads = 10
         default_requests = 5
         default_timeout = 10
-        default_backend = socket.gethostname()
+        default_backend = ""
         self.add_param("-n", "--nthreads", default=default_threads,
             help="minimum size of server thread pool (default: %s)" % default_threads)
         self.add_param("-r", "--requests", default=default_requests,
@@ -256,6 +258,6 @@ class Serve(DBMixin, DaemonizingSubCommand):
         self.add_param("-t", "--timeout", default=default_timeout,
             help="timeout (seconds) for accepted connections (default: %s)" % default_timeout)
         self.add_param("-b", "--backend", default=default_backend,
-            help="set backend name (default: %s)" % default_backend)
+            help="set backend tag (default: %s)" % default_backend)
         self.add_param("server", nargs="?",
             help="<host>:<port> (default: %s)" % default_server, default=default_server)
