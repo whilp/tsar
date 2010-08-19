@@ -228,6 +228,7 @@ class Static(neat.Resource):
                 raise errors.HTTPNotFound()
             elif e.errno == 13:
                 raise errors.HTTPForbidden()
+            raise
 
 class Dispatch(neat.Dispatch):
     backend = ""
