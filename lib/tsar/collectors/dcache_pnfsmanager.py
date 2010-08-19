@@ -3,8 +3,10 @@
 from . import helpers
 from .commands import Collector
 
-from dcache.admin import Admin
-from dcache.app import AdminMixin
+try:
+    from dcache.app import AdminMixin
+except ImportError:
+    AdminMixin = None
 
 class PnfsManager(AdminMixin, Collector):
 
@@ -13,6 +15,7 @@ class PnfsManager(AdminMixin, Collector):
         connection["passwd"] = str(self.params.password)
 
         # Connect to the admin interface.
+        from dcache.admin import Admin
         admin = Admin()
         admin.connect(**connection)
 

@@ -6,8 +6,6 @@ import sys
 
 import os
 
-import redis
-
 from . import helpers
 from .commands import Collector
 from ..commands import DBMixin
