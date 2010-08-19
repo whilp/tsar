@@ -19,8 +19,8 @@
     },
 
     plot: function (container, options) {
-      var options = $.extend(true, this.options, options);
-      var overviewopts = $.extend(true, options, this.options.overview, options.overview);
+      var options = $.extend(true, {}, this.options, options);
+      var overviewopts = $.extend({}, options, this.options.overview, options.overview);
 
       container = $(container);
       var rootid = container.attr("id");
