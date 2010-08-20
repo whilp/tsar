@@ -56,23 +56,6 @@
       },
     },
 
-    si: {
-      prefixes: "kMGTPEZY",
-      pow: function (i) { return Math.pow(2, (i + 1) * 10); },
-      formatter: function (units) {
-        var prefixes = this.prefixes,
-          sipow = this.pow;
-        function tickformatter (val, axis) {
-          for (var i = prefixes.length, f = sipow(i); 
-            i >= 0 && (axis.max/f) < 2; i--, f = sipow(i));
-          val /= f;
-          console.log(axis.tickSize);
-          return val.toFixed(axis.tickDecimals) + " " + prefixes[i] + units;
-        }
-        return tickformatter;
-      },
-    },
-
     plot: function (container, opts) {
       var options = $.extend(true, {}, this.options, opts);
 
