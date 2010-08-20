@@ -4,6 +4,7 @@
       lines: {show: true},
       selection: { mode: "x" },
       xaxis: { mode: "time" },
+      yaxis: { units: false },
       plot: { show: true },
       grid: { 
         hoverable: true,
@@ -20,6 +21,38 @@
         yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
         xaxis: { mode: "time" },
         legend: { show: false },
+      },
+      hooks: {
+        processOptions: function (plot, options) {
+          // XXX: Might want to handle more than 2 Y axes...
+          var axes = ["yaxis", "y2axis"];
+          for (var i in axes) {
+            var axisname = axes[i],
+              units = options[axisname].units;
+            if (units) {
+              var axis = plot.getAxes()[axisname],
+                tickDecimals = axis.tickDecimals || 2,
+                prefixes = "kMGTPEZY",
+                sipow = function (i) { return Math.pow(10, (3 * i)) };
+              axis.units = units;
+
+              function sifactor (axis) {
+                var limit = axis.datamax || axis.max;
+                for (var i = prefixes.length, f = sipow(i); 
+                  i >= 0 && (limit/f) < 2; i--, f = sipow(i));
+                return {value: f, suffix: prefixes[i] + axis.units};
+              }
+              if (!options[axisname].tickFormatter) {
+                options[axisname].tickFormatter = function (v, axis) {
+                  factor = sifactor(axis);
+                  v /= factor.value;
+                  v = v.toFixed(tickDecimals);
+                  return v + " " + factor.suffix;
+                }
+              }
+            }
+          }
+        },
       },
     },
 
