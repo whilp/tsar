@@ -74,18 +74,6 @@
         if (overviewelem) {
           var overview = $.plot(overviewelem, data, options.overview);
 
-          plotelem.bind("plotselected", function (event, ranges) {
-            plot = $.plot(plotelem, data,
-              $.extend(true, {}, options, {
-                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                bars: { 
-                  barWidth: 
-                    10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotelem.width()),
-                },
-            }));
-            overview.setSelection(ranges, true);
-          });
-
           overviewelem.bind("plotselected", function (event, ranges) {
             plot.setSelection(ranges);
           });
@@ -95,6 +83,19 @@
             overview.clearSelection(true);
           });
         };
+        plotelem.bind("plotselected", function (event, ranges) {
+          plot = $.plot(plotelem, data,
+            $.extend(true, {}, options, {
+              xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+              bars: { 
+                barWidth: 
+                  10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotelem.width()),
+              },
+          }));
+          if (overviewelem) {
+            overview.setSelection(ranges, true);
+          }
+        });
       };
 
       function paramify (k, v) {
