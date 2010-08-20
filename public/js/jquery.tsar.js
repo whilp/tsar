@@ -154,9 +154,12 @@
                 lastpt = item.datapoint;
                 destroytip();
 
-                var x = item.datapoint[0].toFixed(2),
-                    y = item.datapoint[1].toFixed(2);
-                var content = item.series.label + ' (y=' + y + ')';
+                var y = item.datapoint[1],
+                    yaxis = item.series.yaxis;
+                    fmt = item.series.yaxis.tickFormatter;
+                if (fmt)
+                  y = yaxis.tickFormatter(y, yaxis);
+                var content = item.series.label + ' (' + y + ')';
                 $('<div id="' + tooltip + '" class="tsar-tooltip">' + 
                   content + '</div>').css({
                     position: "absolute",
