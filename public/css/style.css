@@ -85,6 +85,12 @@ div.small div.tsar-overview {
 div.tsar-legend tr {
     float: left;
 }
+div.tsar-tooltip {
+  opacity: 0.80;
+  background-color: #fee;
+  padding: 2px;
+  border: 1px solid #fdd;
+}
 div.container {
   float: left;
   padding: 1em;
