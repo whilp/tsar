@@ -202,33 +202,43 @@ class Ping(neat.Resource):
 class Static(neat.Resource):
     prefix = "/"
     public = ""
+    index = "index.html"
 
     def get(self):
         prefix = self.prefix.rstrip("/") + "/"
         fname = self.req.path
         if fname.endswith("/"):
-            fname += "index.html"
+            fname += self.index
         fname = trim(fname, self.prefix)
         fullpath = os.path.abspath(os.path.join(self.public, fname))
         if not fullpath.startswith(self.public):
             raise errors.HTTPNotFound()
 
+        content, body = self.read(fullpath)
+        self.read(fullpath)
+        self.response.content_type = content
+        self.response.body = body or ""
+
+    def read(self, fname, tryindex=True):
         content = "text/plain"
         if mimetypes is not None:
-            guess = mimetypes.guess_type(fullpath)
+            guess = mimetypes.guess_type(fname)
             if guess[0] is not None:
                 content = guess[0]
-        self.response.content_type = content
 
+        body = None
         try:
-            with open(fullpath, 'r') as f:
-                self.response.body = f.read()
-        except IOError, e:
-            if e.errno == 2:
-                raise errors.HTTPNotFound()
-            elif e.errno == 13:
-                raise errors.HTTPForbidden()
-            raise
+            with open(fname, 'r') as f:
+                body = f.read()
+        except (OSError, IOError), e:
+            if isinstance(e, IOError):
+                if e.errno == 13:
+                    raise errors.HTTPForbidden()
+                elif e.errno == 21:
+                    return self.read(fname + "/" + self.index, tryindex=False)
+            raise errors.HTTPNotFound()
+
+        return content, body
 
 class Dispatch(neat.Dispatch):
     backend = ""
