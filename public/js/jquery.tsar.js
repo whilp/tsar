@@ -33,17 +33,21 @@
               var axis = plot.getAxes()[axisname];
               axis.units = units;
 
-              if (units == "seconds" || units == "s") {
-                function formatter (v, axis) {
-                  return v.toFixed(axis.tickDecimals) + "s";
-                }
+              var formatter, secformatter, siformatter;
+              function secformatter (v, axis) {
+                return v.toFixed(axis.tickDecimals) + "s";
+              }
+              function siformatter (v, axis) {
+                factor = $.tsar.sifactor(axis.max);
+                v /= factor.value;
+                v = v.toFixed(axis.tickDecimals);
+                return v + " " + factor.prefix + axis.units;
+              }
+              if (options[axisname].units == "seconds" || 
+                  options[axisname].units == "s") {
+                formatter = secformatter;
               } else {
-                function formatter (v, axis) {
-                  factor = $.tsar.sifactor(axis.max);
-                  v /= factor.value;
-                  v = v.toFixed(axis.tickDecimals);
-                  return v + " " + factor.prefix + axis.units;
-                }
+                formatter = siformatter;
               }
               if (!options[axisname].tickFormatter) {
                 options[axisname].tickFormatter = formatter;
