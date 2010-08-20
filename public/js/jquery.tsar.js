@@ -39,7 +39,7 @@
               function sifactor (axis) {
                 var limit = axis.datamax || axis.max;
                 for (var i = prefixes.length, f = sipow(i); 
-                  i >= 0 && (limit/f) < 2; i--, f = sipow(i));
+                  i >= 0 && (limit/f) < 2; i--, f = sipow(i + 1));
                 return {value: f, suffix: prefixes[i] + axis.units};
               }
               if (!options[axisname].tickFormatter) {
