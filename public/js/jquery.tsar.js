@@ -5,6 +5,10 @@
       selection: { mode: "x" },
       xaxis: { mode: "time" },
       plot: { show: true },
+      grid: { 
+        hoverable: true,
+        mouseActiveRadius: 3,
+      },
       legend: {
         show: true,
       },
@@ -94,6 +98,38 @@
           }));
           if (overviewelem) {
             overview.setSelection(ranges, true);
+          }
+        });
+
+        var lastpt = null;
+        var tooltip = "tsar-tooltip-" + rootid;
+        function destroytip () {
+          $("#" + tooltip).remove();
+        }
+        plotelem.bind("plothover", function (event, pos, item) {
+          if (item) {
+            if (lastpt != item.datapoint) {
+              if (!lastpt || 
+                  Math.abs(lastpt.pageX - item.pageX) ||
+                  Math.abs(lastpt.pageY - item.pageY)) {
+                lastpt = item.datapoint;
+                destroytip();
+
+                var x = item.datapoint[0].toFixed(2),
+                    y = item.datapoint[1].toFixed(2);
+                var content = item.series.label + ' (y=' + y + ')';
+                $('<div id="' + tooltip + '" class="tsar-tooltip">' + 
+                  content + '</div>').css({
+                    position: "absolute",
+                    display: "none",
+                    top: item.pageY + 5,
+                    left: item.pageX + 5,
+                }).appendTo("body").fadeIn(200);
+              }
+            }
+          } else {
+            destroytip();
+            lastpt = null;
           }
         });
       };
