@@ -19,12 +19,26 @@
 </head> 
  
 <body> 
-  <div id="write-latency" class="container small">
-    <h2>Storage write latency</h2>
+  <h1>dCache</h1>
+
+  <div>
+    <div id="write-latency" class="container small">
+      <h2>write latency (seconds)</h2>
+    </div>
+
+    <div id="read-latency" class="container small">
+      <h2>read latency (seconds)</h2>
+    </div>
   </div>
 
-  <div id="read-latency" class="container small">
-    <h2>Storage read latency</h2>
+  <div>
+    <div id="writepools-bytes" class="container small">
+      <h2>write-pools space</h2>
+    </div>
+
+    <div id="readpools-bytes" class="container small">
+      <h2>read-pools space</h2>
+    </div>
   </div>
 
   <script>
@@ -55,6 +69,26 @@
           yaxis: { min: 0, max: 300 },
         }
         });
+    });
+
+    var pgroups = ["readpools", "writepools"];
+    var uses = ["precious", "used", "total"];
+    $.each(pgroups, function (i, p) {
+      var queries = [];
+      $.each(uses, function (i, u) {
+        queries.push($.extend(true, {}, common, {
+          subject: subject,
+          attribute: ["poolgroups", p, u, "sum", "bytes"].join("_"),
+          options: { label: u },
+        }))
+      })
+      $.tsar.plot("#" + p + "-bytes", {
+        queries: queries,
+        yaxis: {
+          units: "B",
+          min: 0, max: 1.2 * Math.pow(10, 15),
+        }
+      });
     });
 
   });
