@@ -30,29 +30,29 @@
             var axisname = axes[i],
               units = options[axisname].units;
             if (units) {
-              var axis = plot.getAxes()[axisname],
-                prefixes = "kMGTPEZY",
-                sipow = function (i) { return Math.pow(10, (3 * i)) };
+              var axis = plot.getAxes()[axisname];
               axis.units = units;
 
-              function sifactor (axis) {
-                var limit = axis.datamax || axis.max;
-                for (var i = prefixes.length, f = sipow(i); 
-                  i >= 0 && (limit/f) < 2; i--, f = sipow(i + 1));
-                return {value: f, suffix: prefixes[i] + axis.units};
-              }
               if (!options[axisname].tickFormatter) {
                 options[axisname].tickFormatter = function (v, axis) {
-                  factor = sifactor(axis);
+                  factor = $.tsar.sifactor(axis.max);
                   v /= factor.value;
                   v = v.toFixed(axis.tickDecimals);
-                  return v + " " + factor.suffix;
+                  return v + " " + factor.prefix + axis.units;
                 }
               }
             }
           }
         },
       },
+    },
+
+    siprefixes: "kMGTPEZY",
+    sipow: function (i) { return Math.pow(10, (3 * i)) },
+    sifactor: function (limit) {
+      for (var i = $.tsar.siprefixes.length, f = $.tsar.sipow(i); 
+        i >= 0 && (limit/f) < 2; i--, f = $.tsar.sipow(i + 1));
+      return {value: f, prefix: $.tsar.siprefixes[i]};
     },
 
     plot: function (container, opts) {
