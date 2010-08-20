@@ -89,6 +89,11 @@
           overviewelem.bind("plotselected", function (event, ranges) {
             plot.setSelection(ranges);
           });
+          overviewelem.bind("plotunselected", function () {
+            var xaxis = plot.getAxes().xaxis;
+            plot.setSelection({ xaxis: { from: xaxis.datamin, to: xaxis.datamax }});
+            overview.clearSelection(true);
+          });
         };
       };
 
