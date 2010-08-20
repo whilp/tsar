@@ -79,7 +79,11 @@
           var overview = $.plot(overviewelem, data, options.overview);
 
           overviewelem.bind("plotselected", function (event, ranges) {
-            plot.setSelection(ranges);
+            plot.setSelection(ranges, true);
+          });
+          overviewelem.bind("plotunselected", function () {
+            var xaxis = plot.getAxes().xaxis;
+            plot.setSelection({ xaxis: { from: xaxis.min, to: xaxis: max }});
           });
           overviewelem.bind("plotunselected", function () {
             var xaxis = plot.getAxes().xaxis;

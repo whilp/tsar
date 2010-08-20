@@ -94,6 +94,8 @@ director tsar round-robin {
 sub vcl_recv { 
     set req.http.host = "tsar.hep.wisc.edu";
     set req.backend = tsar;
+    remove req.http.X-Forwarded-For;
+    set req.http.X-Forwarded-For = client.ip;
 }
 
 sub vcl_fetch {
