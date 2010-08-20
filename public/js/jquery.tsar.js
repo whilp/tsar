@@ -31,7 +31,6 @@
               units = options[axisname].units;
             if (units) {
               var axis = plot.getAxes()[axisname],
-                tickDecimals = axis.tickDecimals || 2,
                 prefixes = "kMGTPEZY",
                 sipow = function (i) { return Math.pow(10, (3 * i)) };
               axis.units = units;
@@ -46,7 +45,7 @@
                 options[axisname].tickFormatter = function (v, axis) {
                   factor = sifactor(axis);
                   v /= factor.value;
-                  v = v.toFixed(tickDecimals);
+                  v = v.toFixed(axis.tickDecimals);
                   return v + " " + factor.suffix;
                 }
               }
