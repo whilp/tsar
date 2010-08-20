@@ -45,6 +45,9 @@
                   return v + " " + factor.prefix + axis.units;
                 }
               }
+              if (!options[axisname].tickFormatter) {
+                options[axisname].tickFormatter = formatter;
+              }
             }
           }
         },
