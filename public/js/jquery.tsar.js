@@ -33,8 +33,12 @@
               var axis = plot.getAxes()[axisname];
               axis.units = units;
 
-              if (!options[axisname].tickFormatter) {
-                options[axisname].tickFormatter = function (v, axis) {
+              if (units == "seconds" || units == "s") {
+                function formatter (v, axis) {
+                  return v.toFixed(axis.tickDecimals) + "s";
+                }
+              } else {
+                function formatter (v, axis) {
                   factor = $.tsar.sifactor(axis.max);
                   v /= factor.value;
                   v = v.toFixed(axis.tickDecimals);
