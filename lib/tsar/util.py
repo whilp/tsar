@@ -1,5 +1,6 @@
 import functools
 import logging
+import operator
 import sys
 
 try:
@@ -132,3 +133,24 @@ def trim(s, subs, reverse=False):
     return s[start:end]
 
 rtrim = functools.partial(trim, reverse=True)
+
+def derive(seq, points=5):
+    h = None
+    ys = range(points)
+    xs = list(ys)
+
+    for i, coord in enumerate(seq):
+        loc = i % points
+        xs[loc], ys[loc] = coord
+
+        if i == 1:
+            h = abs(operator.sub(*xs[:2]))
+
+        if i >= points:
+            center = (i - (points/2)) % points
+            x = xs[center]
+            y = ys[center:] + ys[:center]
+            try:
+                yield (x, (-y[2] + (8 * y[1]) - (8 * y[-1]) + y[-2]))
+            except TypeError:
+                yield (x, None)
