@@ -89,7 +89,7 @@ class AllRecords(neat.Resource):
         raise errors.HTTPNoContent("Records created")
 
     def _get(self, **base):
-        filters = self.req.GET.pop("filters", "").split(',')
+        filters = [f for f in self.req.GET.pop("filters", "").split(',') if f]
         queries = []
         query = base.copy()
         for k, v in self.req.params.items():
@@ -115,10 +115,11 @@ class AllRecords(neat.Resource):
                 exception=errors.HTTPBadRequest)
             records.types.now = query.pop("now", None)
             result = records.query(**query)
-            try:
-                result = self.filter(result, filters)
-            except KeyError, e:
-                raise errors.HTTPBadRequest("Invalid filter: %s" % e.args[0])
+            if filters:
+                try:
+                    result = self.filter(result, filters)
+                except KeyError, e:
+                    raise errors.HTTPBadRequest("Invalid filter: %r" % e.args[0])
             data[self.encodeid(records)] = list(result)
 
         return data
