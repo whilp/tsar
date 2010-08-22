@@ -18,7 +18,7 @@ from . import errors, model
 from .commands import DBMixin, DaemonizingSubCommand
 from .commands import (
     Application, CommandLineMixin, DaemonizingMixin, LoggingMixin)
-from .util import Decorator, json, parsedsn, trim
+from .util import Decorator, derive, json, parsedsn, trim
 
 __all__ = ["Records", "service"]
 
@@ -51,6 +51,7 @@ class AllRecords(neat.Resource):
     }
     filters = {
         "skipnull": lambda r: (x for x in r if x[1] is not None),
+        "derive": derive,
     }
 
     def decodeid(self, id):
