@@ -7,7 +7,7 @@
       yaxis: { units: false },
       plot: { show: true },
       parameters: {
-        missing: "skip",
+        filters: ["skipnull"],
         _accept: "application/json",
         callback: "?",
       },
@@ -202,7 +202,14 @@
 
       var url = options.service + "?";
       for (var param in options.parameters) {
-        url += param + "=" + options.parameters[param] + "&";
+        var value = options.parameters[param];
+        if (param == "filters" && value instanceof Array) {
+          value = value.join(",");
+        }
+        url += param + "=" + value + "&";
+      }
+      if (url.charAt(url.length - 1) == "&") {
+        url = url.slice(0, url.length - 1);
       }
       url += querify(options.queries);
 
