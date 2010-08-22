@@ -6,6 +6,11 @@
       xaxis: { mode: "time" },
       yaxis: { units: false },
       plot: { show: true },
+      parameters: {
+        missing: "skip",
+        _accept: "application/json",
+        callback: "?",
+      },
       grid: { 
         hoverable: true,
         mouseActiveRadius: 3,
@@ -195,7 +200,10 @@
         return url;
       };
 
-      var url = options.service + "?_accept=application/json&callback=?&missing=skip";
+      var url = options.service + "?";
+      for (var param in options.parameters) {
+        url += param + "=" + options.parameters[param] + "&";
+      }
       url += querify(options.queries);
 
       $.ajax({
