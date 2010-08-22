@@ -192,7 +192,7 @@ class Tsar(RESTClient):
         return True
 
     def query(self, subject, attribute, cf, 
-            start=None, stop=None, now=None, missing="skip", interval=None):
+            start=None, stop=None, now=None, filters=[], interval=None):
         """Query the tsar service.
 
         *subject* and *attribute* are free-form string fields which may include
@@ -213,8 +213,8 @@ class Tsar(RESTClient):
             query["now"] = now
         if interval is not None:
             query["interval"] = interval
-        if missing is not None:
-            query["missing"] = missing
+        if filters:
+            query["filters"] = ','.join(filters)
         if query:
             resource += '?' + urlencode(query)
 

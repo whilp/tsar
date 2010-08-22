@@ -49,6 +49,9 @@ class AllRecords(neat.Resource):
         "accept": "_accept",
         "content-type": "_content",
     }
+    filters = {
+        "skipnull": lambda r: (x for x in r if x[1] is not None),
+    }
 
     def decodeid(self, id):
         return tuple(unquote(id.encode("utf8")).split('/'))
@@ -86,7 +89,7 @@ class AllRecords(neat.Resource):
         raise errors.HTTPNoContent("Records created")
 
     def _get(self, **base):
-        missing = self.req.GET.pop("missing", False)
+        filters = self.req.GET.pop("filters", "").split(',')
         queries = []
         query = base.copy()
         for k, v in self.req.params.items():
@@ -112,11 +115,19 @@ class AllRecords(neat.Resource):
                 exception=errors.HTTPBadRequest)
             records.types.now = query.pop("now", None)
             result = records.query(**query)
-            if missing == "skip":
-                result = (x for x in result if x[1] != None)
+            try:
+                result = self.filter(result, filters)
+            except KeyError, e:
+                raise errors.HTTPBadRequest("Invalid filter: %s" % e.args[0])
             data[self.encodeid(records)] = list(result)
 
         return data
+
+    def filter(self, result, filters):
+        for filter in (self.filters[f] for f in filters):
+            result = filter(result)
+
+        return result
 
     def get_json(self):
         data = self._get()
