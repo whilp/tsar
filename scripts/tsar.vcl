@@ -99,6 +99,11 @@ sub vcl_recv {
 }
 
 sub vcl_fetch {
+    if (req.url !~ "^/css/" &&
+            req.url !~ "^/js/" &&
+            req.url !~ "^/esi") {
+        esi;
+    }
     if (obj.status >= 300) {
         pass;
     }
