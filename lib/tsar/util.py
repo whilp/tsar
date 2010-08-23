@@ -151,6 +151,6 @@ def derive(seq, points=5):
             x = xs[center]
             y = ys[center:] + ys[:center]
             try:
-                yield (x, (-y[2] + (8 * y[1]) - (8 * y[-1]) + y[-2]))
+                yield (x, (-y[2] + (8 * y[1]) - (8 * y[-1]) + y[-2])/(12 * h))
             except TypeError:
                 yield (x, None)
