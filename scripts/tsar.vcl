@@ -101,9 +101,11 @@ sub vcl_recv {
 sub vcl_fetch {
     if (req.url !~ "^/css/" &&
             req.url !~ "^/js/" &&
-            req.url !~ "^/esi") {
+            req.url !~ "^/esi" &&
+            obj.http.Content-Type ~ "html") {
         esi;
-    }
+        set obj.ttl = 1 h;
+    } 
     if (obj.status >= 300) {
         pass;
     }
