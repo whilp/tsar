@@ -1,0 +1,170 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="utf-8" /> 
+  <title>dcache latency</title> 
+  <link rel="stylesheet" href="../../css/style.css" /> 
+  <!--[if IE]>
+  <script language="javascript" type="text/javascript" src="../../js/excanvas.min.js"></script>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <script src="http://www.google.com/jsapi"></script>
+  <script>
+    google.load("jquery", "1.4.2");
+  </script>
+  <script src="../../js/jquery.flot.min.js"></script>
+  <script src="../../js/jquery.flot.selection.min.js"></script>
+  <script src="../../js/jquery.tsar.js"></script>
+</head> 
+ 
+<body> 
+  <h1>dCache</h1>
+
+  <div>
+    <div id="write-latency" class="container small">
+      <h2>write latency (seconds)</h2>
+    </div>
+
+    <div id="read-latency" class="container small">
+      <h2>read latency (seconds)</h2>
+    </div>
+  </div>
+
+  <div>
+   <div id="cmsdcache01-stat" class="container">
+     <h2>cmsdcache01 stat</h2>
+   </div>
+  </div>
+
+  <div>
+   <div id="pnfs" class="container">
+     <h2>pnfs</h2>
+   </div>
+  </div>
+
+  <div>
+    <div id="writepools-bytes" class="container small">
+      <h2>write-pools space</h2>
+    </div>
+
+    <div id="readpools-bytes" class="container small">
+      <h2>read-pools space</h2>
+    </div>
+  </div>
+
+  <script>
+  $(function () {
+    $.tsar.options = $.extend($.tsar.options, {
+      service: "http://tsar.hep.wisc.edu/records",
+    });
+
+    var subject = "dcache";
+    var protos = ["dcap", "gsiftp", "srm"];
+    var directions = ["read", "write"];
+    var common = { cf: "max", interval: 60, };
+    $.each(directions, function (i, d) {
+      var queries = [];
+      $.each(protos, function (i, p) {
+        queries.push($.extend(true, {}, common, 
+          { 
+            subject: subject, 
+            attribute: [p, d, "latency"].join("_"), 
+            options: { label: p },
+          })
+        );
+      });
+      $.tsar.plot("#" + d + "-latency", {
+        queries: queries,
+        yaxis: { min: 0, max: 300, units: "s" },
+        overview: {
+          yaxis: { min: 0, max: 300 },
+        }
+        });
+    });
+
+    var pgroups = ["readpools", "writepools"];
+    var uses = ["precious", "used", "total"];
+    var common = { cf: "max", interval: 3600 };
+    $.each(pgroups, function (i, p) {
+      var queries = [];
+      $.each(uses, function (i, u) {
+        queries.push($.extend(true, {}, common, {
+          subject: subject,
+          attribute: ["poolgroups", p, u, "sum", "bytes"].join("_"),
+          options: { label: u },
+        }))
+      })
+      $.tsar.plot("#" + p + "-bytes", {
+        queries: queries,
+        yaxis: {
+          units: "B",
+          unitformatter: "si",
+          min: 0, max: 1.2 * Math.pow(10, 15),
+          tickDecimals: 0,
+        }
+      });
+    });
+    /*
+    */
+/*
+26 seconds   1.02         dcache_pnfsmanager failrate_total max
+26 seconds   13.47        dcache_pnfsmanager failrate_getstorageinfo max
+26 seconds   0            dcache_pnfsmanager queue_depth max
+26 seconds   8            dcache_pnfsmanager failrate_getfilemetadata max
+
+*/
+    subject = "dcache_pnfsmanager";
+    var failrates = ["getstorageinfo", "getfilemetadata", "total"];
+    var queries = [];
+    $.each(failrates, function (i, attr) {
+      var label = attr.split("_");
+      label = label[label.length - 1];
+      queries.push($.extend(true, {}, common, {
+        subject: subject,
+        attribute: "failrate_" + attr,
+        options: { label: attr },
+      }))
+    });
+    queries.push($.extend(true, {}, common, {
+      subject: "dcache_pnfsmanager",
+      attribute: "queue_depth",
+      options: { label: "PNFS queue depth", yaxis: 2 },
+    }));
+    $.tsar.plot("#pnfs", {
+      queries: queries,
+      yaxis: { units: "%" },
+    });
+
+    subject = "cmsdcache01.hep.wisc.edu";
+    var attrs = ["iowait", "user", "softirq", "irq", "system"];
+    var queries = [];
+    $.each(attrs, function (i, attr) {
+      queries.push($.extend(true, {}, common, {
+        subject: subject,
+        attribute: ["stat", "cpu", attr].join("_"),
+        options: { label: attr },
+      }))
+    });
+    $.tsar.plot("#cmsdcache01-stat", {
+      parameters: {
+        filters: ["skipnull", "derive"],
+      },
+      queries: queries,
+      yaxis: {
+        units: "\u2202s",
+      },
+      hooks: {
+        processDatapoints: function (plot, series, datapoints) {
+        if (series.label == "PNFS queue depth") { return; }
+        var points = datapoints.points, ps = datapoints.pointsize;
+          for (var i = 0; i < points.length; i += ps)
+            points[i + 1] /= 100;
+        },
+      },
+    });
+
+  });
+  </script>
+</body>
+</html>
