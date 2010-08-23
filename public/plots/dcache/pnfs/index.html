@@ -100,7 +100,7 @@
     });
 
     subject = "cmsdcache01.hep.wisc.edu";
-    var attrs = ["iowait", "user", "softirq", "irq", "system"];
+    var attrs = ["iowait", "user", "system"];
     var queries = [];
     $.each(attrs, function (i, attr) {
       queries.push($.extend(true, {}, common, {
