@@ -99,10 +99,11 @@ sub vcl_recv {
 }
 
 sub vcl_fetch {
-    if (req.url !~ "^/css/" &&
+    if (req.url ~ "^/css/" &&
             req.url !~ "^/js/" &&
-            req.url !~ "^/esi" &&
-            obj.http.Content-Type ~ "html") {
+            req.url !~ "^/esi") {
+        set obj.ttl = 15 m;
+    } elseif (obj.http.Content-Type ~ "html") {
         esi;
         set obj.ttl = 1 h;
     } 
