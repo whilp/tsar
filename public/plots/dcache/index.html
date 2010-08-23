@@ -73,6 +73,7 @@
 
     var pgroups = ["readpools", "writepools"];
     var uses = ["precious", "used", "total"];
+    var common = { cf: "max", interval: 3600, };
     $.each(pgroups, function (i, p) {
       var queries = [];
       $.each(uses, function (i, u) {
