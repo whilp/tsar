@@ -26,7 +26,6 @@ class DcacheInfo(Collector):
         xpath = partial(expath, root)
 
         pctkeys ="free precious used".split()
-        pct = lambda x, y: y != 0 and (100.0 * x)/y or 0.0
 
         data = {}
 
@@ -48,7 +47,7 @@ class DcacheInfo(Collector):
         total = data["space_total_bytes"]
         for k in pctkeys:
             base = "space_%s" % k
-            data["%s_pct" % base] = pct(data["%s_bytes" % base], total)
+            data["%s_pct" % base] = helpers.pct(data["%s_bytes" % base], total)
 
         # Pools.
         pgroups = ["all"]
@@ -79,7 +78,7 @@ class DcacheInfo(Collector):
 
                 for k in pctkeys:
                     helpers.appendkey(data, "poolgroups_%s_%s_pct" % (group, k),
-                        pct(pspace[k], pspace["total"]))
+                        helpers.pct(pspace[k], pspace["total"]))
 
             for queue in expath(pool, "i:queues//i:queue"):
                 name = queue.get("name", queue.get("type"))
