@@ -69,6 +69,7 @@ section li strong {
 div.tsar-plot {
   width: 800px;
   height: 400px;
+  font-size: .8em;
 }
 div.small div.tsar-plot {
     width: 400px;

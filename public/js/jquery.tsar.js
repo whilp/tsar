@@ -24,7 +24,7 @@
         selection: { mode: "x" },
         shadowSize: 0,
         yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
-        xaxis: { mode: "time" },
+        xaxis: { mode: "time", ticks: [] },
         legend: { show: false },
       },
       hooks: {
