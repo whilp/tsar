@@ -2,7 +2,7 @@
   jQuery.tsar = {
     options: {
       lines: {show: true},
-      selection: { mode: "x" },
+      selection: { mode: "xy" },
       xaxis: { mode: "time" },
       yaxis: { units: false },
       plot: { show: true },
