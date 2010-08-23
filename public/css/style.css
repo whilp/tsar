@@ -79,9 +79,18 @@ div.tsar-overview {
   width: 800px;
   height: 100px;
 }
+div.tsar-legend {
+  width: 800px;
+}
+div.tsar-legend tr {
+  padding-right: 1em;
+}
 div.small div.tsar-overview {
   width: 400px;
   height: 50px;
+}
+div.small div.tsar-legend {
+  width: 400px;
 }
 div.tsar-legend tr {
     float: left;
