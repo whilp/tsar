@@ -27,11 +27,8 @@ class PnfsManager(AdminMixin, Collector):
         if not lines:
             return 1
 
-        stats = {}
         state = ""
-        stats["failrates"] = dict((k, 0) for k in 
-            "getfilemetadata getstorageinfo total".split())
-
+        stats = {}
         for line in lines:
             line = line.strip()
             if not line:
@@ -46,7 +43,7 @@ class PnfsManager(AdminMixin, Collector):
                     state = ""
                     continue
                 _, depth = line.split(None, 1)
-                stats.setdefault("queue_depth", []).append(depth)
+                helpers.appendkey(stats, "msg_queue_depth", depth)
             elif state == "stats":
                 if not line or line.startswith("PnfsManagerV3"):
                     continue
@@ -56,25 +53,24 @@ class PnfsManager(AdminMixin, Collector):
                 msgtype = helpers.rtrim(msgtype, "Message")
                 msgtype = helpers.trim(msgtype, "Pnfs")
                 msgtype = msgtype.lower()
-                if msgtype not in stats["failrates"]: continue
 
                 requests = int(requests)
-                failed = float(failed)
-                failrate = requests == 0 and requests or failed/requests
-                stats["failrates"][msgtype] = 100 * failrate
+                failed = int(failed)
+
+                helpers.incrkey(stats, "msg_%s_requests" % msgtype, requests)
+                helpers.incrkey(stats, "msg_%s_fails" % msgtype, failed)
+                helpers.incrkey(stats, "msg_%s_failrate" % msgtype, 
+                    helpers.pct(failed, requests))
 
         data = []
         subject = "dcache_pnfsmanager"
 
-        failrates = stats["failrates"]
-        for msgtype, rate in failrates.items():
-            data.append((subject, "failrate_%s" % msgtype, t, rate))
-
-        depth = stats.pop("queue_depth", [])
+        depth = stats.pop("msg_queue_depth", [])
         if not depth:
             return 1
 
-        data.append((subject, "queue_depth", t, [int(x) for x in depth]))
+        data.append((subject, "msg_queue_depth", t, [int(x) for x in depth]))
+        data.extend((subject, k, t, v) for k, v in stats.items())
 
         self.submit(data)
 
