@@ -132,8 +132,13 @@
             plot.setSelection(ranges);
           });
           overviewelem.bind("plotunselected", function () {
-            var xaxis = plot.getAxes().xaxis;
-            plot.setSelection({ xaxis: { from: xaxis.datamin, to: xaxis.datamax }});
+            var axes = plot.getAxes(),
+              xaxis = axes.xaxis,
+              yaxis = axes.yaxis;
+            plot.setSelection({ 
+              xaxis: { from: xaxis.datamin, to: xaxis.datamax },
+              yaxis: { from: yaxis.datamin, to: yaxis.datamax },
+            });
             overview.clearSelection(true);
           });
         };
@@ -141,6 +146,7 @@
           plot = $.plot(plotelem, data,
             $.extend(true, {}, options, {
               xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+              yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to },
               bars: { 
                 barWidth: 
                   10 * ((ranges.xaxis.from - ranges.xaxis.to)/plotelem.width()),
