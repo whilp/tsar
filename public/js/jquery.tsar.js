@@ -33,14 +33,16 @@
           var axes = ["yaxis", "y2axis"];
           for (var i in axes) {
             var axisname = axes[i],
-              units = options[axisname].units;
-            if (units) {
+              units = options[axisname].units,
+              unitformatter = options[axisname].unitformatter;
+            if (units || unitformatter) {
               var axis = plot.getAxes()[axisname];
               axis.units = units;
+              axis.unitformatter = unitformatter;
 
-              var formatter, secformatter, siformatter;
-              function secformatter (v, axis) {
-                return v.toFixed(axis.tickDecimals) + "s";
+              var formatter, uformatter, siformatter;
+              function uformatter (v, axis) { 
+                return v.toFixed(axis.tickDecimals) + (axis.units ? axis.units : "");
               }
               function siformatter (v, axis) {
                 factor = $.tsar.sifactor(axis.max);
@@ -48,11 +50,10 @@
                 v = v.toFixed(axis.tickDecimals);
                 return v + " " + factor.prefix + axis.units;
               }
-              if (options[axisname].units == "seconds" || 
-                  options[axisname].units == "s") {
-                formatter = secformatter;
-              } else {
+              if (unitformatter == "si") {
                 formatter = siformatter;
+              } else if (units) {
+                formatter = uformatter;
               }
               if (!options[axisname].tickFormatter) {
                 options[axisname].tickFormatter = formatter;
