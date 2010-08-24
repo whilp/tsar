@@ -186,6 +186,13 @@ snrd4 = {
         (39 * (y[3] - y[-3])) - (32 * (y[4] - y[-4])) - (11 * (y[5] - y[-5])))/(1536 * h)
 }
 
+differentiators = {
+    "stencil": stencils,
+    "snrd2": snrd2,
+    "snrd4": snrd4,
+    "lanczos2": lanczos2,
+    "lanczos4": lanczos4,
+}
 
 def adiff(seq, points=5, fxns={}):
     """Generate approximate values for the first derivative of *seq*.

@@ -10,6 +10,7 @@ try:
 except ImportError:
     mimetypes = None
 
+from functools import partial
 from urllib2 import quote, unquote
 
 from neat import neat
@@ -18,7 +19,7 @@ from . import errors, model
 from .commands import DBMixin, DaemonizingSubCommand
 from .commands import (
     Application, CommandLineMixin, DaemonizingMixin, LoggingMixin)
-from .util import Decorator, derive, json, parsedsn, trim
+from .util import Decorator, adiff, derive, differentiators, json, parsedsn, trim
 
 __all__ = ["Records", "service"]
 
@@ -53,6 +54,9 @@ class AllRecords(neat.Resource):
         "skipnull": lambda r: (x for x in r if x[1] is not None),
         "derive": derive,
     }
+    for name, ds in differentiators.items():
+        for n, fxn in ds.items():
+            filters["%s-%d" % (name, n)] = partial(fxn, points=n, fxns=ds)
 
     def decodeid(self, id):
         return tuple(unquote(id.encode("utf8")).split('/'))
