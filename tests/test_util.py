@@ -22,6 +22,3 @@ class TestFilters(BaseTest):
         # Because self.data[2] has None as a neighbor
         self.assertEqual(data[0][0], self.data[3][0])
         self.assertEqual(len(self.data) - len(data), 5)
-        f = open("data.json", 'w')
-        import json
-        json.dump({"data": self.data, "derive": data}, f)
