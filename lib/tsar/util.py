@@ -4,9 +4,9 @@ import operator
 import sys
 
 try:
-	import json
+    import json
 except ImportError: # pragma: nocover
-	import simplejson as json
+    import simplejson as json
 
 try:
     from functools import wraps
