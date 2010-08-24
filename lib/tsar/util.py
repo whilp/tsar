@@ -187,7 +187,15 @@ snrd4 = {
 }
 
 
-def derive(seq, points=5):
+def adiff(seq, points=5, fxns={}):
+    """Generate approximate values for the first derivative of *seq*.
+
+    *seq* is a sequence of (x, y) tuples, where x increases at a constant rate. 
+    *points* is an integer indicating the number of neighbor points to consider 
+    when approximating f`(x). *fxns* is a dictionary mapping the number of
+    points to a function that, given the list of neighboring f(x) values centered
+    at x, calculates f`(x).
+    """
     h = None
     ys = range(points)
     xs = list(ys)
@@ -204,6 +212,8 @@ def derive(seq, points=5):
             x = xs[center]
             y = ys[center:] + ys[:center]
             try:
-                yield (x, (-y[2] + (8 * y[1]) - (8 * y[-1]) + y[-2])/(12 * h))
+                yield (x, fxns[points](y, h))
             except TypeError:
                 yield (x, None)
+
+derive = functools.partial(adiff, fxns=stencils)
