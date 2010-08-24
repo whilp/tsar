@@ -82,7 +82,7 @@
       }
       $.tsar.plot("#pnfs-msg-" + status, {
         parameters: {
-          filters: ["skipnull", "derive"],
+          filters: ["skipnull", "snrd4-11"],
         },
         queries: queries,
         yaxis: { units: "\u2202" },
@@ -111,7 +111,7 @@
     });
     $.tsar.plot("#cmsdcache01-stat", {
       parameters: {
-        filters: ["skipnull", "derive"],
+        filters: ["skipnull", "snrd4-11"],
       },
       queries: queries,
       yaxis: {
