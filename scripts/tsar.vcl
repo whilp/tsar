@@ -7,7 +7,7 @@ director tsar round-robin {
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
@@ -18,7 +18,7 @@ director tsar round-robin {
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
@@ -29,7 +29,7 @@ director tsar round-robin {
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
@@ -40,52 +40,51 @@ director tsar round-robin {
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
-
     { .backend = {
-        .host = "144.92.181.93";
-        .port = "8000";
+        .host = "144.92.181.91";
+        .port = "8004";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
-        .host = "144.92.181.93";
-        .port = "8001";
+        .host = "144.92.181.91";
+        .port = "8005";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
-        .host = "144.92.181.93";
-        .port = "8002";
+        .host = "144.92.181.91";
+        .port = "8006";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
     { .backend = {
-        .host = "144.92.181.93";
-        .port = "8003";
+        .host = "144.92.181.91";
+        .port = "8007";
         .probe = {
             .url = "/_ping";
             .interval = 5s;
             .timeout = 10s;
             .window = 8;
-            .threshold = 3;
+            .threshold = 5;
         }
     }}
 
