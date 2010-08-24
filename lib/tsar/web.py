@@ -55,8 +55,8 @@ class AllRecords(neat.Resource):
         "derive": derive,
     }
     for name, ds in differentiators.items():
-        for n, fxn in ds.items():
-            filters["%s-%d" % (name, n)] = partial(fxn, points=n, fxns=ds)
+        for n in ds:
+            filters["%s-%d" % (name, n)] = partial(adiff, points=n, fxns=ds)
 
     def decodeid(self, id):
         return tuple(unquote(id.encode("utf8")).split('/'))
