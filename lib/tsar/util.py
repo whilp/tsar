@@ -134,6 +134,59 @@ def trim(s, subs, reverse=False):
 
 rtrim = functools.partial(trim, reverse=True)
 
+# Various filters for numerical differentiation.
+
+# N-point stencils (see eg http://www.holoborodko.com/pavel/?page_id=239)
+stencils = {
+    3: lambda y, h: (y[1] - y[-1])/(2 * h),
+    5: lambda y, h: (y[-2] - (8 * y[-1]) + (8 * y[1]) - y[2])/(12 * h),
+    7: lambda y, h: (-y[-3] + (9 * y[-2]) - (45 * y[-1]) + \
+        (45 * y[1]) - (9 * y[2]) + y[3])/(60 * h),
+    9: lambda y, h: ((3 * y[-4]) - (32 * y[-3]) + (168 * y[-2]) - (672 * y[-1]) + \
+        (672 * y[1]) - (168 * y[2]) + (32 * y[3]) - (3 * y[4]))/(840 * h),
+}
+
+# See: http://www.holoborodko.com/pavel/?page_id=242
+lanczos2 = {
+    5: lambda y, h: (y[1] - y[-1] + (2 * (y[2] - y[-2])))/(10 * h),
+    7: lambda y, h: (y[1] - y[-1] + (2 * (y[2] - y[-2])) + \
+        (3 * (y[3] - y[-3])))/(28 * h),
+    9: lambda y, h: (y[1] - y[-1] + (2 * (y[2] - y[-2])) + \
+        (3 * (y[3] - y[-3])) + (4 * (y[4] - y[-4])))/(60 * h),
+    11: lambda y, h: (y[1] - y[-1] + (2 * (y[2] - y[-2])) + \
+        (3 * (y[3] - y[-3])) + (4 * (y[4] - y[-4])) + \
+            (5 * (y[5] - y[-5])))/(110 * h),
+}
+lanczos4 = {
+    7: lambda y, h: ((58 * (y[1] - y[-1])) + (67 * (y[2] - y[-2])) - \
+        (22 * (y[3] - y[-3])))/(252 * h),
+    9: lambda y, h: ((126 * (y[1] - y[-1])) + (193 * (y[2] - y[-2])) + \
+        (142 * (y[3] - y[-3])) - (86 * (y[4] - y[-4])))/(1188 * h),
+    11: lambda y, h: ((296 * (y[1] - y[-1])) + (503 * (y[2] - y[-2])) + \
+        (532 * (y[3] - y[-3])) + (294 * (y[4] - y[-4])) - \
+            (300 * (y[5] - y[-5])))/(5148 * h),
+}
+
+# See: http://www.holoborodko.com/pavel/?page_id=245
+snrd2 = {
+    5: lambda y, h: ((2 * (y[1] - y[-1])) + y[2] - y[-2])/(8 * h),
+    7: lambda y, h: ((5 * (y[1] - y[-1])) + (4 * (y[2] - y[-2])) + \
+        y[3] - y[-3])/(32 * h),
+    9: lambda y, h: ((14 * (y[1] - y[-1])) + (14 * (y[2] - y[-2])) + \
+        (6 * (y[3] - y[-3])) + y[4] - y[-4])/(128 * h),
+    11: lambda y, h: ((42 * (y[1] - y[-1])) + (48 * (y[2] - y[-2])) + \
+        (27 * (y[3] - y[-3])) + (8 * (y[4] - y[-4])) + y[5] - y[-5])/(512 * h),
+}
+snrd4 = {
+    7: lambda y, h: ((39 * (y[1] - y[-1])) + (12 * y[2] - y[-2]) - \
+        (5 * (y[3] - y[-3])))/(96 * h),
+    9: lambda y, h: ((27 * (y[1] - y[-1])) + (16 * (y[2] - y[-2])) - \
+        (y[3] - y[-3]) - (2 * (y[4] - y[-4])))/(96 * h),
+    11: lambda y, h: ((322 * (y[1] - y[-1])) + (256 * (y[2] - y[-2])) + \
+        (39 * (y[3] - y[-3])) - (32 * (y[4] - y[-4])) - (11 * (y[5] - y[-5])))/(1536 * h)
+}
+
+
 def derive(seq, points=5):
     h = None
     ys = range(points)
