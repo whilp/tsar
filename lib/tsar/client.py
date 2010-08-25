@@ -203,7 +203,8 @@ class Tsar(RESTClient):
         """
         rid = self.resource(subject, attribute, cf)
         resource = '/'.join((self.service, rid))
-        if "filters" in query:
+        filters = query.get("filters", None)
+        if filters is not None:
             query["filters"] = ','.join(filters)
         if query:
             resource += '?' + urlencode(query)
