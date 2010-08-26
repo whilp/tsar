@@ -2,6 +2,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8000";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -13,6 +15,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8001";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -24,6 +28,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8002";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -35,6 +41,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8003";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -46,6 +54,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8004";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -57,6 +67,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8005";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -68,6 +80,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8006";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -79,6 +93,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
         .port = "8007";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -91,6 +107,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8000";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -102,6 +120,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8001";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -113,6 +133,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8002";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -124,6 +146,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8003";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -135,6 +159,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8004";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -146,6 +172,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8005";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -157,6 +185,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8006";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
@@ -168,6 +198,8 @@ director tsar round-robin {
     { .backend = {
         .host = "144.92.181.93";
         .port = "8007";
+        .connect_timeout = 60s;
+        .first_byte_timeout = 60s;
         .probe = {
             .url = "/_ping";
             .interval = 5s;
