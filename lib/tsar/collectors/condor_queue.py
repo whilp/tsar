@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import shlex
+
+from itertools import chain
+
 from . import helpers
 from .commands import Collector
 
@@ -16,8 +20,11 @@ class CondorQueue(Collector):
     }
 
     def main(self):
-        cmd = ["/condor/bin/condor_q", "-global",
-            # Pool/schedd will be inserted here.
+        cmd = shlex.split(self.params.condorq)
+        if self.params.pool:
+            cmd.extend(["-pool", self.params.pool])
+        cmd.extend(chain(*[("-name", s) for s in self.params.names]))
+        cmd.extend([
             "-attributes", ','.join(self.attributes),
             "-format", "runtime=%d\n", "RemoteWallClockTime + (CurrentTime - EnteredCurrentStatus)",
             "-format", "user=%s", "Owner",
@@ -27,12 +34,7 @@ class CondorQueue(Collector):
             "-format", "gridresource=%s\n", "GridResource",
             "-format", "jobstatus=%d\n", "JobStatus",
             "-format", "globaljobid=%s\n\n", "GlobalJobId",
-        ]
-        pool = self.params.pool[0]
-        target = ["-pool", pool]
-        if self.params.name:
-            target = ["-name", pool]
-        cmd = helpers.insert(cmd, 1, target)
+        ])
 
         t = self.now
         if self.params.input:
@@ -102,14 +104,15 @@ class CondorQueue(Collector):
         Collector.setup(self)
         self.argparser = self.parent.subparsers.add_parser("condor-queue", 
             help="Condor batch queues")
-        self.add_param("pool", nargs=1, help="Condor pool to query")
+        self.add_param("names", nargs="+", help="schedds to query")
+        self.add_param("-c", "--condorq", default="/condor/bin/condor_q",
+            help="path to condor_q executable (and optional extra arguments)")
         self.add_param("-i", "--input", default=False,
             help="use file INPUT instead of running condor_q")
         self.add_param("-o", "--output", default=False,
             help="write condor_q output to file OUTPUT")
-        self.add_param("-n", "--name", default=False, action="store_true",
-            help="POOL is a schedd, not a pool (default: false)")
-
+        self.add_param("-p", "--pool", default=None,
+            help="pool in which to find the schedd(s)")
 
 if __name__ == "__main__":
     condor_queue.run()
