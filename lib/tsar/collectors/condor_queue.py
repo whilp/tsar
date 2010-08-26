@@ -18,6 +18,7 @@ class CondorQueue(Collector):
         4: "completed",
         5: "held",
     }
+    terminator = "__TERMINATOR__"
 
     def main(self):
         cmd = shlex.split(self.params.condorq)
@@ -33,7 +34,7 @@ class CondorQueue(Collector):
             "-format", "prodagentjobtype=%s\n", "ProdAgent_JobType",
             "-format", "gridresource=%s\n", "GridResource",
             "-format", "jobstatus=%d\n", "JobStatus",
-            "-format", "globaljobid=%s\n\n", "GlobalJobId",
+            "-format", "globaljobid=%%s\n%s\n" % self.terminator, "GlobalJobId",
         ])
 
         t = self.now
