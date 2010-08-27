@@ -220,12 +220,10 @@ sub vcl_recv {
 
 sub vcl_fetch {
     if (req.url ~ "^/css/" &&
-            req.url !~ "^/js/" &&
-            req.url !~ "^/esi") {
-        set obj.ttl = 15 m;
+            req.url !~ "^/js/") {
+        set obj.ttl = 15m;
     } elseif (obj.http.Content-Type ~ "html") {
-        esi;
-        set obj.ttl = 1 h;
+        set obj.ttl = 30m;
     } 
     if (obj.status >= 300) {
         pass;
