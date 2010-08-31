@@ -1,0 +1,52 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="utf-8" /> 
+  <title>PAGE NAME</title> 
+  <!-- NOTE: If this page is not hosted on the tsar service itself, make the
+  <script> and <link>  rel/src attributes absolute by prepending the service
+  URL ('http://tsar.hep.wisc.edu/'). -->
+  <link rel="stylesheet" href="/css/style.css" /> 
+  <!--[if IE]>
+  <script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <script src="http://www.google.com/jsapi"></script>
+  <script>
+    google.load("jquery", "1.4.2");
+  </script>
+  <script src="/js/jquery.flot.min.js"></script>
+  <script src="/js/jquery.flot.selection.min.js"></script>
+  <script src="/js/jquery.tsar.js"></script>
+</head> 
+ 
+<body> 
+  <h1>PAGE NAME</h1>
+
+  <div>
+   <div id="plot-container" class="container">
+     <h2>PLOT NAME</h2>
+   </div>
+  </div>
+
+  <script>
+  $(function () {
+    $.tsar.options = $.extend($.tsar.options, {
+      service: "http://tsar.hep.wisc.edu/records",
+    });
+
+    $.tsar.plot("#plot-container", {
+      queries: [
+        {
+          interval: 60,
+          subject: "SUBJECT",
+          attribute: "ATTRIBUTE",
+          cf: "CF",
+          options: { label: "PLOT LABEL" },
+      ],
+    });
+  });
+  </script>
+</body>
+</html>
