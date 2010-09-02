@@ -1,3 +1,5 @@
+# To verify syntax: varnishd -C -f ./scripts/tsar.vcl
+
 director tsar round-robin {
     { .backend = {
         .host = "144.92.181.91";
