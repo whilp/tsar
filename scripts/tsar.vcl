@@ -214,7 +214,7 @@ director tsar round-robin {
 }
 
 backend tsardev {
-    .host = "tsar-dev.hep.wisc.edu";
+    .host = "144.92.181.91";
     .port = "9000";
 }
 
