@@ -56,6 +56,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 """
 
 __todo__ = """\
+ * serve: does start=X (and start=-X) not cut off earlier data? (mbanderson)
+ * collect condor-queue: filter out jobs with undefined RouteNames (mbanderson)
+ * collect condor-queue: sum production like (held+idle+running) for a given site (mbanderson)
+ * collect condor-queue: 
  * tsar rename <subject> <attribute> <cf> (model.Records.rename)
  * tsar delete <subject> <attribute> <cf> (model.Records.delete)
  * rest of client API in tsar CLI
