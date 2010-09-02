@@ -211,9 +211,19 @@ director tsar round-robin {
 
 }
 
+backend tsardev {
+    .host = "tsar-dev.hep.wisc.edu";
+    .port = "9000";
+}
+
 sub vcl_recv { 
-    set req.http.host = "tsar.hep.wisc.edu";
-    set req.backend = tsar;
+    if (req.http.host ~ "^tsar-dev") {
+        set req.http.host = "tsar-dev.hep.wisc.edu";
+        set req.backend = tsardev;
+    } else {
+        set req.http.host = "tsar.hep.wisc.edu";
+        set req.backend = tsar;
+    }
     remove req.http.X-Forwarded-For;
     set req.http.X-Forwarded-For = client.ip;
 }
