@@ -228,6 +228,9 @@ sub vcl_recv {
     }
     remove req.http.X-Forwarded-For;
     set req.http.X-Forwarded-For = client.ip;
+    if (req.http.host ~ "^tsar-dev") {
+        pass;
+    }
 }
 
 sub vcl_fetch {
