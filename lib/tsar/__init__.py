@@ -63,5 +63,10 @@ __todo__ = """\
  * tsar rename <subject> <attribute> <cf> (model.Records.rename)
  * tsar delete <subject> <attribute> <cf> (model.Records.delete)
  * rest of client API in tsar CLI
+ * collectors -> namespace package, split out of repository
+ * de-hep.wisc.edu-ize stuff
+ * generalize client.py, serve.py into interfaces namespace package (w/ Client, Server classes)
+ * add protobuf/thrift/non-HTTP interface
+ * profile
  * docs
 """.split(" * ")
