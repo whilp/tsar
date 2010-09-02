@@ -19,6 +19,52 @@ class CondorQueue(Collector):
         5: "held",
     }
     terminator = "__TERMINATOR__"
+    recordtypes = {
+    }
+
+    def convert(self, record, types):
+        return dict((k, types[k](v) if k in types else v) for k, v in record.items())
+
+    def parse(self, record, data):
+        if line == self.terminator:
+            status = state.get("status", None):
+            if status in ("running", "held", "idle"):
+                keys = []
+                if "user" in state:
+                    keys.append("owner_%(user)s_%(status)s_jobs")
+                if "gridresource" in state:
+                    keys.append("prod_%(gridresource)s_%(status)s_jobs")
+                if "pajobtype" in state:
+                    keys.append("prod_%(pajobtype)s_%(status)s_jobs")
+                if all(k in state for k in ("gridresource", "pajobtype")):
+                    keys.append("prod_%(gridresource)s_%(pajobtype)s_%(status)s_jobs")
+                for key in keys:
+                    helpers.incrkey(cqdata, key % state)
+                key = "%(status)s_jobs" % state
+            state = {}
+            continue
+
+        key = None
+        k, v = line.split('=', 1)
+        if k == "runtime":
+            runtimes = cqdata.setdefault("job_runtime", [])
+            runtimes.append(int(v))
+        elif k == "user":
+            users = cqdata.setdefault("condor_users", set())
+            users.add(v)
+            state["user"] = v.partition('|')[0]
+        elif k == "prodagentjobtype":
+            state["pajobtype"] = v.lower()
+        elif k == "gridresource":
+            gridresource = v.split()[1]
+            state["gridresource"] = gridresource.split('/')[0]
+		elif k == "globaljobid":
+			key = "total_jobs"
+		elif k == "jobstatus":
+			state["status"] = self.jobstatusmap[int(v)]
+			
+		if key is not None:
+            helpers.incrkey(cqdata, key)
 
     def main(self):
         cmd = shlex.split(self.params.condorq)
@@ -46,49 +92,19 @@ class CondorQueue(Collector):
                 return 0
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
-            
-        cqdata = {}
-        state = {}
+
+        scheddata = {}
+        record = {}
         for line in stdout.splitlines():
             if not line:
                 continue
+            elif line == self.terminator:
+                self.parse(record, scheddata)
+                record = {}
+            else:
+                k, _, v = line.partition('=')
+                record[k] = v
 
-            key = None
-            k, v = line.split('=', 1)
-            if k == "runtime":
-                runtimes = cqdata.setdefault("job_runtime", [])
-                runtimes.append(int(v))
-            elif k == "user":
-                users = cqdata.setdefault("condor_users", set())
-                users.add(v)
-                state["user"] = v.partition('|')[0]
-            elif k == "prodagentjobtype":
-                state["pajobtype"] = v.lower()
-            elif k == "gridresource":
-                gridresource = v.split()[1]
-                state["gridresource"] = gridresource.split('/')[0]
-            elif k == "globaljobid":
-                key = "total_jobs"
-                state = {}
-            elif k == "jobstatus":
-                status = self.jobstatusmap[int(v)]
-                state["status"] = status
-                if status in ("running", "held", "idle"):
-                    keys = []
-                    if "user" in state:
-                        keys.append("owner_%(user)s_%(status)s_jobs")
-                    if "gridresource" in state:
-                        keys.append("prod_%(gridresource)s_%(status)s_jobs")
-                    if "pajobtype" in state:
-                        keys.append("prod_%(pajobtype)s_%(status)s_jobs")
-                    if all(k in state for k in ("gridresource", "pajobtype")):
-                        keys.append("prod_%(gridresource)s_%(pajobtype)s_%(status)s_jobs")
-                    for key in keys:
-                        helpers.incrkey(cqdata, key % state)
-                    key = "%(status)s_jobs" % state
-                
-            if key is not None:
-                helpers.incrkey(cqdata, key)
 
         data = []
         subject = pool
