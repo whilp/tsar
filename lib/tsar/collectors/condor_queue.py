@@ -9,8 +9,7 @@ from .commands import Collector
 
 class CondorQueue(Collector):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
-         JobStartDate JobStatus ProdAgent_JobType GridResource RouteName 
-         GlobalJobId""".split()
+         JobStartDate JobStatus ProdAgent_JobType GridResource GlobalJobId""".split()
     terminator = "__TERMINATOR__"
     jobstatusmap = {
         0: "unexpanded",
