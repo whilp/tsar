@@ -100,12 +100,13 @@ class CondorQueue(Collector):
             if not line:
                 continue
             elif line == self.terminator:
+                # End of a record.
                 self.parse(record, scheddata)
                 record = {}
             else:
+                # Entry in a record.
                 k, _, v = line.partition('=')
                 record[k] = v
-
 
         data = []
         subject = pool
