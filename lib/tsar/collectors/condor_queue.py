@@ -11,6 +11,7 @@ class CondorQueue(Collector):
     attributes = """Owner RemoteWallClockTime CurrentTime x509userproxysubject
          JobStartDate JobStatus ProdAgent_JobType GridResource RouteName 
          GlobalJobId""".split()
+    terminator = "__TERMINATOR__"
     jobstatusmap = {
         0: "unexpanded",
         1: "idle",
@@ -19,8 +20,12 @@ class CondorQueue(Collector):
         4: "completed",
         5: "held",
     }
-    terminator = "__TERMINATOR__"
     recordtypes = {
+        "runtime": int,
+        "user": lambda x: x.partition('|')[0],
+        "prodagentjobtype": lambda x: x.lower(),
+        "gridresource": lambda x: x.split()[1],
+        "jobstatus": jobstatusmap[int(x)],
     }
 
     def convert(self, record, types):
