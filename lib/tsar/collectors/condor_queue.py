@@ -26,54 +26,47 @@ class CondorQueue(Collector):
         "prodagentjobtype": lambda x: x.lower(),
         "gridresource": lambda x: x.split()[1],
         "jobstatus": jobstatusmap[int(x)],
+        "globaljobid": lambda x: x.split('#'),
     }
+    keys = [
+        "owner_%(user)s_%(status)s_jobs",
+        "prod_%(gridresource)s_%(status)s_jobs",
+        "prod_%(pajobtype)s_%(status)s_jobs",
+        "prod_%(gridresource)s_%(pajobtype)s_%(status)s_jobs",
+    ]
 
     def convert(self, record, types):
         return dict((k, types[k](v) if k in types else v) for k, v in record.items())
 
-    def handlerecord(self, record, data):
-		
-        if line == self.terminator:
-            status = state.get("status", None):
-            if status in ("running", "held", "idle"):
-                keys = []
-                if "user" in state:
-                    keys.append("owner_%(user)s_%(status)s_jobs")
-                if "gridresource" in state:
-                    keys.append("prod_%(gridresource)s_%(status)s_jobs")
-                if "pajobtype" in state:
-                    keys.append("prod_%(pajobtype)s_%(status)s_jobs")
-                if all(k in state for k in ("gridresource", "pajobtype")):
-                    keys.append("prod_%(gridresource)s_%(pajobtype)s_%(status)s_jobs")
-                for key in keys:
-                    helpers.incrkey(cqdata, key % state)
-                key = "%(status)s_jobs" % state
-            state = {}
-            continue
-
-        key = None
-        k, v = line.split('=', 1)
-        if k == "runtime":
-            runtimes = cqdata.setdefault("job_runtime", [])
-            runtimes.append(int(v))
-        elif k == "user":
-            users = cqdata.setdefault("condor_users", set())
-            users.add(v)
-            state["user"] = v.partition('|')[0]
-        elif k == "prodagentjobtype":
-            state["pajobtype"] = v.lower()
-        elif k == "gridresource":
-            gridresource = v.split()[1]
-            state["gridresource"] = gridresource.split('/')[0]
-        elif k == "globaljobid":
-            key = "total_jobs"
-        elif k == "jobstatus":
-            state["status"] = self.jobstatusmap[int(v)]
+    def handlerecord(self, record, data, aggregate=None):
+        resource = record.get("gridresource", None)
+        schedd = record.get("globaljobid", [None])[0]
+        status = record.get("status", None)
+        runtime = record.get("runtime", None)
+        user = record.get("user", None)
+        if not all((resource, schedd, status in ("running", "held", "idle"))):
+            return
             
-        if key is not None:
-            helpers.incrkey(cqdata, key)
+        subjects = [schedd]
+        if aggregate is not None:
+            subjects.append(aggregate)
 
-    def parse(self, lines):
+        for subject in subjects:
+            _data = data[subject]
+            if runtime:
+                _data.setdefault("job_runtime", []).append(runtime)
+            if user:
+                _data.setdefault("condor_users", set()).add(user)
+
+            for key in self.keys:
+                try:
+                    key = key % record
+                except TypeError:
+                    # The key needs data this record doesn't have.
+                    continue
+                helpers.incrkey(_data, key)
+
+    def parse(self, lines, aggregate=None):
         data = {}
         record = {}
         for line in lines:
@@ -82,7 +75,7 @@ class CondorQueue(Collector):
             elif line == self.terminator:
                 # End of a record.
                 record = self.convert(record, self.recordtypes)
-                self.handlerecord(record, data)
+                self.handlerecord(record, data, aggregate)
                 record = {}
             else:
                 # Entry in a record.
@@ -108,6 +101,9 @@ class CondorQueue(Collector):
             "-format", "globaljobid=%%s\n%s\n" % self.terminator, "GlobalJobId",
         ])
 
+        if not self.params.aggregate and self.params.only_aggregate:
+            self.argparser.error("must specify -a/--aggregate with -A/--only-aggregate")
+
         t = self.now
         if self.params.input:
             stdout = open(self.params.input, 'r').read()
@@ -118,7 +114,7 @@ class CondorQueue(Collector):
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
 
-        data = self.parse(stdout.splitlines())
+        data = self.parse(stdout.splitlines(), self.params.aggregate)
 
         data = []
         subject = pool
@@ -136,6 +132,10 @@ class CondorQueue(Collector):
         self.argparser = self.parent.subparsers.add_parser("condor-queue", 
             help="Condor batch queues")
         self.add_param("names", nargs="+", help="schedds to query")
+        self.add_param("-a", "--aggregate", default=None,
+            help="sum metrics for each schedd and report as AGGREGATE")")
+        self.add_param("-A", "--only-aggregate", default=False, action="store_true",
+            help="only report aggregated metrics (see -a)")
         self.add_param("-c", "--condorq", default="/condor/bin/condor_q",
             help="path to condor_q executable (and optional extra arguments)")
         self.add_param("-i", "--input", default=False,
