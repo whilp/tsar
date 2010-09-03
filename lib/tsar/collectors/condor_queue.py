@@ -26,7 +26,8 @@ class CondorQueue(Collector):
     def convert(self, record, types):
         return dict((k, types[k](v) if k in types else v) for k, v in record.items())
 
-    def parse(self, record, data):
+    def handlerecord(self, record, data):
+		
         if line == self.terminator:
             status = state.get("status", None):
             if status in ("running", "held", "idle"):
@@ -59,13 +60,31 @@ class CondorQueue(Collector):
         elif k == "gridresource":
             gridresource = v.split()[1]
             state["gridresource"] = gridresource.split('/')[0]
-		elif k == "globaljobid":
-			key = "total_jobs"
-		elif k == "jobstatus":
-			state["status"] = self.jobstatusmap[int(v)]
-			
-		if key is not None:
+        elif k == "globaljobid":
+            key = "total_jobs"
+        elif k == "jobstatus":
+            state["status"] = self.jobstatusmap[int(v)]
+            
+        if key is not None:
             helpers.incrkey(cqdata, key)
+
+    def parse(self, lines):
+        data = {}
+        record = {}
+        for line in lines:
+            if not line:
+                continue
+            elif line == self.terminator:
+                # End of a record.
+                record = self.convert(record, self.recordtypes)
+                self.handlerecord(record, data)
+                record = {}
+            else:
+                # Entry in a record.
+                k, _, v = line.partition('=')
+                record[k] = v
+
+        return data
 
     def main(self):
         cmd = shlex.split(self.params.condorq)
@@ -94,19 +113,7 @@ class CondorQueue(Collector):
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
 
-        scheddata = {}
-        record = {}
-        for line in stdout.splitlines():
-            if not line:
-                continue
-            elif line == self.terminator:
-                # End of a record.
-                self.parse(record, scheddata)
-                record = {}
-            else:
-                # Entry in a record.
-                k, _, v = line.partition('=')
-                record[k] = v
+        data = self.parse(stdout.splitlines())
 
         data = []
         subject = pool
