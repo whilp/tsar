@@ -113,16 +113,13 @@ class CondorQueue(Collector):
             if self.params.output:
                 open(self.params.output, 'w').write(stdout)
 
-        data = self.parse(stdout.splitlines(), self.params.aggregate)
-
         data = []
-        subject = pool
-
-        users = cqdata.pop("condor_users", None)
-        if users:
-            data.append((subject, "users", t, len(users)))
-
-        data.extend((subject, k, t, v) for k, v in cqdata.items())
+        parsed = self.parse(stdout.splitlines(), self.params.aggregate)
+        for subject, _data in parsed.items():
+            users = _data.pop("condor_users", None)
+            if users:
+                data.append((subject, "users", t, len(users)))
+            data.extend((subject, k, t, v) for k, v in _data.items())
 
         self.submit(data)
 
